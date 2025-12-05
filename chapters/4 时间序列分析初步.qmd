@@ -1,0 +1,199 @@
+---
+title: "4 时间序列分析初步"
+format: html
+editor: source
+---
+
+## 本章导读
+
+时间序列数据在回归分析框架下面临着独特的挑战，其中自相关问题尤为突出。本章将从回归分析的视角重新审视时间序列数据，系统介绍如何将自相关问题转化为回归模型的方差假设检验问题。通过学习，您将掌握在回归框架下诊断和处理自相关的方法，为时间序列数据建立更可靠的预测模型。
+
+## 4.1 时间序列回归模型的基本框架
+
+### 4.1.1 时间序列回归模型设定
+
+基本回归模型： $$
+Y_t = \beta_0 + \beta_1 X_{t1} + \beta_2 X_{t2} + \cdots + \beta_p X_{tp} + \varepsilon_t
+$$
+
+其中 $\varepsilon_t$ 是误差项，在时间序列背景下可能具有自相关性。
+
+经典回归假设的违背： - 独立性假设：$\text{Cov}(\varepsilon_t, \varepsilon_s) = 0$（当 $t \neq s$）可能不成立 - 同方差性假设：$\text{Var}(\varepsilon_t) = \sigma^2$ 可能随时间变化
+
+### 4.1.2 自相关的回归解释
+
+一阶自回归误差结构： $$
+\varepsilon_t = \rho \varepsilon_{t-1} + u_t
+$$ 其中 $u_t \sim \text{WN}(0, \sigma_u^2)$，且 $|\rho| < 1$
+
+方差-协方差矩阵： 在自相关情况下，误差项的方差-协方差矩阵不再是标量矩阵： $$
+\text{Var}(\boldsymbol{\varepsilon}) = \sigma^2 \boldsymbol{\Omega} = \sigma^2 \begin{pmatrix}
+1 & \rho & \rho^2 & \cdots & \rho^{n-1} \\
+\rho & 1 & \rho & \cdots & \rho^{n-2} \\
+\vdots & \vdots & \vdots & \ddots & \vdots \\
+\rho^{n-1} & \rho^{n-2} & \rho^{n-3} & \cdots & 1
+\end{pmatrix}
+$$
+
+## 4.2 自相关的检验方法
+
+### 4.2.1 基于残差的图形检验法
+
+残差序列图： 绘制残差 $e_t$ 对时间 $t$ 的散点图，观察是否存在： - 系统性模式 - 周期波动 - 趋势性变化
+
+残差自相关图： 计算残差的样本自相关函数： $$
+r_k = \frac{\sum_{t=k+1}^n e_t e_{t-k}}{\sum_{t=1}^n e_t^2}
+$$
+
+### 4.2.2 Durbin-Watson检验
+
+检验统计量： $$
+d = \frac{\sum_{t=2}^n (e_t - e_{t-1})^2}{\sum_{t=1}^n e_t^2}
+$$
+
+统计量的性质： - $d \approx 2(1 - r_1)$，其中 $r_1$ 是一阶自相关系数 - $d \to 2$：无自相关 - $d \to 0$：正自相关 - $d \to 4$：负自相关
+
+假设检验： - $H_0: \rho = 0$（无自相关） - 通过Durbin-Watson表查找临界值
+
+### 4.2.3 Breusch-Godfrey检验（LM检验）
+
+辅助回归模型： $$
+e_t = \alpha_0 + \alpha_1 X_{t1} + \cdots + \alpha_p X_{tp} + \phi_1 e_{t-1} + \cdots + \phi_m e_{t-m} + u_t
+$$
+
+检验统计量： $$
+\text{LM} = (n-m)R^2 \sim \chi^2(m)
+$$ 其中 $R^2$ 是辅助回归的决定系数。
+
+检验步骤： 1. 用OLS估计原模型，得到残差 $e_t$ 2. 建立包含滞后残差的辅助回归 3. 计算LM统计量并进行检验
+
+### 4.2.4 回归系数的有效性检验
+
+OLS估计量的方差偏误： 在自相关情况下，OLS估计量的真实方差为： $$
+\text{Var}(\hat{\boldsymbol{\beta}}) = \sigma^2(\mathbf{X}'\mathbf{X})^{-1}\mathbf{X}'\boldsymbol{\Omega}\mathbf{X}(\mathbf{X}'\mathbf{X})^{-1}
+$$
+
+传统标准误的偏误： 当存在正自相关时，传统标准误通常被低估，导致： - $t$ 统计量被高估 - 置信区间过窄 - 假设检验的第一类错误率增加
+
+## 4.3 自相关的处理方法
+
+### 4.3.1 广义最小二乘法（GLS）
+
+基本思想：通过变换将自相关误差转化为独立同分布误差。
+
+变换矩阵：寻找矩阵 $\mathbf{P}$，使得： $$
+\mathbf{P}\boldsymbol{\Omega}\mathbf{P}' = \mathbf{I}
+$$
+
+GLS估计量： $$
+\hat{\boldsymbol{\beta}}_{GLS} = (\mathbf{X}'\boldsymbol{\Omega}^{-1}\mathbf{X})^{-1}\mathbf{X}'\boldsymbol{\Omega}^{-1}\mathbf{Y}
+$$
+
+### 4.3.2 Cochrane-Orcutt迭代法
+
+算法步骤：
+
+1.  初始估计：用OLS估计原模型，得到残差 $e_t$
+2.  估计自相关系数： $$
+    \hat{\rho} = \frac{\sum_{t=2}^n e_t e_{t-1}}{\sum_{t=2}^n e_{t-1}^2}
+    $$
+3.  数据变换： $$
+    Y_t^* = Y_t - \hat{\rho} Y_{t-1}, \quad X_{tj}^* = X_{tj} - \hat{\rho} X_{t-1,j}
+    $$
+4.  重新估计：用OLS估计变换后的模型
+5.  迭代：重复步骤2-4直到收敛
+
+### 4.3.3 Prais-Winsten估计
+
+改进的Cochrane-Orcutt方法： 保留第一个观测的变换： $$
+Y_1^* = \sqrt{1-\hat{\rho}^2}Y_1, \quad X_{1j}^* = \sqrt{1-\hat{\rho}^2}X_{1j}
+$$
+
+其他观测变换同Cochrane-Orcutt方法。
+
+### 4.3.4 Newey-West异方差自相关一致标准误
+
+HAC标准误估计量： $$
+\text{Var}_{HAC}(\hat{\boldsymbol{\beta}}) = (\mathbf{X}'\mathbf{X})^{-1} \mathbf{S} (\mathbf{X}'\mathbf{X})^{-1}
+$$
+
+其中： $$
+\mathbf{S} = \sum_{t=1}^n e_t^2 \mathbf{x}_t\mathbf{x}_t' + \sum_{l=1}^m w_l \sum_{t=l+1}^n (e_t e_{t-l} \mathbf{x}_t\mathbf{x}_{t-l}' + e_t e_{t-l} \mathbf{x}_{t-l}\mathbf{x}_t')
+$$
+
+权重函数（Bartlett核）： $$
+w_l = 1 - \frac{l}{m+1}
+$$
+
+带宽选择： $$
+m = \left\lfloor 4(n/100)^{2/9} \right\rfloor
+$$
+
+## 4.4 动态回归模型
+
+### 4.4.1 分布滞后模型
+
+有限分布滞后模型： $$
+Y_t = \alpha + \sum_{i=0}^k \beta_i X_{t-i} + \varepsilon_t
+$$
+
+无限分布滞后模型（Koyck几何滞后）： $$
+Y_t = \alpha + \beta \sum_{i=0}^\infty \lambda^i X_{t-i} + \varepsilon_t
+$$
+
+### 4.4.2 自回归分布滞后模型（ARDL）
+
+ARDL(p,q)模型： $$
+Y_t = \alpha + \sum_{i=1}^p \phi_i Y_{t-i} + \sum_{j=0}^q \beta_j X_{t-j} + \varepsilon_t
+$$
+
+误差修正形式： $$
+\Delta Y_t = \alpha + \gamma(Y_{t-1} - \theta X_{t-1}) + \sum_{i=1}^{p-1} \phi_i^* \Delta Y_{t-i} + \sum_{j=0}^{q-1} \beta_j^* \Delta X_{t-j} + \varepsilon_t
+$$
+
+### 4.4.3 模型选择与诊断
+
+信息准则： - AIC：$AIC = \ln(\hat{\sigma}^2) + \frac{2k}{n}$ - BIC：$BIC = \ln(\hat{\sigma}^2) + \frac{k\ln(n)}{n}$
+
+残差诊断： - Durbin-Watson检验 - Breusch-Godfrey检验 - 残差自相关图分析
+
+## 4.5 案例分析
+
+## 本章总结
+
+核心公式回顾
+
+1.  Durbin-Watson统计量：$d = \frac{\sum_{t=2}^n (e_t - e_{t-1})^2}{\sum_{t=1}^n e_t^2}$
+2.  Breusch-Godfrey检验：$LM = (n-m)R^2 \sim \chi^2(m)$
+3.  Cochrane-Orcutt变换：$Y_t^* = Y_t - \hat{\rho} Y_{t-1}$
+4.  Newey-West方差：$\text{Var}_{HAC}(\hat{\boldsymbol{\beta}}) = (\mathbf{X}'\mathbf{X})^{-1} \mathbf{S} (\mathbf{X}'\mathbf{X})^{-1}$
+5.  ARDL模型：$Y_t = \alpha + \sum_{i=1}^p \phi_i Y_{t-i} + \sum_{j=0}^q \beta_j X_{t-j} + \varepsilon_t$
+
+自相关检验方法比较
+
+| 检验方法        | 适用场景       | 优点         | 局限性             |
+|-----------------|----------------|--------------|--------------------|
+| Durbin-Watson   | 一阶自相关检验 | 计算简单     | 不适用于高阶自相关 |
+| Breusch-Godfrey | 高阶自相关检验 | 适用性广     | 需要选择滞后阶数   |
+| 残差图分析      | 初步诊断       | 直观易懂     | 主观性强           |
+| ACF/PACF图      | 自相关结构识别 | 提供详细信息 | 需要经验判断       |
+
+处理方法的决策框架
+
+| 问题类型       | 推荐方法         | 适用条件                           |
+|----------------|------------------|------------------------------------|
+| 已知自相关结构 | GLS估计          | $\boldsymbol{\Omega}$ 已知或可估计 |
+| 一阶自相关     | Cochrane-Orcutt  | 中等样本量，一阶AR结构             |
+| 大样本推断     | Newey-West标准误 | 任意形式的自相关和异方差           |
+| 动态关系建模   | ARDL模型         | 存在理论支持的动态结构             |
+| 预测导向       | 动态回归模型     | 关注预测精度而非因果推断           |
+
+重要概念体系
+
+1.  自相关检验：诊断回归模型方差假设的违背
+2.  一致标准误：在违背经典假设下的有效推断
+3.  可行GLS：基于数据估计的广义最小二乘法
+4.  动态设定：包含滞后项的扩展回归模型
+5.  模型稳健性：对假设违背不敏感的估计方法
+
+通过将时间序列问题纳入回归分析框架，我们能够利用成熟的回归技术来处理自相关问题，同时保持模型的解释性和易用性。这种方法为实际应用提供了实用的解决方案。

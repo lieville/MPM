@@ -1,0 +1,16 @@
+reticulate
+mlr3
+mlr3verse
+mlr3pipelines
+paradox
+mlr3tuning
+data.table
+ggplot2
+corrplot
+gridExtra
+patchwork
+future
+mlr3fselect
+reshape2
+mlr3learners
+mlr3viz

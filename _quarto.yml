@@ -1,0 +1,121 @@
+project:
+  type: book
+  execute-dir: project
+  
+lang: zh
+
+execute:
+  enabled: true
+  cache: true
+  freeze: auto
+  engine: knitr
+  kernel: jupyter  
+  jupyter: python-conda
+  env: base
+  python: false
+  warning: false 
+
+jupyter: python-conda 
+python:
+  python_path: "c/data/anaconda/python.exe"
+
+book:
+  title: "现代预测建模：从回归到机器学习"
+  author: "李世纪"
+  date: "2025-11-26"
+
+  chapters: 
+    - introduction.qmd 
+    - index.qmd
+    - part: I 基础-线性回归模型
+      chapters:
+        - chapters/part-1-introduction.qmd
+        - chapters/1 预测模型与评估.qmd
+        - chapters/2 线性回归.qmd
+        - chapters/3 模型诊断.qmd
+        - chapters/4 时间序列分析初步.qmd
+    - part: II 扩展——线性分析方法
+      chapters:
+        - chapters/part-2-introduction.qmd
+        - chapters/5 降维.qmd
+        - chapters/6 正则化.qmd
+        - chapters/7 广义线性模型.qmd
+        - chapters/8 线性分类模型.qmd
+        - chapters/9 非线性回归与样条回归.qmd
+    - part: III 进阶——超越线性的机器学习
+      chapters:
+        - chapters/part-3-introduction.qmd
+        - chapters/10 决策树与集成学习.qmd
+        - chapters/11 支持向量机.qmd
+        - chapters/12 神经网络与深度学习基础.qmd
+
+    - part: IV 实践——综合案例分析
+      chapters:   
+        - chapters/part-4-introduction.qmd     
+        - chapters/13 回归任务与基准测试.qmd
+        - chapters/14 分类任务.qmd
+        - chapters/15 案例综合分析.qmd        
+
+bibliography: references.bib
+
+format:
+  html:
+    theme: cosmo
+    code-link: true
+    code-line-numbers: true
+    crossref:
+      chapters: true
+    number-sections: false
+    fontfamily:
+      - "Microsoft YaHei"
+      - "FangSong"
+      - "PingFang SC"
+      - sans-serif
+    css: science-textbook.css
+    
+  docx:
+    toc: true       # 生成目录
+    toc-depth: 2     # 目录深度
+    documentclass: book
+    crossref:
+      chapters: true
+    number-sections: false      # 章节编号
+    math:
+      engine: omml
+    page-break-before:
+      level: 1                     # 一级标题前分页（章节）
+    mainfont: 宋体              # 正文主要字体
+    sansfont: 微软雅黑          # 无衬线字体（标题等）
+    monofont: Consolas          # 等宽字体（代码）
+    fontsize: 12                # 正文字号（磅）
+    css: science-textbook.css
+
+
+  pdf:
+    # 文档类配置
+    toc-depth: 2 
+    documentclass: ctexbook 
+    classoption: ["openany"]  # 章节从任意页开始（减少空白页）
+    # classoption: ["oneside", "openany"]  # 单面印刷，章节从任意页开始
+    # 页面布局
+    geometry:
+      - top=2.5cm
+      - bottom=2.5cm
+      - left=3cm
+      - right=2.5cm
+      - headheight=15pt
+    # 字体配置
+    mainfont: Times New Roman
+    sansfont: Arial
+    monofont: Courier New
+    fontsize: 11pt
+    linestretch: 1.25
+    pdf-engine: xelatex  
+    include-in-header:
+      - text: \usepackage{ctex}
+      - text: \setCJKmainfont{SimSun}
+    number-sections: false
+
+  
+editor: source
+

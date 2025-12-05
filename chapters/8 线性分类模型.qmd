@@ -1,0 +1,616 @@
+---
+title: "8 线性分类模型"
+format: html
+editor: source
+---
+
+## 本章导读
+
+把线性分析进行扩展
+
+## 8.1 线性判别分析与二次判别分析
+
+判别分析（Discriminant Analysis）是一种经典的统计分类方法，主要用于解决分类问题和降维问题。其核心思想是寻找能够最佳区分不同类别的特征组合。
+
+假设我们有： - $K$个类别：$C_1, C_2, \dots, C_K$ - $p$维特征向量：$\mathbf{x} = (x_1, x_2, \dots, x_p)^\top$ - 训练数据集：$\{(\mathbf{x}_i, y_i)\}_{i=1}^n$，其中$y_i \in \{1, 2, \dots, K\}$
+
+判别分析的目标是基于贝叶斯定理构建分类规则：
+
+$$
+P(Y=k | \mathbf{x}) = \frac{\pi_k f_k(\mathbf{x})}{\sum_{l=1}^K \pi_l f_l(\mathbf{x})}
+$$
+
+其中： - $\pi_k = P(Y=k)$：类别$k$的先验概率 - $f_k(\mathbf{x})$：类别$k$中$\mathbf{x}$的概率密度函数
+
+基本假设
+
+LDA基于以下关键假设：
+
+1.  多元正态性：每个类别的特征向量服从多元正态分布 $$
+    \mathbf{x} | Y=k \sim N_p(\pmb{\mu}_k, \pmb{\Sigma})
+    $$
+
+2.  同方差性：所有类别共享相同的协方差矩阵$\pmb{\Sigma}$
+
+3.  协方差矩阵非奇异：$\pmb{\Sigma}$是可逆的
+
+判别函数推导
+
+根据多元正态分布的概率密度函数：
+
+$$
+f_k(\mathbf{x}) = \frac{1}{(2\pi)^{p/2}|\pmb{\Sigma}|^{1/2}} \exp\left(-\frac{1}{2}(\mathbf{x}-\pmb{\mu}_k)^\top \pmb{\Sigma}^{-1} (\mathbf{x}-\pmb{\mu}_k)\right)
+$$
+
+代入贝叶斯公式，忽略常数项，得到判别函数：
+
+$$
+\begin{aligned}
+\delta_k(\mathbf{x}) &= \log(\pi_k) + \log(f_k(\mathbf{x})) \\
+&= \log(\pi_k) - \frac{1}{2}\pmb{\mu}_k^\top \pmb{\Sigma}^{-1}\pmb{\mu}_k + \mathbf{x}^\top \pmb{\Sigma}^{-1}\pmb{\mu}_k - \frac{1}{2}\mathbf{x}^\top \pmb{\Sigma}^{-1}\mathbf{x}
+\end{aligned}
+$$
+
+由于$\mathbf{x}^\top \pmb{\Sigma}^{-1}\mathbf{x}$与$k$无关，可以简化为线性判别函数：
+
+$$
+\delta_k(\mathbf{x}) = \mathbf{x}^\top \pmb{\Sigma}^{-1}\pmb{\mu}_k - \frac{1}{2}\pmb{\mu}_k^\top \pmb{\Sigma}^{-1}\pmb{\mu}_k + \log(\pi_k)
+$$
+
+分类规则
+
+将观测$\mathbf{x}$分配到使判别函数最大的类别：
+
+$$
+\hat{y}(\mathbf{x}) = \arg\max_{k=1,\dots,K} \delta_k(\mathbf{x})
+$$
+
+决策边界是线性的，因为判别函数是$\mathbf{x}$的线性函数。
+
+参数估计
+
+从训练数据中估计参数：
+
+1.  先验概率： $$
+    \hat{\pi}_k = \frac{n_k}{n}, \quad n_k = \sum_{i=1}^n I(y_i = k)
+    $$
+
+2.  均值向量： $$
+    \hat{\pmb{\mu}}_k = \frac{1}{n_k} \sum_{i: y_i = k} \mathbf{x}_i
+    $$
+
+3.  协方差矩阵： $$
+    \hat{\pmb{\Sigma}} = \frac{1}{n-K} \sum_{k=1}^K \sum_{i: y_i = k} (\mathbf{x}_i - \hat{\pmb{\mu}}_k)(\mathbf{x}_i - \hat{\pmb{\mu}}_k)^\top
+    $$ 这是合并协方差矩阵（pooled covariance matrix）。
+
+### 8.1.2 LDA的几何解释
+
+马氏距离
+
+LDA的分类规则等价于将$\mathbf{x}$分配到具有最小马氏距离（Mahalanobis distance）的类别：
+
+$$
+D_k^2(\mathbf{x}) = (\mathbf{x} - \pmb{\mu}_k)^\top \pmb{\Sigma}^{-1} (\mathbf{x} - \pmb{\mu}_k)
+$$
+
+考虑先验概率调整后的距离：
+
+$$
+D_k^2(\mathbf{x}) - 2\log(\pi_k)
+$$
+
+降维视角
+
+LDA可以视为寻找最佳投影方向以最大化类间散度与类内散度的比值：
+
+$$
+J(\mathbf{w}) = \frac{\mathbf{w}^\top \mathbf{S}_B \mathbf{w}}{\mathbf{w}^\top \mathbf{S}_W \mathbf{w}}
+$$
+
+其中： - 类间散度矩阵：$\mathbf{S}_B = \sum_{k=1}^K n_k (\pmb{\mu}_k - \bar{\pmb{\mu}})(\pmb{\mu}_k - \bar{\pmb{\mu}})^\top$ - 类内散度矩阵：$\mathbf{S}_W = \sum_{k=1}^K \sum_{i: y_i = k} (\mathbf{x}_i - \pmb{\mu}_k)(\mathbf{x}_i - \pmb{\mu}_k)^\top$ - 总体均值：$\bar{\pmb{\mu}} = \frac{1}{n} \sum_{i=1}^n \mathbf{x}_i$
+
+最优投影方向是$\mathbf{S}_W^{-1}\mathbf{S}_B$的特征向量，最多有$\min(p, K-1)$个有效判别方向。
+
+## 8.2 二次判别分析（QDA）
+
+基本假设
+
+QDA放宽了LDA的同方差性假设：
+
+1.  多元正态性：每个类别的特征向量服从多元正态分布 $$
+    \mathbf{x} | Y=k \sim N_p(\pmb{\mu}_k, \pmb{\Sigma}_k)
+    $$
+
+2.  异方差性：每个类别有自己的协方差矩阵$\pmb{\Sigma}_k$
+
+判别函数推导
+
+对于多元正态分布，类别$k$的概率密度函数为：
+
+$$
+f_k(\mathbf{x}) = \frac{1}{(2\pi)^{p/2}|\pmb{\Sigma}_k|^{1/2}} \exp\left(-\frac{1}{2}(\mathbf{x}-\pmb{\mu}_k)^\top \pmb{\Sigma}_k^{-1} (\mathbf{x}-\pmb{\mu}_k)\right)
+$$
+
+取对数并忽略常数项，得到二次判别函数：
+
+$$
+\begin{aligned}
+\delta_k(\mathbf{x}) &= \log(\pi_k) - \frac{1}{2}\log|\pmb{\Sigma}_k| \\
+&\quad - \frac{1}{2}(\mathbf{x} - \pmb{\mu}_k)^\top \pmb{\Sigma}_k^{-1} (\mathbf{x} - \pmb{\mu}_k)
+\end{aligned}
+$$
+
+分类规则
+
+同样，将观测$\mathbf{x}$分配到使判别函数最大的类别：
+
+$$
+\hat{y}(\mathbf{x}) = \arg\max_{k=1,\dots,K} \delta_k(\mathbf{x})
+$$
+
+由于判别函数包含$\mathbf{x}$的二次项，决策边界是二次曲面（椭圆、双曲线或抛物线）。
+
+参数估计
+
+从训练数据中估计参数：
+
+1.  先验概率： $$
+    \hat{\pi}_k = \frac{n_k}{n}
+    $$
+
+2.  均值向量： $$
+    \hat{\pmb{\mu}}_k = \frac{1}{n_k} \sum_{i: y_i = k} \mathbf{x}_i
+    $$
+
+3.  协方差矩阵： $$
+    \hat{\pmb{\Sigma}}_k = \frac{1}{n_k - 1} \sum_{i: y_i = k} (\mathbf{x}_i - \hat{\pmb{\mu}}_k)(\mathbf{x}_i - \hat{\pmb{\mu}}_k)^\top
+    $$
+
+QDA的二次项展开
+
+将QDA的判别函数展开，可以更清楚地看到其二次本质：
+
+$$
+\begin{aligned}
+\delta_k(\mathbf{x}) &= \log(\pi_k) - \frac{1}{2}\log|\pmb{\Sigma}_k| - \frac{1}{2}\pmb{\mu}_k^\top \pmb{\Sigma}_k^{-1}\pmb{\mu}_k \\
+&\quad + \mathbf{x}^\top \pmb{\Sigma}_k^{-1}\pmb{\mu}_k - \frac{1}{2}\mathbf{x}^\top \pmb{\Sigma}_k^{-1}\mathbf{x}
+\end{aligned}
+$$
+
+令： - $C_k = \log(\pi_k) - \frac{1}{2}\log|\pmb{\Sigma}_k| - \frac{1}{2}\pmb{\mu}_k^\top \pmb{\Sigma}_k^{-1}\pmb{\mu}_k$（常数项） - $\pmb{\beta}_k = \pmb{\Sigma}_k^{-1}\pmb{\mu}_k$（线性系数） - $\pmb{\Omega}_k = -\frac{1}{2}\pmb{\Sigma}_k^{-1}$（二次系数）
+
+则判别函数可写为：
+
+$$
+\delta_k(\mathbf{x}) = C_k + \mathbf{x}^\top \pmb{\beta}_k + \mathbf{x}^\top \pmb{\Omega}_k \mathbf{x}
+$$
+
+------------------------------------------------------------------------
+
+### 8.2.2 LDA与QDA的比较
+
+理论比较
+
+| 特性 | LDA | QDA |
+|---------------------------|-----------------------|-----------------------|
+| 协方差矩阵 | $\pmb{\Sigma}_k = \pmb{\Sigma}$（相同） | $\pmb{\Sigma}_k$（不同） |
+| 判别函数 | 线性函数 | 二次函数 |
+| 决策边界 | 线性超平面 | 二次曲面 |
+| 参数数量 | $Kp + p(p+1)/2 + (K-1)$ | $Kp + K \cdot p(p+1)/2 + (K-1)$ |
+| 假设强度 | 较强 | 较弱 |
+
+参数复杂度分析
+
+LDA的参数数量： - 均值向量：$K \times p$个参数 - 协方差矩阵：$p(p+1)/2$个参数 - 先验概率：$K-1$个参数（因为$\sum_{k=1}^K \pi_k = 1$）
+
+总计：$Kp + \frac{p(p+1)}{2} + (K-1)$
+
+QDA的参数数量： - 均值向量：$K \times p$个参数 - 协方差矩阵：$K \times p(p+1)/2$个参数 - 先验概率：$K-1$个参数
+
+总计：$Kp + K \cdot \frac{p(p+1)}{2} + (K-1)$
+
+偏差-方差权衡
+
+LDA的优势： 1. 参数更少，方差更小 2. 在样本量较小时更稳定 3. 当同方差性假设成立时，分类效果更优
+
+QDA的优势： 1. 更灵活，可以捕捉类别间的协方差差异 2. 当异方差性明显时，分类精度更高 3. 对模型假设的依赖较小
+
+样本量要求
+
+QDA需要更大的样本量来准确估计每个类别的协方差矩阵。经验法则： - LDA：每个类别至少需要$p+1$个样本 - QDA：每个类别至少需要$p(p+3)/2 + 1$个样本
+
+### 8.2.4 正则化判别分析（RDA）
+
+RDA的基本思想
+
+RDA是LDA和QDA的折中方案，通过正则化协方差矩阵来平衡偏差和方差：
+
+$$
+\hat{\pmb{\Sigma}}_k(\alpha, \gamma) = \alpha \hat{\pmb{\Sigma}}_k + (1-\alpha) \hat{\pmb{\Sigma}}
+$$
+
+其中： - $\hat{\pmb{\Sigma}}_k$：第$k$类的样本协方差矩阵 - $\hat{\pmb{\Sigma}}$：合并协方差矩阵 - $\alpha \in [0, 1]$：控制个体协方差与合并协方差的混合比例
+
+进一步进行特征值收缩：
+
+$$
+\hat{\pmb{\Sigma}}_k(\alpha, \gamma) = \gamma \hat{\pmb{\Sigma}}_k(\alpha) + (1-\gamma) \frac{\text{tr}(\hat{\pmb{\Sigma}}_k(\alpha))}{p} \mathbf{I}_p
+$$
+
+其中$\gamma \in [0, 1]$控制收缩强度。
+
+RDA的参数选择
+
+通过交叉验证选择最优的$(\alpha, \gamma)$组合：
+
+1.  在训练集上拟合不同$(\alpha, \gamma)$组合的RDA模型
+2.  在验证集上评估分类准确率
+3.  选择使验证集准确率最高的参数组合
+
+与逻辑回归的比较
+
+| 方面     | LDA/QDA              | 逻辑回归          |
+|----------|----------------------|-------------------|
+| 假设     | 特征服从多元正态分布 | 无分布假设        |
+| 建模对象 | 联合分布$P(X,Y)$     | 条件分布$P(Y\|X)$ |
+| 参数估计 | 有解析解             | 迭代最大似然估计  |
+| 样本效率 | 当假设成立时更高效   | 更稳健            |
+| 多分类   | 直接扩展             | 需要多项逻辑回归  |
+
+## 8.3 朴素贝叶斯分类器
+
+朴素贝叶斯基本思想
+
+朴素贝叶斯（Naïve Bayes）是一种基于贝叶斯定理的简单而高效的分类算法。其"朴素"（naïve）之处在于假设**特征之间相互条件独立**，即给定类别时，各个特征之间没有依赖关系。尽管这一假设在现实中很少完全成立，但朴素贝叶斯在许多实际应用中仍表现出色。
+
+贝叶斯定理是朴素贝叶斯分类器的理论基础：
+
+$$
+P(Y=k | \mathbf{x}) = \frac{P(Y=k) \cdot P(\mathbf{x} | Y=k)}{P(\mathbf{x})}
+$$
+
+其中： - $P(Y=k | \mathbf{x})$：后验概率（给定特征$\mathbf{x}$时属于类别$k$的概率） - $P(Y=k)$：先验概率（类别$k$在训练集中的比例） - $P(\mathbf{x} | Y=k)$：似然（类别$k$中观察到特征$\mathbf{x}$的概率） - $P(\mathbf{x})$：证据（边际概率，作为归一化常数）
+
+朴素贝叶斯假设
+
+对于$p$维特征向量$\mathbf{x} = (x_1, x_2, \dots, x_p)^\top$，朴素贝叶斯假设：
+
+$$
+P(\mathbf{x} | Y=k) = P(x_1, x_2, \dots, x_p | Y=k) = \prod_{j=1}^p P(x_j | Y=k)
+$$
+
+即给定类别$k$时，各个特征$x_1, x_2, \dots, x_p$相互条件独立。
+
+分类规则
+
+将观测$\mathbf{x}$分配到后验概率最大的类别：
+
+$$
+\hat{y}(\mathbf{x}) = \arg\max_{k=1,\dots,K} P(Y=k | \mathbf{x})
+$$
+
+根据贝叶斯定理和朴素假设：
+
+$$
+\begin{aligned}
+\hat{y}(\mathbf{x}) &= \arg\max_{k} P(Y=k) \cdot P(\mathbf{x} | Y=k) \\
+&= \arg\max_{k} P(Y=k) \cdot \prod_{j=1}^p P(x_j | Y=k)
+\end{aligned}
+$$
+
+由于$P(\mathbf{x})$对所有类别相同，可以省略。
+
+对数形式
+
+在实际计算中，使用对数避免数值下溢：
+
+$$
+\begin{aligned}
+\hat{y}(\mathbf{x}) &= \arg\max_{k} \left[ \log P(Y=k) + \sum_{j=1}^p \log P(x_j | Y=k) \right]
+\end{aligned}
+$$
+
+### 8.3.2不同特征类型的概率估计
+
+朴素贝叶斯可以根据特征类型选择不同的概率估计方法。
+
+分类特征（伯努利朴素贝叶斯）
+
+对于二值特征或类别特征，使用**伯努利分布**：
+
+$$
+P(x_j = v | Y=k) = \theta_{kjv}
+$$
+
+其中$v \in \{0, 1\}$或$v \in \{1, 2, \dots, m_j\}$。
+
+参数估计
+
+最大似然估计：
+
+$$
+\hat{\theta}_{kjv} = \frac{N_{kjv} + \alpha}{N_k + \alpha m_j}
+$$
+
+其中： - $N_{kjv}$：类别$k$中特征$j$取值为$v$的样本数 - $N_k$：类别$k$的总样本数 - $\alpha$：平滑参数（拉普拉斯平滑） - $m_j$：特征$j$的可能取值数
+
+拉普拉斯平滑
+
+当某个特征值在训练集中未出现时，最大似然估计为0，导致整个概率为0。拉普拉斯平滑（Laplace smoothing）或加一平滑解决此问题：
+
+$$
+\hat{\theta}_{kjv} = \frac{N_{kjv} + 1}{N_k + m_j}
+$$
+
+这是$\alpha=1$时的特例。
+
+连续特征（高斯朴素贝叶斯）
+
+对于连续特征，假设服从**高斯分布**：
+
+$$
+P(x_j | Y=k) = \frac{1}{\sqrt{2\pi\sigma_{kj}^2}} \exp\left(-\frac{(x_j - \mu_{kj})^2}{2\sigma_{kj}^2}\right)
+$$
+
+参数估计
+
+$$
+\hat{\mu}_{kj} = \frac{1}{N_k} \sum_{i: y_i=k} x_{ij}
+$$
+
+$$
+\hat{\sigma}_{kj}^2 = \frac{1}{N_k} \sum_{i: y_i=k} (x_{ij} - \hat{\mu}_{kj})^2
+$$
+
+对数似然
+
+对于高斯朴素贝叶斯，对数似然为：
+
+$$
+\log P(x_j | Y=k) = -\frac{1}{2} \log(2\pi\sigma_{kj}^2) - \frac{(x_j - \mu_{kj})^2}{2\sigma_{kj}^2}
+$$ （多项式朴素贝叶斯）
+
+对于表示频次或计数的特征，使用**多项式分布**：
+
+$$
+P(\mathbf{x} | Y=k) = \frac{(\sum_{j=1}^p x_j)!}{\prod_{j=1}^p x_j!} \prod_{j=1}^p \theta_{kj}^{x_j}
+$$
+
+参数估计
+
+$$
+\hat{\theta}_{kj} = \frac{N_{kj} + \alpha}{\sum_{j=1}^p N_{kj} + \alpha p}
+$$
+
+其中$N_{kj} = \sum_{i: y_i=k} x_{ij}$是类别$k$中特征$j$的总计数。
+
+混合特征类型
+
+当数据包含不同类型特征时，可以组合不同分布：
+
+$$
+P(\mathbf{x} | Y=k) = \prod_{j \in C} P_{\text{cat}}(x_j | Y=k) \cdot \prod_{j \in R} P_{\text{cont}}(x_j | Y=k) \cdot \prod_{j \in N} P_{\text{count}}(x_j | Y=k)
+$$
+
+其中$C$、$R$、$N$分别表示分类、连续、计数特征的索引集。
+
+------------------------------------------------------------------------
+
+### 8.3.3 算法实现
+
+训练阶段
+
+**输入**：训练集$D = \{(\mathbf{x}_i, y_i)\}_{i=1}^n$，其中$\mathbf{x}_i \in \mathbb{R}^p$，$y_i \in \{1, 2, \dots, K\}$
+
+**步骤**： 1. 估计先验概率：$\hat{\pi}_k = \frac{N_k + \alpha}{n + \alpha K}$ 2. 对于每个类别$k$和每个特征$j$： - 如果特征$j$是分类的：估计$\hat{\theta}_{kjv}$对于所有$v$ - 如果特征$j$是连续的：估计$\hat{\mu}_{kj}$和$\hat{\sigma}_{kj}^2$ - 如果特征$j$是计数的：估计$\hat{\theta}_{kj}$
+
+**输出**：所有估计参数
+
+预测阶段
+
+**输入**：新样本$\mathbf{x}^* = (x_1^*, x_2^*, \dots, x_p^*)$，训练得到的参数
+
+**步骤**： 1. 对于每个类别$k=1,\dots,K$： $$
+   \text{score}_k = \log \hat{\pi}_k + \sum_{j=1}^p \log P(x_j^* | Y=k; \hat{\theta}_{kj})
+   $$ 2. 预测类别：$\hat{y} = \arg\max_k \text{score}_k$ 3. （可选）计算后验概率： $$
+   P(Y=k | \mathbf{x}^*) = \frac{\exp(\text{score}_k)}{\sum_{l=1}^K \exp(\text{score}_l)}
+   $$
+
+**输出**：预测类别$\hat{y}$和后验概率
+
+### 8.3.4 与判别分析的比较
+
+与LDA/QDA的关系
+
+朴素贝叶斯与判别分析都基于贝叶斯定理，但有重要区别：
+
+| 方面           | 朴素贝叶斯   | LDA/QDA                       |
+|----------------|--------------|-------------------------------|
+| **特征独立性** | 条件独立假设 | 考虑特征相关性                |
+| **分布假设**   | 可灵活选择   | 必须多元正态                  |
+| **参数数量**   | $O(Kp)$      | LDA: $O(p^2)$, QDA: $O(Kp^2)$ |
+| **决策边界**   | 可能是非线性 | LDA线性，QDA二次              |
+
+等价性条件
+
+当以下条件成立时，高斯朴素贝叶斯等价于LDA： 1. 所有特征服从多元正态分布 2. 特征条件独立（协方差矩阵为对角矩阵） 3. 各类别的对角协方差矩阵相等
+
+在这种情况下，朴素贝叶斯的决策边界也是线性的。
+
+偏差-方差权衡
+
+朴素贝叶斯引入条件独立假设： - **增加偏差**：当特征相关时，模型假设错误 - **减少方差**：参数更少，估计更稳定
+
+在高维小样本情况下，朴素贝叶斯通常优于更复杂的模型。
+
+**模型变体**
+
+伯努利朴素贝叶斯
+
+适用于二值特征，如文本分类中的词袋模型（出现/不出现）。
+
+概率模型： $$
+P(x_j | Y=k) = \theta_{kj}^{x_j} (1-\theta_{kj})^{1-x_j}
+$$
+
+多项式朴素贝叶斯
+
+适用于计数数据，如文本分类中的词频。
+
+概率模型： $$
+P(\mathbf{x} | Y=k) = \frac{(\sum_j x_j)!}{\prod_j x_j!} \prod_j \theta_{kj}^{x_j}
+$$
+
+高斯朴素贝叶斯
+
+适用于连续特征，假设正态分布。
+
+补充朴素贝叶斯
+
+处理不平衡数据，调整先验概率：
+
+$$
+\pi_k^{\text{complement}} = \frac{\sum_{i \notin \text{class } k} \sum_j x_{ij}}{\text{总计数}}
+$$
+
+贝叶斯信念网络
+
+放宽条件独立假设，允许部分特征相关：
+
+$$
+P(\mathbf{x} | Y=k) = \prod_{j=1}^p P(x_j | \text{Pa}(x_j), Y=k)
+$$
+
+其中$\text{Pa}(x_j)$是$x_j$的父节点集合。
+
+------------------------------------------------------------------------
+
+**参数估计与正则化**
+
+最大似然估计
+
+对于参数$\theta$，最大似然估计为：
+
+$$
+\hat{\theta}_{\text{MLE}} = \arg\max_{\theta} \prod_{i=1}^n P(\mathbf{x}_i, y_i | \theta)
+$$
+
+最大后验估计
+
+考虑参数先验，最大后验估计：
+
+$$
+\hat{\theta}_{\text{MAP}} = \arg\max_{\theta} P(\theta) \prod_{i=1}^n P(\mathbf{x}_i, y_i | \theta)
+$$
+
+共轭先验
+
+| 分布             | 共轭先验      | 后验分布      |
+|------------------|---------------|---------------|
+| 伯努利           | Beta分布      | Beta分布      |
+| 多项式           | Dirichlet分布 | Dirichlet分布 |
+| 高斯（已知方差） | 高斯分布      | 高斯分布      |
+| 高斯（已知均值） | Gamma分布     | Gamma分布     |
+
+经验贝叶斯
+
+从数据中估计先验分布的超参数：
+
+$$
+\hat{\alpha} = \arg\max_{\alpha} \int P(D | \theta) P(\theta | \alpha) d\theta
+$$
+
+**实际应用**
+
+文本分类
+
+朴素贝叶斯是文本分类的经典算法，如： - 垃圾邮件检测 - 情感分析 - 新闻分类
+
+**特征工程**： - 词袋模型（Bag-of-Words） - TF-IDF加权 - N-gram特征
+
+推荐系统
+
+基于内容的推荐： $$
+P(\text{喜欢} | \text{物品特征}) \propto P(\text{喜欢}) \prod_j P(\text{特征}_j | \text{喜欢})
+$$
+
+医学诊断
+
+基于症状预测疾病： $$
+P(\text{疾病} | \text{症状}) \propto P(\text{疾病}) \prod_j P(\text{症状}_j | \text{疾病})
+$$
+
+异常检测
+
+建模正常行为，检测低概率事件： $$
+P(\mathbf{x}) = \sum_{k=1}^K P(Y=k) \prod_{j=1}^p P(x_j | Y=k)
+$$ 将$P(\mathbf{x}) < \tau$的样本标记为异常。
+
+## 8.5 模型比较与选择
+
+### 8.5.1 分类性能评估
+
+混淆矩阵：
+
+|          | 预测正类 | 预测负类 |
+|----------|----------|----------|
+| 实际正类 | TP       | FN       |
+| 实际负类 | FP       | TN       |
+
+常用指标： - 准确率：$\frac{TP+TN}{n}$ - 精确率：$\frac{TP}{TP+FP}$ - 召回率：$\frac{TP}{TP+FN}$ - F1分数：$\frac{2\times\text{精确率}\times\text{召回率}}{\text{精确率}+\text{召回率}}$
+
+### 8.5.2 ROC曲线与AUC
+
+ROC曲线： 以假正率为横轴，真正率为纵轴的曲线。
+
+AUC解释： - AUC = 0.5：随机猜测 - AUC = 1.0：完美分类 - AUC \> 0.8：通常认为模型表现良好
+
+### 8.5.3 方法比较
+
+| 方法 | 类型 | 假设 | 优点 | 局限性 |
+|---------------|---------------|---------------|---------------|---------------|
+| 逻辑回归 | 判别式 | 线性决策边界 | 概率输出，可解释性强 | 对特征相关性敏感 |
+| Probit回归 | 判别式 | 线性决策边界 | 有潜在变量解释 | 计算稍复杂 |
+| LDA | 生成式 | 正态分布，等协方差 | 小样本表现好，多分类自然 | 假设较强 |
+
+### 8.5.4 模型诊断
+
+离群值检测： - Pearson残差：$r_i = \frac{y_i - \hat{\pi}_i}{\sqrt{\hat{\pi}_i(1-\hat{\pi}_i)}}$ - Deviance残差：$d_i = \text{sign}(y_i - \hat{\pi}_i)\sqrt{-2[y_i\ln\hat{\pi}_i + (1-y_i)\ln(1-\hat{\pi}_i)]}$
+
+拟合优度检验： - Hosmer-Lemeshow检验 - 皮尔逊卡方检验
+
+过度离散检验： $$
+\frac{\sum_{i=1}^n (y_i - \hat{\pi}_i)^2}{\hat{\pi}_i(1-\hat{\pi}_i)} \sim \chi^2(n-p-1)
+$$
+
+## 8.6 案例分析
+
+## 本章总结
+
+核心公式回顾
+
+1.  GLM连接函数：$g(\mu) = \mathbf{X}\pmb{\beta}$
+2.  Logit模型：$\ln\left(\frac{\pi}{1-\pi}\right) = \mathbf{X}\pmb{\beta}$
+3.  Probit模型：$\Phi^{-1}(\pi) = \mathbf{X}\pmb{\beta}$
+4.  LDA判别函数：$\delta_k(\mathbf{x}) = \mathbf{x}'\pmb{\Sigma}^{-1}\pmb{\mu}_k - \frac{1}{2}\pmb{\mu}_k'\pmb{\Sigma}^{-1}\pmb{\mu}_k + \ln\pi_k$
+5.  IWLS更新：$\pmb{\beta}^{(t+1)} = (\mathbf{X}'\mathbf{W}^{(t)}\mathbf{X})^{-1}\mathbf{X}'\mathbf{W}^{(t)}\mathbf{z}^{(t)}$
+
+方法选择指南
+
+| 问题场景     | 推荐方法             | 理由                 |
+|--------------|----------------------|----------------------|
+| 需要概率输出 | 逻辑回归、Probit回归 | 直接建模条件概率     |
+| 小样本问题   | LDA                  | 参数更少，估计更稳定 |
+| 多分类问题   | LDA、多项逻辑回归    | 天然处理多类别       |
+| 可解释性重要 | 逻辑回归             | 优势比有明确解释     |
+| 理论一致性   | Probit回归           | 有潜在变量理论基础   |
+
+实践建议
+
+1.  数据预处理：检查类别平衡性，必要时重采样
+2.  特征工程：考虑交互项和非线性变换
+3.  模型验证：使用交叉验证评估泛化能力
+4.  结果解释：结合领域知识理解系数含义
+5.  稳健性分析：尝试不同方法，比较结果一致性
+
+广义线性模型为处理非正态响应变量提供了统一的框架，而线性分类方法则是机器学习中最基础且重要的工具。掌握这些方法为进一步学习更复杂的非线性模型奠定了坚实基础。

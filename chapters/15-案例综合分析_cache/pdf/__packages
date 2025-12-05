@@ -1,0 +1,13 @@
+reticulate
+dplyr
+ggplot2
+corrplot
+patchwork
+lattice
+caret
+pROC
+randomForest
+factoextra
+Matrix
+arules
+arulesViz

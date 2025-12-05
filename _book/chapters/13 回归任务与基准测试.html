@@ -1,0 +1,2530 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="zh-Hans" xml:lang="zh-Hans"><head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.8.26">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+<title>13 回归任务与基准测试 – 现代预测建模：从回归到机器学习</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+<script src="../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../">
+<link href="../chapters/14 分类任务.html" rel="next">
+<link href="../chapters/part-4-introduction.html" rel="prev">
+<script src="../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../site_libs/quarto-html/axe/axe-check.js" type="module"></script>
+<script src="../site_libs/quarto-html/popper.min.js"></script>
+<script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-587c61ba64f3a5504c4d52d930310e48.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../site_libs/bootstrap/bootstrap-70a47bd5681a7291082a5b9f83d58762.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light"><script id="quarto-search-options" type="application/json">{
+  "location": "sidebar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "start",
+  "type": "textbox",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "没有结果",
+    "search-matching-documents-text": "匹配的文档",
+    "search-copy-link-title": "复制搜索链接",
+    "search-hide-matches-text": "隐藏其它匹配结果",
+    "search-more-match-text": "更多匹配结果",
+    "search-more-matches-text": "更多匹配结果",
+    "search-clear-button-title": "清除",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "取消",
+    "search-submit-button-title": "提交",
+    "search-label": "搜索"
+  }
+}</script><link rel="stylesheet" href="science-textbook.css">
+</head>
+<body class="nav-sidebar floating quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top"><nav class="quarto-secondary-nav"><div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="展开或折叠侧边栏导航" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../chapters/part-4-introduction.html">IV 实践——综合案例分析</a></li><li class="breadcrumb-item"><a href="../chapters/13 回归任务与基准测试.html"><span class="chapter-title">13 回归任务与基准测试</span></a></li></ol></nav>
+        <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="展开或折叠侧边栏导航" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+      <button type="button" class="btn quarto-search-button" aria-label="搜索" onclick="window.quartoOpenSearch();">
+        <i class="bi bi-search"></i>
+      </button>
+    </div>
+  </nav></header><!-- content --><div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto"><div class="pt-lg-2 mt-2 text-left sidebar-header">
+    <div class="sidebar-title mb-0 py-0">
+      <a href="../">现代预测建模：从回归到机器学习</a> 
+    </div>
+      </div>
+        <div class="mt-2 flex-shrink-0 align-items-center">
+        <div class="sidebar-search">
+        <div id="quarto-search" class="" title="搜索"></div>
+        </div>
+        </div>
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+<li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../introduction.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">前言</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../index.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">index.html</span></a>
+  </div>
+</li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true">
+ <span class="menu-text">I 基础-线性回归模型</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true" aria-label="展开或折叠此栏">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">
+<li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/part-1-introduction.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">part-1-introduction.html</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/1 预测模型与评估.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">1 预测模型与评估</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/2 线性回归.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">2 线性回归</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/3 模型诊断.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">3 模型诊断</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/4 时间序列分析初步.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">4 时间序列分析初步</span></a>
+  </div>
+</li>
+      </ul>
+</li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true">
+ <span class="menu-text">II 扩展——线性分析方法</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true" aria-label="展开或折叠此栏">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth1 show">
+<li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/part-2-introduction.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">part-2-introduction.html</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/5 降维.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">5 降维</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/6 正则化.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">6 正则化</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/7 广义线性模型.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">7 广义线性模型</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/8 线性分类模型.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">8 线性分类模型</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/9 非线性回归与样条回归.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">9 非线性回归与样条回归</span></a>
+  </div>
+</li>
+      </ul>
+</li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="true">
+ <span class="menu-text">III 进阶——超越线性的机器学习</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="true" aria-label="展开或折叠此栏">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-3" class="collapse list-unstyled sidebar-section depth1 show">
+<li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/part-3-introduction.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">part-3-introduction.html</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/10 决策树与集成学习.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">10 决策树与集成学习</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/11 支持向量机.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">11 支持向量机</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/12 神经网络与深度学习基础.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">12 神经网络与深度学习基础</span></a>
+  </div>
+</li>
+      </ul>
+</li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="true">
+ <span class="menu-text">IV 实践——综合案例分析</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="true" aria-label="展开或折叠此栏">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-4" class="collapse list-unstyled sidebar-section depth1 show">
+<li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/part-4-introduction.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">part-4-introduction.html</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/13 回归任务与基准测试.html" class="sidebar-item-text sidebar-link active"><span class="chapter-title">13 回归任务与基准测试</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/14 分类任务.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">14 分类任务</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/15 案例综合分析.html" class="sidebar-item-text sidebar-link"><span class="chapter-title">15 案例综合分析</span></a>
+  </div>
+</li>
+      </ul>
+</li>
+    </ul>
+</div>
+</nav><div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active"><h2 id="toc-title">目录</h2>
+   
+  <ul>
+<li><a href="#%E5%9B%9E%E5%BD%92%E4%BB%BB%E5%8A%A1%E5%AF%BC%E8%AF%BB" id="toc-回归任务导读" class="nav-link active" data-scroll-target="#%E5%9B%9E%E5%BD%92%E4%BB%BB%E5%8A%A1%E5%AF%BC%E8%AF%BB">回归任务导读</a></li>
+  <li><a href="#r%E8%AF%AD%E8%A8%80%E5%AE%9E%E7%8E%B0-mlr3%E6%A1%86%E6%9E%B6" id="toc-r语言实现-mlr3框架" class="nav-link" data-scroll-target="#r%E8%AF%AD%E8%A8%80%E5%AE%9E%E7%8E%B0-mlr3%E6%A1%86%E6%9E%B6">13.1 R语言实现 (mlr3框架)</a></li>
+  <li><a href="#python-sklearn%E6%A1%86%E6%9E%B6%E5%9B%9E%E5%BD%92" id="toc-python-sklearn框架回归" class="nav-link" data-scroll-target="#python-sklearn%E6%A1%86%E6%9E%B6%E5%9B%9E%E5%BD%92">13.2 Python (sklearn框架)–回归</a></li>
+  <li><a href="#%E6%A1%88%E4%BE%8B%E6%80%BB%E7%BB%93" id="toc-案例总结" class="nav-link" data-scroll-target="#%E6%A1%88%E4%BE%8B%E6%80%BB%E7%BB%93">13.3 案例总结</a></li>
+  </ul></nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content"><header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../chapters/part-4-introduction.html">IV 实践——综合案例分析</a></li><li class="breadcrumb-item"><a href="../chapters/13 回归任务与基准测试.html"><span class="chapter-title">13 回归任务与基准测试</span></a></li></ol></nav><div class="quarto-title">
+<h1 class="title"><span class="chapter-title">13 回归任务与基准测试</span></h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+
+</header><section id="回归任务导读" class="level2"><h2 class="anchored" data-anchor-id="回归任务导读">回归任务导读</h2>
+<p>回归分析是预测建模中最基础且重要的任务，广泛应用于房价预测、销量预测、风险评估等领域。本章将通过波士顿房价预测案例，完整展示回归问题的解决方案，涵盖数据探索、特征工程、多种回归算法比较、模型评估等关键环节。</p>
+<p>数据集说明 本案例使用糖尿病数据集（Diabetes Dataset），包含糖尿病患者的生理指标和疾病进展指标。</p>
+<p>问题定义 <strong>目标</strong>：预测糖尿病疾病的进展（target）<br><strong>任务类型</strong>：回归分析<br><strong>业务价值</strong>：为医疗诊断和治疗方案制定提供数据支持</p>
+</section><section id="r语言实现-mlr3框架" class="level2"><h2 class="anchored" data-anchor-id="r语言实现-mlr3框架">13.1 R语言实现 (mlr3框架)</h2>
+<p>数据加载与探索</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1"></a><span class="co"># 综合案例：糖尿病进展预测 - R语言实现 (mlr3框架)</span></span>
+<span id="cb1-2"><a href="#cb1-2"></a></span>
+<span id="cb1-3"><a href="#cb1-3"></a><span class="co"># 加载必要的包</span></span>
+<span id="cb1-4"><a href="#cb1-4"></a><span class="fu">library</span>(mlr3)</span>
+<span id="cb1-5"><a href="#cb1-5"></a><span class="fu">library</span>(mlr3verse)</span>
+<span id="cb1-6"><a href="#cb1-6"></a><span class="fu">library</span>(mlr3pipelines)</span>
+<span id="cb1-7"><a href="#cb1-7"></a><span class="fu">library</span>(mlr3tuning)</span>
+<span id="cb1-8"><a href="#cb1-8"></a><span class="fu">library</span>(data.table)</span>
+<span id="cb1-9"><a href="#cb1-9"></a><span class="fu">library</span>(ggplot2)</span>
+<span id="cb1-10"><a href="#cb1-10"></a><span class="fu">library</span>(corrplot)</span>
+<span id="cb1-11"><a href="#cb1-11"></a><span class="fu">library</span>(gridExtra)</span>
+<span id="cb1-12"><a href="#cb1-12"></a></span>
+<span id="cb1-13"><a href="#cb1-13"></a></span>
+<span id="cb1-14"><a href="#cb1-14"></a><span class="co"># 加载糖尿病数据集</span></span>
+<span id="cb1-15"><a href="#cb1-15"></a><span class="fu">library</span>(lars)</span>
+<span id="cb1-16"><a href="#cb1-16"></a><span class="fu">data</span>(diabetes)</span>
+<span id="cb1-17"><a href="#cb1-17"></a>variable_names <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"age"</span>, <span class="st">"sex"</span>, <span class="st">"bmi"</span>, <span class="st">"map"</span>, <span class="st">"tc"</span>, <span class="st">"ldl"</span>, <span class="st">"hdl"</span>, <span class="st">"tch"</span>, <span class="st">"ltg"</span>, <span class="st">"glu"</span>)</span>
+<span id="cb1-18"><a href="#cb1-18"></a></span>
+<span id="cb1-19"><a href="#cb1-19"></a>diabetes_data <span class="ot">&lt;-</span> <span class="fu">as.data.frame</span>(<span class="fu">matrix</span>(<span class="fu">unlist</span>(diabetes<span class="sc">$</span>x), <span class="at">ncol =</span> <span class="dv">10</span>))</span>
+<span id="cb1-20"><a href="#cb1-20"></a><span class="fu">colnames</span>(diabetes_data) <span class="ot">&lt;-</span> variable_names</span>
+<span id="cb1-21"><a href="#cb1-21"></a></span>
+<span id="cb1-22"><a href="#cb1-22"></a><span class="fu">str</span>(diabetes_data)</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>'data.frame':   442 obs. of  10 variables:
+ $ age: num  0.03808 -0.00188 0.0853 -0.08906 0.00538 ...
+ $ sex: num  0.0507 -0.0446 0.0507 -0.0446 -0.0446 ...
+ $ bmi: num  0.0617 -0.0515 0.0445 -0.0116 -0.0364 ...
+ $ map: num  0.02187 -0.02633 -0.00567 -0.03666 0.02187 ...
+ $ tc : num  -0.04422 -0.00845 -0.0456 0.01219 0.00393 ...
+ $ ldl: num  -0.0348 -0.0192 -0.0342 0.025 0.0156 ...
+ $ hdl: num  -0.0434 0.07441 -0.03236 -0.03604 0.00814 ...
+ $ tch: num  -0.00259 -0.03949 -0.00259 0.03431 -0.00259 ...
+ $ ltg: num  0.01991 -0.06833 0.00286 0.02269 -0.03199 ...
+ $ glu: num  -0.01765 -0.0922 -0.02593 -0.00936 -0.04664 ...</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1"></a>diabetes_data<span class="sc">$</span>target <span class="ot">&lt;-</span> diabetes<span class="sc">$</span>y</span>
+<span id="cb3-2"><a href="#cb3-2"></a></span>
+<span id="cb3-3"><a href="#cb3-3"></a><span class="co"># 检查缺失值</span></span>
+<span id="cb3-4"><a href="#cb3-4"></a><span class="fu">cat</span>(<span class="st">"</span><span class="sc">\n</span><span class="st">缺失值检查:</span><span class="sc">\n</span><span class="st">"</span>)</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+缺失值检查:</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1"></a><span class="fu">print</span>(<span class="fu">colSums</span>(<span class="fu">is.na</span>(diabetes_data)))</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>   age    sex    bmi    map     tc    ldl    hdl    tch    ltg    glu target 
+     0      0      0      0      0      0      0      0      0      0      0 </code></pre>
+</div>
+</div>
+<p>数据可视化分析</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1"></a><span class="co"># 数据可视化分析 - R语言</span></span>
+<span id="cb7-2"><a href="#cb7-2"></a></span>
+<span id="cb7-3"><a href="#cb7-3"></a><span class="co"># 目标变量分布</span></span>
+<span id="cb7-4"><a href="#cb7-4"></a>p1 <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(diabetes_data, <span class="fu">aes</span>(<span class="at">x =</span> target)) <span class="sc">+</span></span>
+<span id="cb7-5"><a href="#cb7-5"></a>  <span class="fu">geom_histogram</span>(<span class="at">bins =</span> <span class="dv">30</span>, <span class="at">fill =</span> <span class="st">"steelblue"</span>, <span class="at">alpha =</span> <span class="fl">0.7</span>) <span class="sc">+</span></span>
+<span id="cb7-6"><a href="#cb7-6"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"疾病进展分布"</span>, <span class="at">x =</span> <span class="st">"疾病进展指标"</span>, <span class="at">y =</span> <span class="st">"频数"</span>) <span class="sc">+</span></span>
+<span id="cb7-7"><a href="#cb7-7"></a>  <span class="fu">theme_minimal</span>()</span>
+<span id="cb7-8"><a href="#cb7-8"></a></span>
+<span id="cb7-9"><a href="#cb7-9"></a><span class="co"># 疾病进展与关键变量的关系</span></span>
+<span id="cb7-10"><a href="#cb7-10"></a>p2 <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(diabetes_data, <span class="fu">aes</span>(<span class="at">x =</span> bmi, <span class="at">y =</span> target)) <span class="sc">+</span></span>
+<span id="cb7-11"><a href="#cb7-11"></a>  <span class="fu">geom_point</span>(<span class="at">alpha =</span> <span class="fl">0.6</span>, <span class="at">color =</span> <span class="st">"darkred"</span>) <span class="sc">+</span></span>
+<span id="cb7-12"><a href="#cb7-12"></a>  <span class="fu">geom_smooth</span>(<span class="at">method =</span> <span class="st">"lm"</span>, <span class="at">color =</span> <span class="st">"blue"</span>) <span class="sc">+</span></span>
+<span id="cb7-13"><a href="#cb7-13"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"BMI与疾病进展关系"</span>, <span class="at">x =</span> <span class="st">"BMI"</span>, <span class="at">y =</span> <span class="st">"疾病进展"</span>) <span class="sc">+</span></span>
+<span id="cb7-14"><a href="#cb7-14"></a>  <span class="fu">theme_minimal</span>()</span>
+<span id="cb7-15"><a href="#cb7-15"></a></span>
+<span id="cb7-16"><a href="#cb7-16"></a>p3 <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(diabetes_data, <span class="fu">aes</span>(<span class="at">x =</span> ltg, <span class="at">y =</span> target)) <span class="sc">+</span></span>
+<span id="cb7-17"><a href="#cb7-17"></a>  <span class="fu">geom_point</span>(<span class="at">alpha =</span> <span class="fl">0.6</span>, <span class="at">color =</span> <span class="st">"darkgreen"</span>) <span class="sc">+</span></span>
+<span id="cb7-18"><a href="#cb7-18"></a>  <span class="fu">geom_smooth</span>(<span class="at">method =</span> <span class="st">"loess"</span>, <span class="at">color =</span> <span class="st">"red"</span>) <span class="sc">+</span></span>
+<span id="cb7-19"><a href="#cb7-19"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"稳定血糖与疾病进展"</span>, <span class="at">x =</span> <span class="st">"稳定血糖"</span>, <span class="at">y =</span> <span class="st">"疾病进展"</span>) <span class="sc">+</span></span>
+<span id="cb7-20"><a href="#cb7-20"></a>  <span class="fu">theme_minimal</span>()</span>
+<span id="cb7-21"><a href="#cb7-21"></a></span>
+<span id="cb7-22"><a href="#cb7-22"></a>p4 <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(diabetes_data, <span class="fu">aes</span>(<span class="at">x =</span> age, <span class="at">y =</span> target)) <span class="sc">+</span></span>
+<span id="cb7-23"><a href="#cb7-23"></a>  <span class="fu">geom_point</span>(<span class="at">alpha =</span> <span class="fl">0.6</span>, <span class="at">color =</span> <span class="st">"purple"</span>) <span class="sc">+</span></span>
+<span id="cb7-24"><a href="#cb7-24"></a>  <span class="fu">geom_smooth</span>(<span class="at">method =</span> <span class="st">"lm"</span>, <span class="at">color =</span> <span class="st">"orange"</span>) <span class="sc">+</span></span>
+<span id="cb7-25"><a href="#cb7-25"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"年龄与疾病进展关系"</span>, <span class="at">x =</span> <span class="st">"年龄"</span>, <span class="at">y =</span> <span class="st">"疾病进展"</span>) <span class="sc">+</span></span>
+<span id="cb7-26"><a href="#cb7-26"></a>  <span class="fu">theme_minimal</span>()</span>
+<span id="cb7-27"><a href="#cb7-27"></a></span>
+<span id="cb7-28"><a href="#cb7-28"></a><span class="co"># 组合图形</span></span>
+<span id="cb7-29"><a href="#cb7-29"></a><span class="fu">grid.arrange</span>(p1, p2, p3, p4, <span class="at">ncol =</span> <span class="dv">2</span>)</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure"><p><img src="13-回归任务与基准测试_files/figure-html/unnamed-chunk-3-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1"></a><span class="co"># 相关性热图</span></span>
+<span id="cb8-2"><a href="#cb8-2"></a>cor_matrix <span class="ot">&lt;-</span> <span class="fu">cor</span>(diabetes_data)</span>
+<span id="cb8-3"><a href="#cb8-3"></a><span class="fu">corrplot</span>(cor_matrix, <span class="at">method =</span> <span class="st">"color"</span>, <span class="at">type =</span> <span class="st">"upper"</span>, </span>
+<span id="cb8-4"><a href="#cb8-4"></a>         <span class="at">order =</span> <span class="st">"hclust"</span>, <span class="at">tl.cex =</span> <span class="fl">0.7</span>, <span class="at">tl.col =</span> <span class="st">"black"</span>,</span>
+<span id="cb8-5"><a href="#cb8-5"></a>         <span class="at">title =</span> <span class="st">"变量相关性热图"</span>)</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure"><p><img src="13-回归任务与基准测试_files/figure-html/unnamed-chunk-3-2.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>创建mlr3任务和数据预处理</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1"></a><span class="co"># 创建mlr3任务和数据预处理</span></span>
+<span id="cb9-2"><a href="#cb9-2"></a></span>
+<span id="cb9-3"><a href="#cb9-3"></a><span class="co"># 创建回归任务</span></span>
+<span id="cb9-4"><a href="#cb9-4"></a>task_diabetes <span class="ot">&lt;-</span> <span class="fu">as_task_regr</span>(diabetes_data, <span class="at">target =</span> <span class="st">"target"</span>, <span class="at">id =</span> <span class="st">"diabetes"</span>,<span class="at">store_backends =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb9-5"><a href="#cb9-5"></a></span>
+<span id="cb9-6"><a href="#cb9-6"></a><span class="co"># 查看任务信息</span></span>
+<span id="cb9-7"><a href="#cb9-7"></a><span class="fu">cat</span>(<span class="st">"任务信息:</span><span class="sc">\n</span><span class="st">"</span>)</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>任务信息:</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1"></a><span class="fu">print</span>(task_diabetes)</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+── &lt;TaskRegr&gt; (442x11) ─────────────────────────────────────────────────────────
+• Target: target
+• Properties: -
+• Features (10):
+  • dbl (10): age, bmi, glu, hdl, ldl, ltg, map, sex, tc, tch</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1"></a><span class="co"># 数据预处理管道</span></span>
+<span id="cb13-2"><a href="#cb13-2"></a>preprocess_pipeline <span class="ot">&lt;-</span> <span class="fu">po</span>(<span class="st">"scale"</span>) <span class="sc">%&gt;&gt;%</span> </span>
+<span id="cb13-3"><a href="#cb13-3"></a>  <span class="fu">po</span>(<span class="st">"colapply"</span>, <span class="at">applicator =</span> as.numeric)</span>
+<span id="cb13-4"><a href="#cb13-4"></a></span>
+<span id="cb13-5"><a href="#cb13-5"></a><span class="co"># 应用预处理</span></span>
+<span id="cb13-6"><a href="#cb13-6"></a>task_preprocessed <span class="ot">&lt;-</span> preprocess_pipeline<span class="sc">$</span><span class="fu">train</span>(task_diabetes)[[<span class="dv">1</span>]]</span>
+<span id="cb13-7"><a href="#cb13-7"></a></span>
+<span id="cb13-8"><a href="#cb13-8"></a><span class="fu">cat</span>(<span class="st">"</span><span class="sc">\n</span><span class="st">预处理后的任务信息:</span><span class="sc">\n</span><span class="st">"</span>)</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+预处理后的任务信息:</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb15"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1"></a><span class="fu">print</span>(task_preprocessed)</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+── &lt;TaskRegr&gt; (442x11) ─────────────────────────────────────────────────────────
+• Target: target
+• Properties: -
+• Features (10):
+  • dbl (10): age, bmi, glu, hdl, ldl, ltg, map, sex, tc, tch</code></pre>
+</div>
+</div>
+<p>模型训练与比较</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb17"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1"></a><span class="co"># 模型训练与比较 - mlr3</span></span>
+<span id="cb17-2"><a href="#cb17-2"></a></span>
+<span id="cb17-3"><a href="#cb17-3"></a><span class="co"># 定义学习器</span></span>
+<span id="cb17-4"><a href="#cb17-4"></a>learners <span class="ot">&lt;-</span> <span class="fu">list</span>(</span>
+<span id="cb17-5"><a href="#cb17-5"></a>  <span class="fu">lrn</span>(<span class="st">"regr.lm"</span>, <span class="at">id =</span> <span class="st">"linear_regression"</span>),</span>
+<span id="cb17-6"><a href="#cb17-6"></a>  <span class="fu">lrn</span>(<span class="st">"regr.ranger"</span>, <span class="at">id =</span> <span class="st">"random_forest"</span>),</span>
+<span id="cb17-7"><a href="#cb17-7"></a>  <span class="fu">lrn</span>(<span class="st">"regr.xgboost"</span>, <span class="at">id =</span> <span class="st">"xgboost"</span>),</span>
+<span id="cb17-8"><a href="#cb17-8"></a>  <span class="fu">lrn</span>(<span class="st">"regr.svm"</span>, <span class="at">id =</span> <span class="st">"svm"</span>),</span>
+<span id="cb17-9"><a href="#cb17-9"></a>  <span class="fu">lrn</span>(<span class="st">"regr.kknn"</span>, <span class="at">id =</span> <span class="st">"knn"</span>)</span>
+<span id="cb17-10"><a href="#cb17-10"></a>)</span>
+<span id="cb17-11"><a href="#cb17-11"></a></span>
+<span id="cb17-12"><a href="#cb17-12"></a><span class="co"># 设置交叉验证</span></span>
+<span id="cb17-13"><a href="#cb17-13"></a>resampling <span class="ot">&lt;-</span> <span class="fu">rsmp</span>(<span class="st">"cv"</span>, <span class="at">folds =</span> <span class="dv">5</span>)</span>
+<span id="cb17-14"><a href="#cb17-14"></a></span>
+<span id="cb17-15"><a href="#cb17-15"></a><span class="co"># 基准测试</span></span>
+<span id="cb17-16"><a href="#cb17-16"></a>design <span class="ot">&lt;-</span> <span class="fu">benchmark_grid</span>(</span>
+<span id="cb17-17"><a href="#cb17-17"></a>  <span class="at">tasks =</span> task_preprocessed,</span>
+<span id="cb17-18"><a href="#cb17-18"></a>  <span class="at">learners =</span> learners,</span>
+<span id="cb17-19"><a href="#cb17-19"></a>  <span class="at">resamplings =</span> resampling</span>
+<span id="cb17-20"><a href="#cb17-20"></a>)</span>
+<span id="cb17-21"><a href="#cb17-21"></a></span>
+<span id="cb17-22"><a href="#cb17-22"></a>bmr <span class="ot">&lt;-</span> <span class="fu">benchmark</span>(</span>
+<span id="cb17-23"><a href="#cb17-23"></a>  design,</span>
+<span id="cb17-24"><a href="#cb17-24"></a>  <span class="at">store_backends =</span> <span class="cn">TRUE</span>, </span>
+<span id="cb17-25"><a href="#cb17-25"></a>  <span class="at">store_models =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb17-26"><a href="#cb17-26"></a></span>
+<span id="cb17-27"><a href="#cb17-27"></a><span class="co"># 性能评估</span></span>
+<span id="cb17-28"><a href="#cb17-28"></a><span class="fu">cat</span>(<span class="st">"模型性能比较:</span><span class="sc">\n</span><span class="st">"</span>)</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>模型性能比较:</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb19"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1"></a>performance_measures <span class="ot">&lt;-</span> <span class="fu">msrs</span>(<span class="fu">c</span>(<span class="st">"regr.mse"</span>, <span class="st">"regr.rmse"</span>, <span class="st">"regr.mae"</span>, <span class="st">"regr.rsq"</span>))</span>
+<span id="cb19-2"><a href="#cb19-2"></a>bmr_aggregated <span class="ot">&lt;-</span> bmr<span class="sc">$</span><span class="fu">aggregate</span>(performance_measures)</span>
+<span id="cb19-3"><a href="#cb19-3"></a></span>
+<span id="cb19-4"><a href="#cb19-4"></a><span class="co"># 格式化输出结果</span></span>
+<span id="cb19-5"><a href="#cb19-5"></a>results_r <span class="ot">&lt;-</span> bmr_aggregated[, .(</span>
+<span id="cb19-6"><a href="#cb19-6"></a>  <span class="at">Model =</span> learner_id,</span>
+<span id="cb19-7"><a href="#cb19-7"></a>  <span class="at">RMSE =</span> regr.rmse,</span>
+<span id="cb19-8"><a href="#cb19-8"></a>  <span class="at">MSE =</span> regr.mse,</span>
+<span id="cb19-9"><a href="#cb19-9"></a>  <span class="at">MAE =</span> regr.mae,</span>
+<span id="cb19-10"><a href="#cb19-10"></a>  <span class="at">R2 =</span> regr.rsq</span>
+<span id="cb19-11"><a href="#cb19-11"></a>)]</span>
+<span id="cb19-12"><a href="#cb19-12"></a></span>
+<span id="cb19-13"><a href="#cb19-13"></a><span class="fu">print</span>(results_r[<span class="fu">order</span>(RMSE)])</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>               Model     RMSE      MSE      MAE        R2
+              &lt;char&gt;    &lt;num&gt;    &lt;num&gt;    &lt;num&gt;     &lt;num&gt;
+1: linear_regression 54.32812 2959.818 44.08989 0.4992770
+2:     random_forest 56.24742 3175.846 46.10112 0.4634585
+3:               svm 57.29007 3286.445 44.91594 0.4431697
+4:               knn 61.63274 3808.714 48.02614 0.3550164
+5:           xgboost 63.20336 4017.177 50.00323 0.3230514</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb21"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1"></a><span class="co"># 性能可视化</span></span>
+<span id="cb21-2"><a href="#cb21-2"></a><span class="fu">ggplot</span>(results_r, <span class="fu">aes</span>(<span class="at">x =</span> <span class="fu">reorder</span>(Model, RMSE), <span class="at">y =</span> RMSE)) <span class="sc">+</span></span>
+<span id="cb21-3"><a href="#cb21-3"></a>  <span class="fu">geom_bar</span>(<span class="at">stat =</span> <span class="st">"identity"</span>, <span class="at">fill =</span> <span class="st">"steelblue"</span>, <span class="at">alpha =</span> <span class="fl">0.7</span>) <span class="sc">+</span></span>
+<span id="cb21-4"><a href="#cb21-4"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"模型性能比较 (RMSE) - R/mlr3"</span>, <span class="at">x =</span> <span class="st">"模型"</span>, <span class="at">y =</span> <span class="st">"RMSE"</span>) <span class="sc">+</span></span>
+<span id="cb21-5"><a href="#cb21-5"></a>  <span class="fu">theme_minimal</span>() <span class="sc">+</span></span>
+<span id="cb21-6"><a href="#cb21-6"></a>  <span class="fu">theme</span>(<span class="at">axis.text.x =</span> <span class="fu">element_text</span>(<span class="at">angle =</span> <span class="dv">45</span>, <span class="at">hjust =</span> <span class="dv">1</span>))</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure"><p><img src="13-回归任务与基准测试_files/figure-html/unnamed-chunk-5-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>超参数调优</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb22"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1"></a><span class="co"># 超参数调优示例 - 随机森林</span></span>
+<span id="cb22-2"><a href="#cb22-2"></a></span>
+<span id="cb22-3"><a href="#cb22-3"></a><span class="fu">library</span>(mlr3)           <span class="co"># 核心</span></span>
+<span id="cb22-4"><a href="#cb22-4"></a><span class="fu">library</span>(mlr3learners)   <span class="co"># 学习器</span></span>
+<span id="cb22-5"><a href="#cb22-5"></a><span class="fu">library</span>(mlr3tuning)     <span class="co"># 参数调优（包含 tnr()）</span></span>
+<span id="cb22-6"><a href="#cb22-6"></a><span class="fu">library</span>(paradox)        <span class="co"># 参数空间</span></span>
+<span id="cb22-7"><a href="#cb22-7"></a><span class="fu">library</span>(mlr3viz)        <span class="co"># 可视化</span></span>
+<span id="cb22-8"><a href="#cb22-8"></a><span class="co"># 定义随机森林学习器</span></span>
+<span id="cb22-9"><a href="#cb22-9"></a>learner_rf_tune <span class="ot">&lt;-</span> <span class="fu">lrn</span>(<span class="st">"regr.ranger"</span>, <span class="at">num.trees =</span> <span class="dv">100</span>)</span>
+<span id="cb22-10"><a href="#cb22-10"></a></span>
+<span id="cb22-11"><a href="#cb22-11"></a><span class="co"># 定义超参数空间</span></span>
+<span id="cb22-12"><a href="#cb22-12"></a>param_set <span class="ot">&lt;-</span> <span class="fu">ps</span>(</span>
+<span id="cb22-13"><a href="#cb22-13"></a>  <span class="at">mtry =</span> <span class="fu">p_int</span>(<span class="at">lower =</span> <span class="dv">2</span>, <span class="at">upper =</span> <span class="fu">ncol</span>(diabetes_data) <span class="sc">-</span> <span class="dv">1</span>),</span>
+<span id="cb22-14"><a href="#cb22-14"></a>  <span class="at">min.node.size =</span> <span class="fu">p_int</span>(<span class="at">lower =</span> <span class="dv">1</span>, <span class="at">upper =</span> <span class="dv">10</span>),</span>
+<span id="cb22-15"><a href="#cb22-15"></a>  <span class="at">sample.fraction =</span> <span class="fu">p_dbl</span>(<span class="at">lower =</span> <span class="fl">0.6</span>, <span class="at">upper =</span> <span class="fl">0.9</span>)</span>
+<span id="cb22-16"><a href="#cb22-16"></a>)</span>
+<span id="cb22-17"><a href="#cb22-17"></a></span>
+<span id="cb22-18"><a href="#cb22-18"></a><span class="co"># 定义调优器</span></span>
+<span id="cb22-19"><a href="#cb22-19"></a>tuner <span class="ot">&lt;-</span> <span class="fu">tnr</span>(<span class="st">"grid_search"</span>, <span class="at">resolution =</span> <span class="dv">5</span>)</span>
+<span id="cb22-20"><a href="#cb22-20"></a>terminator <span class="ot">&lt;-</span> <span class="fu">trm</span>(<span class="st">"evals"</span>, <span class="at">n_evals =</span> <span class="dv">10</span>)</span>
+<span id="cb22-21"><a href="#cb22-21"></a></span>
+<span id="cb22-22"><a href="#cb22-22"></a><span class="co"># 自动调优</span></span>
+<span id="cb22-23"><a href="#cb22-23"></a>at <span class="ot">&lt;-</span> <span class="fu">auto_tuner</span>(</span>
+<span id="cb22-24"><a href="#cb22-24"></a>  <span class="at">tuner =</span> tuner,</span>
+<span id="cb22-25"><a href="#cb22-25"></a>  <span class="at">learner =</span> learner_rf_tune,</span>
+<span id="cb22-26"><a href="#cb22-26"></a>  <span class="at">resampling =</span> <span class="fu">rsmp</span>(<span class="st">"holdout"</span>),</span>
+<span id="cb22-27"><a href="#cb22-27"></a>  <span class="at">measure =</span> <span class="fu">msr</span>(<span class="st">"regr.rmse"</span>),</span>
+<span id="cb22-28"><a href="#cb22-28"></a>  <span class="at">search_space =</span> param_set,</span>
+<span id="cb22-29"><a href="#cb22-29"></a>  <span class="at">terminator =</span> terminator</span>
+<span id="cb22-30"><a href="#cb22-30"></a>)</span>
+<span id="cb22-31"><a href="#cb22-31"></a></span>
+<span id="cb22-32"><a href="#cb22-32"></a><span class="co"># 在数据上演示调优</span></span>
+<span id="cb22-33"><a href="#cb22-33"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
+<span id="cb22-34"><a href="#cb22-34"></a>at<span class="sc">$</span><span class="fu">train</span>(task_preprocessed)</span>
+<span id="cb22-35"><a href="#cb22-35"></a></span>
+<span id="cb22-36"><a href="#cb22-36"></a><span class="fu">cat</span>(<span class="st">"最佳参数:</span><span class="sc">\n</span><span class="st">"</span>)</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>最佳参数:</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb24"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1"></a><span class="fu">print</span>(at<span class="sc">$</span>tuning_result)</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>    mtry min.node.size sample.fraction learner_param_vals  x_domain regr.rmse
+   &lt;int&gt;         &lt;int&gt;           &lt;num&gt;             &lt;list&gt;    &lt;list&gt;     &lt;num&gt;
+1:     8             3           0.675          &lt;list[6]&gt; &lt;list[3]&gt;  55.69813</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb26"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1"></a><span class="co"># 使用调优后的模型进行预测</span></span>
+<span id="cb26-2"><a href="#cb26-2"></a>predictions_tuned <span class="ot">&lt;-</span> at<span class="sc">$</span><span class="fu">predict</span>(task_preprocessed)</span>
+<span id="cb26-3"><a href="#cb26-3"></a><span class="fu">cat</span>(<span class="st">"调优完成</span><span class="sc">\n</span><span class="st">"</span>)</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>调优完成</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb28"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb28-1"><a href="#cb28-1"></a><span class="fu">cat</span>(<span class="st">"调优后模型RMSE:"</span>, predictions_tuned<span class="sc">$</span><span class="fu">score</span>(<span class="fu">msr</span>(<span class="st">"regr.rmse"</span>)), <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>调优后模型RMSE: 30.78791 </code></pre>
+</div>
+</div>
+<p>模型解释</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb30"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb30-1"><a href="#cb30-1"></a><span class="co"># 模型解释 - 特征重要性</span></span>
+<span id="cb30-2"><a href="#cb30-2"></a></span>
+<span id="cb30-3"><a href="#cb30-3"></a><span class="fu">library</span>(ggplot2)</span>
+<span id="cb30-4"><a href="#cb30-4"></a><span class="co"># 训练最佳模型（随机森林）</span></span>
+<span id="cb30-5"><a href="#cb30-5"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
+<span id="cb30-6"><a href="#cb30-6"></a>learner_best <span class="ot">&lt;-</span> <span class="fu">lrn</span>(<span class="st">"regr.ranger"</span>, <span class="at">importance =</span> <span class="st">"permutation"</span>)</span>
+<span id="cb30-7"><a href="#cb30-7"></a>learner_best<span class="sc">$</span><span class="fu">train</span>(task_preprocessed)</span>
+<span id="cb30-8"><a href="#cb30-8"></a></span>
+<span id="cb30-9"><a href="#cb30-9"></a><span class="co"># 特征重要性</span></span>
+<span id="cb30-10"><a href="#cb30-10"></a><span class="cf">if</span> (<span class="sc">!</span><span class="fu">is.null</span>(learner_best<span class="sc">$</span>importance)) {</span>
+<span id="cb30-11"><a href="#cb30-11"></a>  feature_importance <span class="ot">&lt;-</span> learner_best<span class="sc">$</span><span class="fu">importance</span>()</span>
+<span id="cb30-12"><a href="#cb30-12"></a>  importance_df <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb30-13"><a href="#cb30-13"></a>    <span class="at">Feature =</span> <span class="fu">names</span>(feature_importance),</span>
+<span id="cb30-14"><a href="#cb30-14"></a>    <span class="at">Importance =</span> <span class="fu">as.numeric</span>(feature_importance)</span>
+<span id="cb30-15"><a href="#cb30-15"></a>  )</span>
+<span id="cb30-16"><a href="#cb30-16"></a>  importance_df <span class="ot">&lt;-</span> importance_df[<span class="fu">order</span>(<span class="sc">-</span>importance_df<span class="sc">$</span>Importance), ]</span>
+<span id="cb30-17"><a href="#cb30-17"></a>  </span>
+<span id="cb30-18"><a href="#cb30-18"></a>  <span class="fu">cat</span>(<span class="st">"特征重要性排序:</span><span class="sc">\n</span><span class="st">"</span>)</span>
+<span id="cb30-19"><a href="#cb30-19"></a>  <span class="fu">print</span>(importance_df)</span>
+<span id="cb30-20"><a href="#cb30-20"></a>  </span>
+<span id="cb30-21"><a href="#cb30-21"></a>  <span class="co"># 可视化特征重要性</span></span>
+<span id="cb30-22"><a href="#cb30-22"></a>  <span class="fu">ggplot</span>(<span class="fu">head</span>(importance_df, <span class="dv">8</span>), <span class="fu">aes</span>(<span class="at">x =</span> <span class="fu">reorder</span>(Feature, Importance), <span class="at">y =</span> Importance)) <span class="sc">+</span></span>
+<span id="cb30-23"><a href="#cb30-23"></a>    <span class="fu">geom_bar</span>(<span class="at">stat =</span> <span class="st">"identity"</span>, <span class="at">fill =</span> <span class="st">"darkorange"</span>, <span class="at">alpha =</span> <span class="fl">0.7</span>) <span class="sc">+</span></span>
+<span id="cb30-24"><a href="#cb30-24"></a>    <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"特征重要性 - 随机森林"</span>, <span class="at">x =</span> <span class="st">"特征"</span>, <span class="at">y =</span> <span class="st">"重要性"</span>) <span class="sc">+</span></span>
+<span id="cb30-25"><a href="#cb30-25"></a>    <span class="fu">coord_flip</span>() <span class="sc">+</span></span>
+<span id="cb30-26"><a href="#cb30-26"></a>    <span class="fu">theme_minimal</span>()</span>
+<span id="cb30-27"><a href="#cb30-27"></a>} <span class="cf">else</span> {</span>
+<span id="cb30-28"><a href="#cb30-28"></a>  <span class="fu">cat</span>(<span class="st">"该学习器不支持特征重要性计算</span><span class="sc">\n</span><span class="st">"</span>)</span>
+<span id="cb30-29"><a href="#cb30-29"></a>}</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>特征重要性排序:
+   Feature Importance
+1      ltg 1469.33233
+2      bmi 1457.20570
+3      map  464.11349
+4      tch  363.93017
+5      hdl  261.42699
+6       tc  156.66425
+7      ldl  135.23885
+8      glu  129.35189
+9      age   66.95241
+10     sex   65.88863</code></pre>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure"><p><img src="13-回归任务与基准测试_files/figure-html/unnamed-chunk-7-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>模型预测与残差分析</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb32"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb32-1"><a href="#cb32-1"></a><span class="co"># 模型预测与残差分析</span></span>
+<span id="cb32-2"><a href="#cb32-2"></a></span>
+<span id="cb32-3"><a href="#cb32-3"></a><span class="co"># 使用最佳模型进行预测</span></span>
+<span id="cb32-4"><a href="#cb32-4"></a>predictions <span class="ot">&lt;-</span> learner_best<span class="sc">$</span><span class="fu">predict</span>(task_preprocessed)</span>
+<span id="cb32-5"><a href="#cb32-5"></a></span>
+<span id="cb32-6"><a href="#cb32-6"></a><span class="co"># 创建预测结果数据框</span></span>
+<span id="cb32-7"><a href="#cb32-7"></a>results_df <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb32-8"><a href="#cb32-8"></a>  <span class="at">Actual =</span> predictions<span class="sc">$</span>truth,</span>
+<span id="cb32-9"><a href="#cb32-9"></a>  <span class="at">Predicted =</span> predictions<span class="sc">$</span>response,</span>
+<span id="cb32-10"><a href="#cb32-10"></a>  <span class="at">Residual =</span> predictions<span class="sc">$</span>truth <span class="sc">-</span> predictions<span class="sc">$</span>response</span>
+<span id="cb32-11"><a href="#cb32-11"></a>)</span>
+<span id="cb32-12"><a href="#cb32-12"></a></span>
+<span id="cb32-13"><a href="#cb32-13"></a><span class="co"># 预测 vs 实际值图</span></span>
+<span id="cb32-14"><a href="#cb32-14"></a>p1 <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(results_df, <span class="fu">aes</span>(<span class="at">x =</span> Actual, <span class="at">y =</span> Predicted)) <span class="sc">+</span></span>
+<span id="cb32-15"><a href="#cb32-15"></a>  <span class="fu">geom_point</span>(<span class="at">alpha =</span> <span class="fl">0.6</span>, <span class="at">color =</span> <span class="st">"steelblue"</span>) <span class="sc">+</span></span>
+<span id="cb32-16"><a href="#cb32-16"></a>  <span class="fu">geom_abline</span>(<span class="at">slope =</span> <span class="dv">1</span>, <span class="at">intercept =</span> <span class="dv">0</span>, <span class="at">color =</span> <span class="st">"red"</span>, <span class="at">linetype =</span> <span class="st">"dashed"</span>) <span class="sc">+</span></span>
+<span id="cb32-17"><a href="#cb32-17"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"预测值 vs 实际值"</span>, <span class="at">x =</span> <span class="st">"实际值"</span>, <span class="at">y =</span> <span class="st">"预测值"</span>) <span class="sc">+</span></span>
+<span id="cb32-18"><a href="#cb32-18"></a>  <span class="fu">theme_minimal</span>()</span>
+<span id="cb32-19"><a href="#cb32-19"></a></span>
+<span id="cb32-20"><a href="#cb32-20"></a><span class="co"># 残差图</span></span>
+<span id="cb32-21"><a href="#cb32-21"></a>p2 <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(results_df, <span class="fu">aes</span>(<span class="at">x =</span> Predicted, <span class="at">y =</span> Residual)) <span class="sc">+</span></span>
+<span id="cb32-22"><a href="#cb32-22"></a>  <span class="fu">geom_point</span>(<span class="at">alpha =</span> <span class="fl">0.6</span>, <span class="at">color =</span> <span class="st">"darkred"</span>) <span class="sc">+</span></span>
+<span id="cb32-23"><a href="#cb32-23"></a>  <span class="fu">geom_hline</span>(<span class="at">yintercept =</span> <span class="dv">0</span>, <span class="at">color =</span> <span class="st">"red"</span>, <span class="at">linetype =</span> <span class="st">"dashed"</span>) <span class="sc">+</span></span>
+<span id="cb32-24"><a href="#cb32-24"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"残差分析"</span>, <span class="at">x =</span> <span class="st">"预测值"</span>, <span class="at">y =</span> <span class="st">"残差"</span>) <span class="sc">+</span></span>
+<span id="cb32-25"><a href="#cb32-25"></a>  <span class="fu">theme_minimal</span>()</span>
+<span id="cb32-26"><a href="#cb32-26"></a></span>
+<span id="cb32-27"><a href="#cb32-27"></a><span class="fu">grid.arrange</span>(p1, p2, <span class="at">ncol =</span> <span class="dv">2</span>)</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure"><p><img src="13-回归任务与基准测试_files/figure-html/unnamed-chunk-8-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</section><section id="python-sklearn框架回归" class="level2"><h2 class="anchored" data-anchor-id="python-sklearn框架回归">13.2 Python (sklearn框架)–回归</h2>
+<p>数据加载与探索</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb33"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb33-1"><a href="#cb33-1"></a><span class="co"># 综合案例：糖尿病进展预测 - Python语言实现 (sklearn框架)</span></span>
+<span id="cb33-2"><a href="#cb33-2"></a><span class="im">import</span> sys</span>
+<span id="cb33-3"><a href="#cb33-3"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
+<span id="cb33-4"><a href="#cb33-4"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
+<span id="cb33-5"><a href="#cb33-5"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
+<span id="cb33-6"><a href="#cb33-6"></a><span class="im">import</span> seaborn <span class="im">as</span> sns</span>
+<span id="cb33-7"><a href="#cb33-7"></a><span class="im">from</span> sklearn.datasets <span class="im">import</span> load_diabetes</span>
+<span id="cb33-8"><a href="#cb33-8"></a><span class="im">from</span> sklearn.model_selection <span class="im">import</span> train_test_split, cross_val_score, GridSearchCV</span>
+<span id="cb33-9"><a href="#cb33-9"></a><span class="im">from</span> sklearn.preprocessing <span class="im">import</span> StandardScaler</span>
+<span id="cb33-10"><a href="#cb33-10"></a><span class="im">from</span> sklearn.linear_model <span class="im">import</span> LinearRegression, Ridge, Lasso</span>
+<span id="cb33-11"><a href="#cb33-11"></a><span class="im">from</span> sklearn.ensemble <span class="im">import</span> RandomForestRegressor, GradientBoostingRegressor</span>
+<span id="cb33-12"><a href="#cb33-12"></a><span class="im">from</span> sklearn.svm <span class="im">import</span> SVR</span>
+<span id="cb33-13"><a href="#cb33-13"></a><span class="im">from</span> sklearn.neighbors <span class="im">import</span> KNeighborsRegressor</span>
+<span id="cb33-14"><a href="#cb33-14"></a><span class="im">from</span> sklearn.metrics <span class="im">import</span> mean_squared_error, r2_score, mean_absolute_error</span>
+<span id="cb33-15"><a href="#cb33-15"></a><span class="im">from</span> sklearn.inspection <span class="im">import</span> permutation_importance</span>
+<span id="cb33-16"><a href="#cb33-16"></a><span class="im">import</span> warnings</span>
+<span id="cb33-17"><a href="#cb33-17"></a>warnings.filterwarnings(<span class="st">'ignore'</span>)</span>
+<span id="cb33-18"><a href="#cb33-18"></a></span>
+<span id="cb33-19"><a href="#cb33-19"></a><span class="co"># 设置图形样式</span></span>
+<span id="cb33-20"><a href="#cb33-20"></a>plt.style.use(<span class="st">'default'</span>)</span>
+<span id="cb33-21"><a href="#cb33-21"></a>sns.set_palette(<span class="st">"husl"</span>)</span>
+<span id="cb33-22"><a href="#cb33-22"></a></span>
+<span id="cb33-23"><a href="#cb33-23"></a><span class="co"># 加载糖尿病数据集</span></span>
+<span id="cb33-24"><a href="#cb33-24"></a>diabetes <span class="op">=</span> pd.read_csv(<span class="st">"data/diabetes.csv"</span>)</span>
+<span id="cb33-25"><a href="#cb33-25"></a>X <span class="op">=</span> diabetes.iloc[:, :<span class="op">-</span><span class="dv">2</span>] <span class="co"># 所有行，除第3列（bp）的所有列</span></span>
+<span id="cb33-26"><a href="#cb33-26"></a>y <span class="op">=</span> diabetes.iloc[:, <span class="op">-</span><span class="dv">2</span>]   <span class="co"># 所有行，第3列</span></span>
+<span id="cb33-27"><a href="#cb33-27"></a>diabetes_data <span class="op">=</span> pd.concat([X, y], axis<span class="op">=</span><span class="dv">1</span>)</span>
+<span id="cb33-28"><a href="#cb33-28"></a></span>
+<span id="cb33-29"><a href="#cb33-29"></a><span class="bu">print</span>(<span class="st">"数据集基本信息:"</span>)</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>数据集基本信息:</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb35"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb35-1"><a href="#cb35-1"></a><span class="bu">print</span>(<span class="ss">f"样本数: </span><span class="sc">{</span>diabetes_data<span class="sc">.</span>shape[<span class="dv">0</span>]<span class="sc">}</span><span class="ss">"</span>)</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>样本数: 442</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb37"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb37-1"><a href="#cb37-1"></a><span class="bu">print</span>(<span class="ss">f"变量数: </span><span class="sc">{</span>diabetes_data<span class="sc">.</span>shape[<span class="dv">1</span>]<span class="sc">}</span><span class="ss">"</span>)</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>变量数: 9</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb39"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb39-1"><a href="#cb39-1"></a><span class="bu">print</span>(<span class="st">"</span><span class="ch">\n</span><span class="st">变量名称:"</span>)</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+变量名称:</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb41"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb41-1"><a href="#cb41-1"></a><span class="bu">print</span>(diabetes_data.columns.tolist())</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>['age', 'sex', 'bmi', 'bp', 's1', 's2', 's3', 's4', 's5']</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb43"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb43-1"><a href="#cb43-1"></a><span class="bu">print</span>(<span class="st">"</span><span class="ch">\n</span><span class="st">数据概览:"</span>)</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+数据概览:</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb45"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb45-1"><a href="#cb45-1"></a><span class="bu">print</span>(diabetes_data.describe())</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>              age         sex         bmi  ...          s3          s4          s5
+count  442.000000  442.000000  442.000000  ...  442.000000  442.000000  442.000000
+mean     0.000136    0.002149   -0.000136  ...    0.000204   -0.000362    0.000023
+std      0.047790    0.044961    0.047771  ...    0.047320    0.047789    0.047545
+min     -0.110000   -0.040000   -0.090000  ...   -0.100000   -0.080000   -0.130000
+25%     -0.037500   -0.040000   -0.030000  ...   -0.037500   -0.040000   -0.030000
+50%      0.010000   -0.040000   -0.010000  ...   -0.010000   -0.000000    0.000000
+75%      0.040000    0.050000    0.030000  ...    0.030000    0.030000    0.030000
+max      0.110000    0.050000    0.170000  ...    0.180000    0.190000    0.130000
+
+[8 rows x 9 columns]</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb47"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb47-1"><a href="#cb47-1"></a><span class="bu">print</span>(<span class="st">"</span><span class="ch">\n</span><span class="st">缺失值检查:"</span>)</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+缺失值检查:</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb49"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb49-1"><a href="#cb49-1"></a><span class="bu">print</span>(diabetes_data.isnull().<span class="bu">sum</span>())</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>age    0
+sex    0
+bmi    0
+bp     0
+s1     0
+s2     0
+s3     0
+s4     0
+s5     0
+dtype: int64</code></pre>
+</div>
+</div>
+<p>数据可视化分析</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb51"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb51-1"><a href="#cb51-1"></a><span class="co"># 数据可视化分析 - Python</span></span>
+<span id="cb51-2"><a href="#cb51-2"></a></span>
+<span id="cb51-3"><a href="#cb51-3"></a>fig, axes <span class="op">=</span> plt.subplots(<span class="dv">2</span>, <span class="dv">2</span>, figsize<span class="op">=</span>(<span class="dv">15</span>, <span class="dv">12</span>))</span>
+<span id="cb51-4"><a href="#cb51-4"></a></span>
+<span id="cb51-5"><a href="#cb51-5"></a><span class="co"># 目标变量分布</span></span>
+<span id="cb51-6"><a href="#cb51-6"></a>axes[<span class="dv">0</span>,<span class="dv">0</span>].hist(diabetes_data[<span class="st">'bp'</span>], bins<span class="op">=</span><span class="dv">30</span>, color<span class="op">=</span><span class="st">'steelblue'</span>, alpha<span class="op">=</span><span class="fl">0.7</span>)</span>
+<span id="cb51-7"><a href="#cb51-7"></a>axes[<span class="dv">0</span>,<span class="dv">0</span>].set_title(<span class="st">'疾病进展分布'</span>)</span>
+<span id="cb51-8"><a href="#cb51-8"></a>axes[<span class="dv">0</span>,<span class="dv">0</span>].set_xlabel(<span class="st">'疾病进展指标'</span>)</span>
+<span id="cb51-9"><a href="#cb51-9"></a>axes[<span class="dv">0</span>,<span class="dv">0</span>].set_ylabel(<span class="st">'频数'</span>)</span>
+<span id="cb51-10"><a href="#cb51-10"></a></span>
+<span id="cb51-11"><a href="#cb51-11"></a><span class="co"># 疾病进展与关键变量的关系</span></span>
+<span id="cb51-12"><a href="#cb51-12"></a>axes[<span class="dv">0</span>,<span class="dv">1</span>].scatter(diabetes_data[<span class="st">'bmi'</span>], diabetes_data[<span class="st">'bp'</span>], alpha<span class="op">=</span><span class="fl">0.6</span>, color<span class="op">=</span><span class="st">'darkred'</span>)</span>
+<span id="cb51-13"><a href="#cb51-13"></a>z <span class="op">=</span> np.polyfit(diabetes_data[<span class="st">'bmi'</span>], diabetes_data[<span class="st">'bp'</span>], <span class="dv">1</span>)</span>
+<span id="cb51-14"><a href="#cb51-14"></a>p <span class="op">=</span> np.poly1d(z)</span>
+<span id="cb51-15"><a href="#cb51-15"></a>axes[<span class="dv">0</span>,<span class="dv">1</span>].plot(diabetes_data[<span class="st">'bmi'</span>], p(diabetes_data[<span class="st">'bmi'</span>]), <span class="st">"b-"</span>, alpha<span class="op">=</span><span class="fl">0.8</span>)</span>
+<span id="cb51-16"><a href="#cb51-16"></a>axes[<span class="dv">0</span>,<span class="dv">1</span>].set_title(<span class="st">'BMI与疾病进展关系'</span>)</span>
+<span id="cb51-17"><a href="#cb51-17"></a>axes[<span class="dv">0</span>,<span class="dv">1</span>].set_xlabel(<span class="st">'BMI'</span>)</span>
+<span id="cb51-18"><a href="#cb51-18"></a>axes[<span class="dv">0</span>,<span class="dv">1</span>].set_ylabel(<span class="st">'疾病进展'</span>)</span>
+<span id="cb51-19"><a href="#cb51-19"></a></span>
+<span id="cb51-20"><a href="#cb51-20"></a>axes[<span class="dv">1</span>,<span class="dv">0</span>].scatter(diabetes_data[<span class="st">'s5'</span>], diabetes_data[<span class="st">'bp'</span>], alpha<span class="op">=</span><span class="fl">0.6</span>, color<span class="op">=</span><span class="st">'darkgreen'</span>)</span>
+<span id="cb51-21"><a href="#cb51-21"></a>z <span class="op">=</span> np.polyfit(diabetes_data[<span class="st">'s5'</span>], diabetes_data[<span class="st">'bp'</span>], <span class="dv">1</span>)</span>
+<span id="cb51-22"><a href="#cb51-22"></a>p <span class="op">=</span> np.poly1d(z)</span>
+<span id="cb51-23"><a href="#cb51-23"></a>axes[<span class="dv">1</span>,<span class="dv">0</span>].plot(diabetes_data[<span class="st">'s5'</span>], p(diabetes_data[<span class="st">'s5'</span>]), <span class="st">"r-"</span>, alpha<span class="op">=</span><span class="fl">0.8</span>)</span>
+<span id="cb51-24"><a href="#cb51-24"></a>axes[<span class="dv">1</span>,<span class="dv">0</span>].set_title(<span class="st">'稳定血糖与疾病进展'</span>)</span>
+<span id="cb51-25"><a href="#cb51-25"></a>axes[<span class="dv">1</span>,<span class="dv">0</span>].set_xlabel(<span class="st">'稳定血糖'</span>)</span>
+<span id="cb51-26"><a href="#cb51-26"></a>axes[<span class="dv">1</span>,<span class="dv">0</span>].set_ylabel(<span class="st">'疾病进展'</span>)</span>
+<span id="cb51-27"><a href="#cb51-27"></a></span>
+<span id="cb51-28"><a href="#cb51-28"></a>axes[<span class="dv">1</span>,<span class="dv">1</span>].scatter(diabetes_data[<span class="st">'age'</span>], diabetes_data[<span class="st">'bp'</span>], alpha<span class="op">=</span><span class="fl">0.6</span>, color<span class="op">=</span><span class="st">'purple'</span>)</span>
+<span id="cb51-29"><a href="#cb51-29"></a>z <span class="op">=</span> np.polyfit(diabetes_data[<span class="st">'age'</span>], diabetes_data[<span class="st">'bp'</span>], <span class="dv">1</span>)</span>
+<span id="cb51-30"><a href="#cb51-30"></a>p <span class="op">=</span> np.poly1d(z)</span>
+<span id="cb51-31"><a href="#cb51-31"></a>axes[<span class="dv">1</span>,<span class="dv">1</span>].plot(diabetes_data[<span class="st">'age'</span>], p(diabetes_data[<span class="st">'age'</span>]), <span class="st">"orange"</span>, alpha<span class="op">=</span><span class="fl">0.8</span>)</span>
+<span id="cb51-32"><a href="#cb51-32"></a>axes[<span class="dv">1</span>,<span class="dv">1</span>].set_title(<span class="st">'年龄与疾病进展关系'</span>)</span>
+<span id="cb51-33"><a href="#cb51-33"></a>axes[<span class="dv">1</span>,<span class="dv">1</span>].set_xlabel(<span class="st">'年龄'</span>)</span>
+<span id="cb51-34"><a href="#cb51-34"></a>axes[<span class="dv">1</span>,<span class="dv">1</span>].set_ylabel(<span class="st">'疾病进展'</span>)</span>
+<span id="cb51-35"><a href="#cb51-35"></a></span>
+<span id="cb51-36"><a href="#cb51-36"></a>plt.tight_layout()</span>
+<span id="cb51-37"><a href="#cb51-37"></a>plt.show()</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure"><p><img src="13-回归任务与基准测试_files/figure-html/unnamed-chunk-10-1.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb52"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb52-1"><a href="#cb52-1"></a><span class="co"># 相关性热图</span></span>
+<span id="cb52-2"><a href="#cb52-2"></a>plt.figure(figsize<span class="op">=</span>(<span class="dv">12</span>, <span class="dv">10</span>))</span>
+<span id="cb52-3"><a href="#cb52-3"></a>corr_matrix <span class="op">=</span> diabetes_data.corr()</span>
+<span id="cb52-4"><a href="#cb52-4"></a>sns.heatmap(corr_matrix, annot<span class="op">=</span><span class="va">True</span>, cmap<span class="op">=</span><span class="st">'coolwarm'</span>, center<span class="op">=</span><span class="dv">0</span>,</span>
+<span id="cb52-5"><a href="#cb52-5"></a>            square<span class="op">=</span><span class="va">True</span>, linewidths<span class="op">=</span><span class="fl">0.5</span>, cbar_kws<span class="op">=</span>{<span class="st">"shrink"</span>: <span class="fl">0.8</span>}, fmt<span class="op">=</span><span class="st">'.2f'</span>)</span>
+<span id="cb52-6"><a href="#cb52-6"></a>plt.title(<span class="st">'变量相关性热图 - Python/sklearn'</span>)</span>
+<span id="cb52-7"><a href="#cb52-7"></a>plt.tight_layout()</span>
+<span id="cb52-8"><a href="#cb52-8"></a>plt.show()</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure"><p><img src="13-回归任务与基准测试_files/figure-html/unnamed-chunk-10-2.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>数据预处理</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb53"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb53-1"><a href="#cb53-1"></a><span class="co"># 数据预处理 - Python</span></span>
+<span id="cb53-2"><a href="#cb53-2"></a></span>
+<span id="cb53-3"><a href="#cb53-3"></a><span class="co"># 准备特征和目标变量</span></span>
+<span id="cb53-4"><a href="#cb53-4"></a>X <span class="op">=</span> diabetes_data.drop(<span class="st">'bp'</span>, axis<span class="op">=</span><span class="dv">1</span>)</span>
+<span id="cb53-5"><a href="#cb53-5"></a>y <span class="op">=</span> diabetes_data[<span class="st">'bp'</span>]</span>
+<span id="cb53-6"><a href="#cb53-6"></a></span>
+<span id="cb53-7"><a href="#cb53-7"></a><span class="co"># 数据划分</span></span>
+<span id="cb53-8"><a href="#cb53-8"></a>X_train, X_test, y_train, y_test <span class="op">=</span> train_test_split(X, y, test_size<span class="op">=</span><span class="fl">0.3</span>, random_state<span class="op">=</span><span class="dv">42</span>)</span>
+<span id="cb53-9"><a href="#cb53-9"></a></span>
+<span id="cb53-10"><a href="#cb53-10"></a><span class="bu">print</span>(<span class="ss">f"训练集大小: </span><span class="sc">{</span>X_train<span class="sc">.</span>shape[<span class="dv">0</span>]<span class="sc">}</span><span class="ss">"</span>)</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>训练集大小: 309</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb55"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb55-1"><a href="#cb55-1"></a><span class="bu">print</span>(<span class="ss">f"测试集大小: </span><span class="sc">{</span>X_test<span class="sc">.</span>shape[<span class="dv">0</span>]<span class="sc">}</span><span class="ss">"</span>)</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>测试集大小: 133</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb57"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb57-1"><a href="#cb57-1"></a><span class="co"># 数据标准化</span></span>
+<span id="cb57-2"><a href="#cb57-2"></a>scaler <span class="op">=</span> StandardScaler()</span>
+<span id="cb57-3"><a href="#cb57-3"></a>X_train_scaled <span class="op">=</span> scaler.fit_transform(X_train)</span>
+<span id="cb57-4"><a href="#cb57-4"></a>X_test_scaled <span class="op">=</span> scaler.transform(X_test)</span>
+<span id="cb57-5"><a href="#cb57-5"></a></span>
+<span id="cb57-6"><a href="#cb57-6"></a><span class="bu">print</span>(<span class="st">"数据预处理完成"</span>)</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>数据预处理完成</code></pre>
+</div>
+</div>
+<p>模型训练与比较</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb59"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb59-1"><a href="#cb59-1"></a><span class="co"># 模型训练与比较 - sklearn</span></span>
+<span id="cb59-2"><a href="#cb59-2"></a></span>
+<span id="cb59-3"><a href="#cb59-3"></a><span class="co"># 定义模型字典</span></span>
+<span id="cb59-4"><a href="#cb59-4"></a>models <span class="op">=</span> {</span>
+<span id="cb59-5"><a href="#cb59-5"></a>    <span class="st">'Linear Regression'</span>: LinearRegression(),</span>
+<span id="cb59-6"><a href="#cb59-6"></a>    <span class="st">'Ridge Regression'</span>: Ridge(alpha<span class="op">=</span><span class="fl">1.0</span>),</span>
+<span id="cb59-7"><a href="#cb59-7"></a>    <span class="st">'Lasso Regression'</span>: Lasso(alpha<span class="op">=</span><span class="fl">0.1</span>),</span>
+<span id="cb59-8"><a href="#cb59-8"></a>    <span class="st">'Random Forest'</span>: RandomForestRegressor(n_estimators<span class="op">=</span><span class="dv">100</span>, random_state<span class="op">=</span><span class="dv">42</span>),</span>
+<span id="cb59-9"><a href="#cb59-9"></a>    <span class="st">'Gradient Boosting'</span>: GradientBoostingRegressor(n_estimators<span class="op">=</span><span class="dv">100</span>, random_state<span class="op">=</span><span class="dv">42</span>),</span>
+<span id="cb59-10"><a href="#cb59-10"></a>    <span class="st">'Support Vector Regression'</span>: SVR(kernel<span class="op">=</span><span class="st">'rbf'</span>, C<span class="op">=</span><span class="fl">1.0</span>),</span>
+<span id="cb59-11"><a href="#cb59-11"></a>    <span class="st">'K-Neighbors'</span>: KNeighborsRegressor(n_neighbors<span class="op">=</span><span class="dv">5</span>)</span>
+<span id="cb59-12"><a href="#cb59-12"></a>}</span>
+<span id="cb59-13"><a href="#cb59-13"></a></span>
+<span id="cb59-14"><a href="#cb59-14"></a><span class="co"># 训练和评估模型</span></span>
+<span id="cb59-15"><a href="#cb59-15"></a>results <span class="op">=</span> []</span>
+<span id="cb59-16"><a href="#cb59-16"></a></span>
+<span id="cb59-17"><a href="#cb59-17"></a><span class="cf">for</span> name, model <span class="kw">in</span> models.items():</span>
+<span id="cb59-18"><a href="#cb59-18"></a>    <span class="co"># 训练模型</span></span>
+<span id="cb59-19"><a href="#cb59-19"></a>    model.fit(X_train_scaled, y_train)</span>
+<span id="cb59-20"><a href="#cb59-20"></a>    </span>
+<span id="cb59-21"><a href="#cb59-21"></a>    <span class="co"># 预测</span></span>
+<span id="cb59-22"><a href="#cb59-22"></a>    y_pred <span class="op">=</span> model.predict(X_test_scaled)</span>
+<span id="cb59-23"><a href="#cb59-23"></a>    </span>
+<span id="cb59-24"><a href="#cb59-24"></a>    <span class="co"># 计算评估指标</span></span>
+<span id="cb59-25"><a href="#cb59-25"></a>    mse <span class="op">=</span> mean_squared_error(y_test, y_pred)</span>
+<span id="cb59-26"><a href="#cb59-26"></a>    rmse <span class="op">=</span> np.sqrt(mse)</span>
+<span id="cb59-27"><a href="#cb59-27"></a>    mae <span class="op">=</span> mean_absolute_error(y_test, y_pred)</span>
+<span id="cb59-28"><a href="#cb59-28"></a>    r2 <span class="op">=</span> r2_score(y_test, y_pred)</span>
+<span id="cb59-29"><a href="#cb59-29"></a>    </span>
+<span id="cb59-30"><a href="#cb59-30"></a>    <span class="co"># 交叉验证</span></span>
+<span id="cb59-31"><a href="#cb59-31"></a>    cv_scores <span class="op">=</span> cross_val_score(model, X_train_scaled, y_train, cv<span class="op">=</span><span class="dv">5</span>, scoring<span class="op">=</span><span class="st">'neg_mean_squared_error'</span>)</span>
+<span id="cb59-32"><a href="#cb59-32"></a>    cv_rmse <span class="op">=</span> np.sqrt(<span class="op">-</span>cv_scores.mean())</span>
+<span id="cb59-33"><a href="#cb59-33"></a>    </span>
+<span id="cb59-34"><a href="#cb59-34"></a>    results.append({</span>
+<span id="cb59-35"><a href="#cb59-35"></a>        <span class="st">'Model'</span>: name,</span>
+<span id="cb59-36"><a href="#cb59-36"></a>        <span class="st">'RMSE'</span>: rmse,</span>
+<span id="cb59-37"><a href="#cb59-37"></a>        <span class="st">'MSE'</span>: mse,</span>
+<span id="cb59-38"><a href="#cb59-38"></a>        <span class="st">'MAE'</span>: mae,</span>
+<span id="cb59-39"><a href="#cb59-39"></a>        <span class="st">'R2'</span>: r2,</span>
+<span id="cb59-40"><a href="#cb59-40"></a>        <span class="st">'CV_RMSE'</span>: cv_rmse</span>
+<span id="cb59-41"><a href="#cb59-41"></a>    })</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<style>#sk-container-id-1 {
+  /* Definition of color scheme common for light and dark mode */
+  --sklearn-color-text: #000;
+  --sklearn-color-text-muted: #666;
+  --sklearn-color-line: gray;
+  /* Definition of color scheme for unfitted estimators */
+  --sklearn-color-unfitted-level-0: #fff5e6;
+  --sklearn-color-unfitted-level-1: #f6e4d2;
+  --sklearn-color-unfitted-level-2: #ffe0b3;
+  --sklearn-color-unfitted-level-3: chocolate;
+  /* Definition of color scheme for fitted estimators */
+  --sklearn-color-fitted-level-0: #f0f8ff;
+  --sklearn-color-fitted-level-1: #d4ebff;
+  --sklearn-color-fitted-level-2: #b3dbfd;
+  --sklearn-color-fitted-level-3: cornflowerblue;
+
+  /* Specific color for light theme */
+  --sklearn-color-text-on-default-background: var(--sg-text-color, var(--theme-code-foreground, var(--jp-content-font-color1, black)));
+  --sklearn-color-background: var(--sg-background-color, var(--theme-background, var(--jp-layout-color0, white)));
+  --sklearn-color-border-box: var(--sg-text-color, var(--theme-code-foreground, var(--jp-content-font-color1, black)));
+  --sklearn-color-icon: #696969;
+
+  @media (prefers-color-scheme: dark) {
+    /* Redefinition of color scheme for dark theme */
+    --sklearn-color-text-on-default-background: var(--sg-text-color, var(--theme-code-foreground, var(--jp-content-font-color1, white)));
+    --sklearn-color-background: var(--sg-background-color, var(--theme-background, var(--jp-layout-color0, #111)));
+    --sklearn-color-border-box: var(--sg-text-color, var(--theme-code-foreground, var(--jp-content-font-color1, white)));
+    --sklearn-color-icon: #878787;
+  }
+}
+
+#sk-container-id-1 {
+  color: var(--sklearn-color-text);
+}
+
+#sk-container-id-1 pre {
+  padding: 0;
+}
+
+#sk-container-id-1 input.sk-hidden--visually {
+  border: 0;
+  clip: rect(1px 1px 1px 1px);
+  clip: rect(1px, 1px, 1px, 1px);
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  padding: 0;
+  position: absolute;
+  width: 1px;
+}
+
+#sk-container-id-1 div.sk-dashed-wrapped {
+  border: 1px dashed var(--sklearn-color-line);
+  margin: 0 0.4em 0.5em 0.4em;
+  box-sizing: border-box;
+  padding-bottom: 0.4em;
+  background-color: var(--sklearn-color-background);
+}
+
+#sk-container-id-1 div.sk-container {
+  /* jupyter's `normalize.less` sets `[hidden] { display: none; }`
+     but bootstrap.min.css set `[hidden] { display: none !important; }`
+     so we also need the `!important` here to be able to override the
+     default hidden behavior on the sphinx rendered scikit-learn.org.
+     See: https://github.com/scikit-learn/scikit-learn/issues/21755 */
+  display: inline-block !important;
+  position: relative;
+}
+
+#sk-container-id-1 div.sk-text-repr-fallback {
+  display: none;
+}
+
+div.sk-parallel-item,
+div.sk-serial,
+div.sk-item {
+  /* draw centered vertical line to link estimators */
+  background-image: linear-gradient(var(--sklearn-color-text-on-default-background), var(--sklearn-color-text-on-default-background));
+  background-size: 2px 100%;
+  background-repeat: no-repeat;
+  background-position: center center;
+}
+
+/* Parallel-specific style estimator block */
+
+#sk-container-id-1 div.sk-parallel-item::after {
+  content: "";
+  width: 100%;
+  border-bottom: 2px solid var(--sklearn-color-text-on-default-background);
+  flex-grow: 1;
+}
+
+#sk-container-id-1 div.sk-parallel {
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+  background-color: var(--sklearn-color-background);
+  position: relative;
+}
+
+#sk-container-id-1 div.sk-parallel-item {
+  display: flex;
+  flex-direction: column;
+}
+
+#sk-container-id-1 div.sk-parallel-item:first-child::after {
+  align-self: flex-end;
+  width: 50%;
+}
+
+#sk-container-id-1 div.sk-parallel-item:last-child::after {
+  align-self: flex-start;
+  width: 50%;
+}
+
+#sk-container-id-1 div.sk-parallel-item:only-child::after {
+  width: 0;
+}
+
+/* Serial-specific style estimator block */
+
+#sk-container-id-1 div.sk-serial {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background-color: var(--sklearn-color-background);
+  padding-right: 1em;
+  padding-left: 1em;
+}
+
+
+/* Toggleable style: style used for estimator/Pipeline/ColumnTransformer box that is
+clickable and can be expanded/collapsed.
+- Pipeline and ColumnTransformer use this feature and define the default style
+- Estimators will overwrite some part of the style using the `sk-estimator` class
+*/
+
+/* Pipeline and ColumnTransformer style (default) */
+
+#sk-container-id-1 div.sk-toggleable {
+  /* Default theme specific background. It is overwritten whether we have a
+  specific estimator or a Pipeline/ColumnTransformer */
+  background-color: var(--sklearn-color-background);
+}
+
+/* Toggleable label */
+#sk-container-id-1 label.sk-toggleable__label {
+  cursor: pointer;
+  display: flex;
+  width: 100%;
+  margin-bottom: 0;
+  padding: 0.5em;
+  box-sizing: border-box;
+  text-align: center;
+  align-items: start;
+  justify-content: space-between;
+  gap: 0.5em;
+}
+
+#sk-container-id-1 label.sk-toggleable__label .caption {
+  font-size: 0.6rem;
+  font-weight: lighter;
+  color: var(--sklearn-color-text-muted);
+}
+
+#sk-container-id-1 label.sk-toggleable__label-arrow:before {
+  /* Arrow on the left of the label */
+  content: "▸";
+  float: left;
+  margin-right: 0.25em;
+  color: var(--sklearn-color-icon);
+}
+
+#sk-container-id-1 label.sk-toggleable__label-arrow:hover:before {
+  color: var(--sklearn-color-text);
+}
+
+/* Toggleable content - dropdown */
+
+#sk-container-id-1 div.sk-toggleable__content {
+  max-height: 0;
+  max-width: 0;
+  overflow: hidden;
+  text-align: left;
+  /* unfitted */
+  background-color: var(--sklearn-color-unfitted-level-0);
+}
+
+#sk-container-id-1 div.sk-toggleable__content.fitted {
+  /* fitted */
+  background-color: var(--sklearn-color-fitted-level-0);
+}
+
+#sk-container-id-1 div.sk-toggleable__content pre {
+  margin: 0.2em;
+  border-radius: 0.25em;
+  color: var(--sklearn-color-text);
+  /* unfitted */
+  background-color: var(--sklearn-color-unfitted-level-0);
+}
+
+#sk-container-id-1 div.sk-toggleable__content.fitted pre {
+  /* unfitted */
+  background-color: var(--sklearn-color-fitted-level-0);
+}
+
+#sk-container-id-1 input.sk-toggleable__control:checked~div.sk-toggleable__content {
+  /* Expand drop-down */
+  max-height: 200px;
+  max-width: 100%;
+  overflow: auto;
+}
+
+#sk-container-id-1 input.sk-toggleable__control:checked~label.sk-toggleable__label-arrow:before {
+  content: "▾";
+}
+
+/* Pipeline/ColumnTransformer-specific style */
+
+#sk-container-id-1 div.sk-label input.sk-toggleable__control:checked~label.sk-toggleable__label {
+  color: var(--sklearn-color-text);
+  background-color: var(--sklearn-color-unfitted-level-2);
+}
+
+#sk-container-id-1 div.sk-label.fitted input.sk-toggleable__control:checked~label.sk-toggleable__label {
+  background-color: var(--sklearn-color-fitted-level-2);
+}
+
+/* Estimator-specific style */
+
+/* Colorize estimator box */
+#sk-container-id-1 div.sk-estimator input.sk-toggleable__control:checked~label.sk-toggleable__label {
+  /* unfitted */
+  background-color: var(--sklearn-color-unfitted-level-2);
+}
+
+#sk-container-id-1 div.sk-estimator.fitted input.sk-toggleable__control:checked~label.sk-toggleable__label {
+  /* fitted */
+  background-color: var(--sklearn-color-fitted-level-2);
+}
+
+#sk-container-id-1 div.sk-label label.sk-toggleable__label,
+#sk-container-id-1 div.sk-label label {
+  /* The background is the default theme color */
+  color: var(--sklearn-color-text-on-default-background);
+}
+
+/* On hover, darken the color of the background */
+#sk-container-id-1 div.sk-label:hover label.sk-toggleable__label {
+  color: var(--sklearn-color-text);
+  background-color: var(--sklearn-color-unfitted-level-2);
+}
+
+/* Label box, darken color on hover, fitted */
+#sk-container-id-1 div.sk-label.fitted:hover label.sk-toggleable__label.fitted {
+  color: var(--sklearn-color-text);
+  background-color: var(--sklearn-color-fitted-level-2);
+}
+
+/* Estimator label */
+
+#sk-container-id-1 div.sk-label label {
+  font-family: monospace;
+  font-weight: bold;
+  display: inline-block;
+  line-height: 1.2em;
+}
+
+#sk-container-id-1 div.sk-label-container {
+  text-align: center;
+}
+
+/* Estimator-specific */
+#sk-container-id-1 div.sk-estimator {
+  font-family: monospace;
+  border: 1px dotted var(--sklearn-color-border-box);
+  border-radius: 0.25em;
+  box-sizing: border-box;
+  margin-bottom: 0.5em;
+  /* unfitted */
+  background-color: var(--sklearn-color-unfitted-level-0);
+}
+
+#sk-container-id-1 div.sk-estimator.fitted {
+  /* fitted */
+  background-color: var(--sklearn-color-fitted-level-0);
+}
+
+/* on hover */
+#sk-container-id-1 div.sk-estimator:hover {
+  /* unfitted */
+  background-color: var(--sklearn-color-unfitted-level-2);
+}
+
+#sk-container-id-1 div.sk-estimator.fitted:hover {
+  /* fitted */
+  background-color: var(--sklearn-color-fitted-level-2);
+}
+
+/* Specification for estimator info (e.g. "i" and "?") */
+
+/* Common style for "i" and "?" */
+
+.sk-estimator-doc-link,
+a:link.sk-estimator-doc-link,
+a:visited.sk-estimator-doc-link {
+  float: right;
+  font-size: smaller;
+  line-height: 1em;
+  font-family: monospace;
+  background-color: var(--sklearn-color-background);
+  border-radius: 1em;
+  height: 1em;
+  width: 1em;
+  text-decoration: none !important;
+  margin-left: 0.5em;
+  text-align: center;
+  /* unfitted */
+  border: var(--sklearn-color-unfitted-level-1) 1pt solid;
+  color: var(--sklearn-color-unfitted-level-1);
+}
+
+.sk-estimator-doc-link.fitted,
+a:link.sk-estimator-doc-link.fitted,
+a:visited.sk-estimator-doc-link.fitted {
+  /* fitted */
+  border: var(--sklearn-color-fitted-level-1) 1pt solid;
+  color: var(--sklearn-color-fitted-level-1);
+}
+
+/* On hover */
+div.sk-estimator:hover .sk-estimator-doc-link:hover,
+.sk-estimator-doc-link:hover,
+div.sk-label-container:hover .sk-estimator-doc-link:hover,
+.sk-estimator-doc-link:hover {
+  /* unfitted */
+  background-color: var(--sklearn-color-unfitted-level-3);
+  color: var(--sklearn-color-background);
+  text-decoration: none;
+}
+
+div.sk-estimator.fitted:hover .sk-estimator-doc-link.fitted:hover,
+.sk-estimator-doc-link.fitted:hover,
+div.sk-label-container:hover .sk-estimator-doc-link.fitted:hover,
+.sk-estimator-doc-link.fitted:hover {
+  /* fitted */
+  background-color: var(--sklearn-color-fitted-level-3);
+  color: var(--sklearn-color-background);
+  text-decoration: none;
+}
+
+/* Span, style for the box shown on hovering the info icon */
+.sk-estimator-doc-link span {
+  display: none;
+  z-index: 9999;
+  position: relative;
+  font-weight: normal;
+  right: .2ex;
+  padding: .5ex;
+  margin: .5ex;
+  width: min-content;
+  min-width: 20ex;
+  max-width: 50ex;
+  color: var(--sklearn-color-text);
+  box-shadow: 2pt 2pt 4pt #999;
+  /* unfitted */
+  background: var(--sklearn-color-unfitted-level-0);
+  border: .5pt solid var(--sklearn-color-unfitted-level-3);
+}
+
+.sk-estimator-doc-link.fitted span {
+  /* fitted */
+  background: var(--sklearn-color-fitted-level-0);
+  border: var(--sklearn-color-fitted-level-3);
+}
+
+.sk-estimator-doc-link:hover span {
+  display: block;
+}
+
+/* "?"-specific style due to the `<a>` HTML tag */
+
+#sk-container-id-1 a.estimator_doc_link {
+  float: right;
+  font-size: 1rem;
+  line-height: 1em;
+  font-family: monospace;
+  background-color: var(--sklearn-color-background);
+  border-radius: 1rem;
+  height: 1rem;
+  width: 1rem;
+  text-decoration: none;
+  /* unfitted */
+  color: var(--sklearn-color-unfitted-level-1);
+  border: var(--sklearn-color-unfitted-level-1) 1pt solid;
+}
+
+#sk-container-id-1 a.estimator_doc_link.fitted {
+  /* fitted */
+  border: var(--sklearn-color-fitted-level-1) 1pt solid;
+  color: var(--sklearn-color-fitted-level-1);
+}
+
+/* On hover */
+#sk-container-id-1 a.estimator_doc_link:hover {
+  /* unfitted */
+  background-color: var(--sklearn-color-unfitted-level-3);
+  color: var(--sklearn-color-background);
+  text-decoration: none;
+}
+
+#sk-container-id-1 a.estimator_doc_link.fitted:hover {
+  /* fitted */
+  background-color: var(--sklearn-color-fitted-level-3);
+}
+</style>
+<div id="sk-container-id-1" class="sk-top-container">
+<div class="sk-text-repr-fallback">
+<pre>KNeighborsRegressor()</pre>
+<b>In a Jupyter environment, please rerun this cell to show the HTML representation or trust the notebook. <br>On GitHub, the HTML representation is unable to render, please try loading this page with nbviewer.org.</b>
+</div>
+<div class="sk-container" hidden=""><div class="sk-item"><div class="sk-estimator fitted sk-toggleable">
+<input class="sk-toggleable__control sk-hidden--visually" id="sk-estimator-id-1" type="checkbox" checked=""><label for="sk-estimator-id-1" class="sk-toggleable__label fitted sk-toggleable__label-arrow"><div><div>KNeighborsRegressor</div></div>
+<div>
+<a class="sk-estimator-doc-link fitted" rel="noreferrer" target="_blank" href="https://scikit-learn.org/1.6/modules/generated/sklearn.neighbors.KNeighborsRegressor.html">?<span>Documentation for KNeighborsRegressor</span></a><span class="sk-estimator-doc-link fitted">i<span>Fitted</span></span>
+</div></label><div class="sk-toggleable__content fitted"><pre>KNeighborsRegressor()</pre></div> </div></div></div>
+</div>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb60"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb60-1"><a href="#cb60-1"></a><span class="co"># 创建结果DataFrame</span></span>
+<span id="cb60-2"><a href="#cb60-2"></a>results_python <span class="op">=</span> pd.DataFrame(results)</span>
+<span id="cb60-3"><a href="#cb60-3"></a><span class="bu">print</span>(<span class="st">"模型性能比较 - Python/sklearn:"</span>)</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>模型性能比较 - Python/sklearn:</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb62"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb62-1"><a href="#cb62-1"></a><span class="bu">print</span>(results_python.sort_values(<span class="st">'RMSE'</span>))</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>                       Model      RMSE       MSE       MAE        R2   CV_RMSE
+1           Ridge Regression  0.037728  0.001423  0.029903  0.346299  0.041949
+0          Linear Regression  0.037869  0.001434  0.030070  0.341403  0.041985
+3              Random Forest  0.039989  0.001599  0.032433  0.265591  0.044513
+4          Gradient Boosting  0.040339  0.001627  0.032044  0.252692  0.045652
+6                K-Neighbors  0.041668  0.001736  0.032857  0.202630  0.044115
+2           Lasso Regression  0.046838  0.002194  0.039821 -0.007507  0.048294
+5  Support Vector Regression  0.048922  0.002393  0.042729 -0.099178  0.050173</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb64"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb64-1"><a href="#cb64-1"></a><span class="co"># 可视化模型比较</span></span>
+<span id="cb64-2"><a href="#cb64-2"></a>fig, axes <span class="op">=</span> plt.subplots(<span class="dv">1</span>, <span class="dv">2</span>, figsize<span class="op">=</span>(<span class="dv">15</span>, <span class="dv">6</span>))</span>
+<span id="cb64-3"><a href="#cb64-3"></a></span>
+<span id="cb64-4"><a href="#cb64-4"></a><span class="co"># RMSE比较</span></span>
+<span id="cb64-5"><a href="#cb64-5"></a>models_sorted <span class="op">=</span> results_python.sort_values(<span class="st">'RMSE'</span>)</span>
+<span id="cb64-6"><a href="#cb64-6"></a>axes[<span class="dv">0</span>].barh(models_sorted[<span class="st">'Model'</span>], models_sorted[<span class="st">'RMSE'</span>], color<span class="op">=</span><span class="st">'lightcoral'</span>)</span>
+<span id="cb64-7"><a href="#cb64-7"></a>axes[<span class="dv">0</span>].set_xlabel(<span class="st">'RMSE'</span>)</span>
+<span id="cb64-8"><a href="#cb64-8"></a>axes[<span class="dv">0</span>].set_title(<span class="st">'模型RMSE比较 - Python/sklearn'</span>)</span>
+<span id="cb64-9"><a href="#cb64-9"></a>axes[<span class="dv">0</span>].grid(axis<span class="op">=</span><span class="st">'x'</span>, alpha<span class="op">=</span><span class="fl">0.3</span>)</span>
+<span id="cb64-10"><a href="#cb64-10"></a></span>
+<span id="cb64-11"><a href="#cb64-11"></a><span class="co"># R²比较</span></span>
+<span id="cb64-12"><a href="#cb64-12"></a>axes[<span class="dv">1</span>].barh(models_sorted[<span class="st">'Model'</span>], models_sorted[<span class="st">'R2'</span>], color<span class="op">=</span><span class="st">'lightseagreen'</span>)</span>
+<span id="cb64-13"><a href="#cb64-13"></a>axes[<span class="dv">1</span>].set_xlabel(<span class="st">'R²'</span>)</span>
+<span id="cb64-14"><a href="#cb64-14"></a>axes[<span class="dv">1</span>].set_title(<span class="st">'模型R²比较 - Python/sklearn'</span>)</span>
+<span id="cb64-15"><a href="#cb64-15"></a>axes[<span class="dv">1</span>].grid(axis<span class="op">=</span><span class="st">'x'</span>, alpha<span class="op">=</span><span class="fl">0.3</span>)</span>
+<span id="cb64-16"><a href="#cb64-16"></a></span>
+<span id="cb64-17"><a href="#cb64-17"></a>plt.tight_layout()</span>
+<span id="cb64-18"><a href="#cb64-18"></a>plt.show()</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure"><p><img src="13-回归任务与基准测试_files/figure-html/unnamed-chunk-12-5.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>超参数调优</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb65"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb65-1"><a href="#cb65-1"></a><span class="co"># 超参数调优示例 - 随机森林</span></span>
+<span id="cb65-2"><a href="#cb65-2"></a></span>
+<span id="cb65-3"><a href="#cb65-3"></a><span class="co"># 定义参数网格</span></span>
+<span id="cb65-4"><a href="#cb65-4"></a>param_grid <span class="op">=</span> {</span>
+<span id="cb65-5"><a href="#cb65-5"></a>    <span class="st">'n_estimators'</span>: [<span class="dv">50</span>, <span class="dv">100</span>, <span class="dv">200</span>],</span>
+<span id="cb65-6"><a href="#cb65-6"></a>    <span class="st">'max_depth'</span>: [<span class="dv">5</span>, <span class="dv">10</span>, <span class="dv">15</span>],</span>
+<span id="cb65-7"><a href="#cb65-7"></a>    <span class="st">'min_samples_split'</span>: [<span class="dv">2</span>, <span class="dv">5</span>, <span class="dv">10</span>],</span>
+<span id="cb65-8"><a href="#cb65-8"></a>    <span class="st">'min_samples_leaf'</span>: [<span class="dv">1</span>, <span class="dv">2</span>, <span class="dv">4</span>]</span>
+<span id="cb65-9"><a href="#cb65-9"></a>}</span>
+<span id="cb65-10"><a href="#cb65-10"></a></span>
+<span id="cb65-11"><a href="#cb65-11"></a><span class="co"># 使用网格搜索</span></span>
+<span id="cb65-12"><a href="#cb65-12"></a>rf <span class="op">=</span> RandomForestRegressor(random_state<span class="op">=</span><span class="dv">42</span>)</span>
+<span id="cb65-13"><a href="#cb65-13"></a>grid_search <span class="op">=</span> GridSearchCV(rf, param_grid, cv<span class="op">=</span><span class="dv">3</span>, scoring<span class="op">=</span><span class="st">'neg_mean_squared_error'</span>, </span>
+<span id="cb65-14"><a href="#cb65-14"></a>                          n_jobs<span class="op">=-</span><span class="dv">1</span>, verbose<span class="op">=</span><span class="dv">1</span>)</span>
+<span id="cb65-15"><a href="#cb65-15"></a></span>
+<span id="cb65-16"><a href="#cb65-16"></a><span class="bu">print</span>(<span class="st">"开始超参数调优..."</span>)</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>开始超参数调优...</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb67"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb67-1"><a href="#cb67-1"></a>grid_search.fit(X_train_scaled, y_train)</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<style>#sk-container-id-2 {
+  /* Definition of color scheme common for light and dark mode */
+  --sklearn-color-text: #000;
+  --sklearn-color-text-muted: #666;
+  --sklearn-color-line: gray;
+  /* Definition of color scheme for unfitted estimators */
+  --sklearn-color-unfitted-level-0: #fff5e6;
+  --sklearn-color-unfitted-level-1: #f6e4d2;
+  --sklearn-color-unfitted-level-2: #ffe0b3;
+  --sklearn-color-unfitted-level-3: chocolate;
+  /* Definition of color scheme for fitted estimators */
+  --sklearn-color-fitted-level-0: #f0f8ff;
+  --sklearn-color-fitted-level-1: #d4ebff;
+  --sklearn-color-fitted-level-2: #b3dbfd;
+  --sklearn-color-fitted-level-3: cornflowerblue;
+
+  /* Specific color for light theme */
+  --sklearn-color-text-on-default-background: var(--sg-text-color, var(--theme-code-foreground, var(--jp-content-font-color1, black)));
+  --sklearn-color-background: var(--sg-background-color, var(--theme-background, var(--jp-layout-color0, white)));
+  --sklearn-color-border-box: var(--sg-text-color, var(--theme-code-foreground, var(--jp-content-font-color1, black)));
+  --sklearn-color-icon: #696969;
+
+  @media (prefers-color-scheme: dark) {
+    /* Redefinition of color scheme for dark theme */
+    --sklearn-color-text-on-default-background: var(--sg-text-color, var(--theme-code-foreground, var(--jp-content-font-color1, white)));
+    --sklearn-color-background: var(--sg-background-color, var(--theme-background, var(--jp-layout-color0, #111)));
+    --sklearn-color-border-box: var(--sg-text-color, var(--theme-code-foreground, var(--jp-content-font-color1, white)));
+    --sklearn-color-icon: #878787;
+  }
+}
+
+#sk-container-id-2 {
+  color: var(--sklearn-color-text);
+}
+
+#sk-container-id-2 pre {
+  padding: 0;
+}
+
+#sk-container-id-2 input.sk-hidden--visually {
+  border: 0;
+  clip: rect(1px 1px 1px 1px);
+  clip: rect(1px, 1px, 1px, 1px);
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  padding: 0;
+  position: absolute;
+  width: 1px;
+}
+
+#sk-container-id-2 div.sk-dashed-wrapped {
+  border: 1px dashed var(--sklearn-color-line);
+  margin: 0 0.4em 0.5em 0.4em;
+  box-sizing: border-box;
+  padding-bottom: 0.4em;
+  background-color: var(--sklearn-color-background);
+}
+
+#sk-container-id-2 div.sk-container {
+  /* jupyter's `normalize.less` sets `[hidden] { display: none; }`
+     but bootstrap.min.css set `[hidden] { display: none !important; }`
+     so we also need the `!important` here to be able to override the
+     default hidden behavior on the sphinx rendered scikit-learn.org.
+     See: https://github.com/scikit-learn/scikit-learn/issues/21755 */
+  display: inline-block !important;
+  position: relative;
+}
+
+#sk-container-id-2 div.sk-text-repr-fallback {
+  display: none;
+}
+
+div.sk-parallel-item,
+div.sk-serial,
+div.sk-item {
+  /* draw centered vertical line to link estimators */
+  background-image: linear-gradient(var(--sklearn-color-text-on-default-background), var(--sklearn-color-text-on-default-background));
+  background-size: 2px 100%;
+  background-repeat: no-repeat;
+  background-position: center center;
+}
+
+/* Parallel-specific style estimator block */
+
+#sk-container-id-2 div.sk-parallel-item::after {
+  content: "";
+  width: 100%;
+  border-bottom: 2px solid var(--sklearn-color-text-on-default-background);
+  flex-grow: 1;
+}
+
+#sk-container-id-2 div.sk-parallel {
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+  background-color: var(--sklearn-color-background);
+  position: relative;
+}
+
+#sk-container-id-2 div.sk-parallel-item {
+  display: flex;
+  flex-direction: column;
+}
+
+#sk-container-id-2 div.sk-parallel-item:first-child::after {
+  align-self: flex-end;
+  width: 50%;
+}
+
+#sk-container-id-2 div.sk-parallel-item:last-child::after {
+  align-self: flex-start;
+  width: 50%;
+}
+
+#sk-container-id-2 div.sk-parallel-item:only-child::after {
+  width: 0;
+}
+
+/* Serial-specific style estimator block */
+
+#sk-container-id-2 div.sk-serial {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background-color: var(--sklearn-color-background);
+  padding-right: 1em;
+  padding-left: 1em;
+}
+
+
+/* Toggleable style: style used for estimator/Pipeline/ColumnTransformer box that is
+clickable and can be expanded/collapsed.
+- Pipeline and ColumnTransformer use this feature and define the default style
+- Estimators will overwrite some part of the style using the `sk-estimator` class
+*/
+
+/* Pipeline and ColumnTransformer style (default) */
+
+#sk-container-id-2 div.sk-toggleable {
+  /* Default theme specific background. It is overwritten whether we have a
+  specific estimator or a Pipeline/ColumnTransformer */
+  background-color: var(--sklearn-color-background);
+}
+
+/* Toggleable label */
+#sk-container-id-2 label.sk-toggleable__label {
+  cursor: pointer;
+  display: flex;
+  width: 100%;
+  margin-bottom: 0;
+  padding: 0.5em;
+  box-sizing: border-box;
+  text-align: center;
+  align-items: start;
+  justify-content: space-between;
+  gap: 0.5em;
+}
+
+#sk-container-id-2 label.sk-toggleable__label .caption {
+  font-size: 0.6rem;
+  font-weight: lighter;
+  color: var(--sklearn-color-text-muted);
+}
+
+#sk-container-id-2 label.sk-toggleable__label-arrow:before {
+  /* Arrow on the left of the label */
+  content: "▸";
+  float: left;
+  margin-right: 0.25em;
+  color: var(--sklearn-color-icon);
+}
+
+#sk-container-id-2 label.sk-toggleable__label-arrow:hover:before {
+  color: var(--sklearn-color-text);
+}
+
+/* Toggleable content - dropdown */
+
+#sk-container-id-2 div.sk-toggleable__content {
+  max-height: 0;
+  max-width: 0;
+  overflow: hidden;
+  text-align: left;
+  /* unfitted */
+  background-color: var(--sklearn-color-unfitted-level-0);
+}
+
+#sk-container-id-2 div.sk-toggleable__content.fitted {
+  /* fitted */
+  background-color: var(--sklearn-color-fitted-level-0);
+}
+
+#sk-container-id-2 div.sk-toggleable__content pre {
+  margin: 0.2em;
+  border-radius: 0.25em;
+  color: var(--sklearn-color-text);
+  /* unfitted */
+  background-color: var(--sklearn-color-unfitted-level-0);
+}
+
+#sk-container-id-2 div.sk-toggleable__content.fitted pre {
+  /* unfitted */
+  background-color: var(--sklearn-color-fitted-level-0);
+}
+
+#sk-container-id-2 input.sk-toggleable__control:checked~div.sk-toggleable__content {
+  /* Expand drop-down */
+  max-height: 200px;
+  max-width: 100%;
+  overflow: auto;
+}
+
+#sk-container-id-2 input.sk-toggleable__control:checked~label.sk-toggleable__label-arrow:before {
+  content: "▾";
+}
+
+/* Pipeline/ColumnTransformer-specific style */
+
+#sk-container-id-2 div.sk-label input.sk-toggleable__control:checked~label.sk-toggleable__label {
+  color: var(--sklearn-color-text);
+  background-color: var(--sklearn-color-unfitted-level-2);
+}
+
+#sk-container-id-2 div.sk-label.fitted input.sk-toggleable__control:checked~label.sk-toggleable__label {
+  background-color: var(--sklearn-color-fitted-level-2);
+}
+
+/* Estimator-specific style */
+
+/* Colorize estimator box */
+#sk-container-id-2 div.sk-estimator input.sk-toggleable__control:checked~label.sk-toggleable__label {
+  /* unfitted */
+  background-color: var(--sklearn-color-unfitted-level-2);
+}
+
+#sk-container-id-2 div.sk-estimator.fitted input.sk-toggleable__control:checked~label.sk-toggleable__label {
+  /* fitted */
+  background-color: var(--sklearn-color-fitted-level-2);
+}
+
+#sk-container-id-2 div.sk-label label.sk-toggleable__label,
+#sk-container-id-2 div.sk-label label {
+  /* The background is the default theme color */
+  color: var(--sklearn-color-text-on-default-background);
+}
+
+/* On hover, darken the color of the background */
+#sk-container-id-2 div.sk-label:hover label.sk-toggleable__label {
+  color: var(--sklearn-color-text);
+  background-color: var(--sklearn-color-unfitted-level-2);
+}
+
+/* Label box, darken color on hover, fitted */
+#sk-container-id-2 div.sk-label.fitted:hover label.sk-toggleable__label.fitted {
+  color: var(--sklearn-color-text);
+  background-color: var(--sklearn-color-fitted-level-2);
+}
+
+/* Estimator label */
+
+#sk-container-id-2 div.sk-label label {
+  font-family: monospace;
+  font-weight: bold;
+  display: inline-block;
+  line-height: 1.2em;
+}
+
+#sk-container-id-2 div.sk-label-container {
+  text-align: center;
+}
+
+/* Estimator-specific */
+#sk-container-id-2 div.sk-estimator {
+  font-family: monospace;
+  border: 1px dotted var(--sklearn-color-border-box);
+  border-radius: 0.25em;
+  box-sizing: border-box;
+  margin-bottom: 0.5em;
+  /* unfitted */
+  background-color: var(--sklearn-color-unfitted-level-0);
+}
+
+#sk-container-id-2 div.sk-estimator.fitted {
+  /* fitted */
+  background-color: var(--sklearn-color-fitted-level-0);
+}
+
+/* on hover */
+#sk-container-id-2 div.sk-estimator:hover {
+  /* unfitted */
+  background-color: var(--sklearn-color-unfitted-level-2);
+}
+
+#sk-container-id-2 div.sk-estimator.fitted:hover {
+  /* fitted */
+  background-color: var(--sklearn-color-fitted-level-2);
+}
+
+/* Specification for estimator info (e.g. "i" and "?") */
+
+/* Common style for "i" and "?" */
+
+.sk-estimator-doc-link,
+a:link.sk-estimator-doc-link,
+a:visited.sk-estimator-doc-link {
+  float: right;
+  font-size: smaller;
+  line-height: 1em;
+  font-family: monospace;
+  background-color: var(--sklearn-color-background);
+  border-radius: 1em;
+  height: 1em;
+  width: 1em;
+  text-decoration: none !important;
+  margin-left: 0.5em;
+  text-align: center;
+  /* unfitted */
+  border: var(--sklearn-color-unfitted-level-1) 1pt solid;
+  color: var(--sklearn-color-unfitted-level-1);
+}
+
+.sk-estimator-doc-link.fitted,
+a:link.sk-estimator-doc-link.fitted,
+a:visited.sk-estimator-doc-link.fitted {
+  /* fitted */
+  border: var(--sklearn-color-fitted-level-1) 1pt solid;
+  color: var(--sklearn-color-fitted-level-1);
+}
+
+/* On hover */
+div.sk-estimator:hover .sk-estimator-doc-link:hover,
+.sk-estimator-doc-link:hover,
+div.sk-label-container:hover .sk-estimator-doc-link:hover,
+.sk-estimator-doc-link:hover {
+  /* unfitted */
+  background-color: var(--sklearn-color-unfitted-level-3);
+  color: var(--sklearn-color-background);
+  text-decoration: none;
+}
+
+div.sk-estimator.fitted:hover .sk-estimator-doc-link.fitted:hover,
+.sk-estimator-doc-link.fitted:hover,
+div.sk-label-container:hover .sk-estimator-doc-link.fitted:hover,
+.sk-estimator-doc-link.fitted:hover {
+  /* fitted */
+  background-color: var(--sklearn-color-fitted-level-3);
+  color: var(--sklearn-color-background);
+  text-decoration: none;
+}
+
+/* Span, style for the box shown on hovering the info icon */
+.sk-estimator-doc-link span {
+  display: none;
+  z-index: 9999;
+  position: relative;
+  font-weight: normal;
+  right: .2ex;
+  padding: .5ex;
+  margin: .5ex;
+  width: min-content;
+  min-width: 20ex;
+  max-width: 50ex;
+  color: var(--sklearn-color-text);
+  box-shadow: 2pt 2pt 4pt #999;
+  /* unfitted */
+  background: var(--sklearn-color-unfitted-level-0);
+  border: .5pt solid var(--sklearn-color-unfitted-level-3);
+}
+
+.sk-estimator-doc-link.fitted span {
+  /* fitted */
+  background: var(--sklearn-color-fitted-level-0);
+  border: var(--sklearn-color-fitted-level-3);
+}
+
+.sk-estimator-doc-link:hover span {
+  display: block;
+}
+
+/* "?"-specific style due to the `<a>` HTML tag */
+
+#sk-container-id-2 a.estimator_doc_link {
+  float: right;
+  font-size: 1rem;
+  line-height: 1em;
+  font-family: monospace;
+  background-color: var(--sklearn-color-background);
+  border-radius: 1rem;
+  height: 1rem;
+  width: 1rem;
+  text-decoration: none;
+  /* unfitted */
+  color: var(--sklearn-color-unfitted-level-1);
+  border: var(--sklearn-color-unfitted-level-1) 1pt solid;
+}
+
+#sk-container-id-2 a.estimator_doc_link.fitted {
+  /* fitted */
+  border: var(--sklearn-color-fitted-level-1) 1pt solid;
+  color: var(--sklearn-color-fitted-level-1);
+}
+
+/* On hover */
+#sk-container-id-2 a.estimator_doc_link:hover {
+  /* unfitted */
+  background-color: var(--sklearn-color-unfitted-level-3);
+  color: var(--sklearn-color-background);
+  text-decoration: none;
+}
+
+#sk-container-id-2 a.estimator_doc_link.fitted:hover {
+  /* fitted */
+  background-color: var(--sklearn-color-fitted-level-3);
+}
+</style>
+<div id="sk-container-id-2" class="sk-top-container">
+<div class="sk-text-repr-fallback">
+<pre>GridSearchCV(cv=3, estimator=RandomForestRegressor(random_state=42), n_jobs=-1,
+             param_grid={'max_depth': [5, 10, 15],
+                         'min_samples_leaf': [1, 2, 4],
+                         'min_samples_split': [2, 5, 10],
+                         'n_estimators': [50, 100, 200]},
+             scoring='neg_mean_squared_error', verbose=1)</pre>
+<b>In a Jupyter environment, please rerun this cell to show the HTML representation or trust the notebook. <br>On GitHub, the HTML representation is unable to render, please try loading this page with nbviewer.org.</b>
+</div>
+<div class="sk-container" hidden=""><div class="sk-item sk-dashed-wrapped">
+<div class="sk-label-container"><div class="sk-label fitted sk-toggleable">
+<input class="sk-toggleable__control sk-hidden--visually" id="sk-estimator-id-2" type="checkbox"><label for="sk-estimator-id-2" class="sk-toggleable__label fitted sk-toggleable__label-arrow"><div><div>GridSearchCV</div></div>
+<div>
+<a class="sk-estimator-doc-link fitted" rel="noreferrer" target="_blank" href="https://scikit-learn.org/1.6/modules/generated/sklearn.model_selection.GridSearchCV.html">?<span>Documentation for GridSearchCV</span></a><span class="sk-estimator-doc-link fitted">i<span>Fitted</span></span>
+</div></label><div class="sk-toggleable__content fitted"><pre>GridSearchCV(cv=3, estimator=RandomForestRegressor(random_state=42), n_jobs=-1,
+             param_grid={'max_depth': [5, 10, 15],
+                         'min_samples_leaf': [1, 2, 4],
+                         'min_samples_split': [2, 5, 10],
+                         'n_estimators': [50, 100, 200]},
+             scoring='neg_mean_squared_error', verbose=1)</pre></div> </div></div>
+<div class="sk-parallel"><div class="sk-parallel-item"><div class="sk-item">
+<div class="sk-label-container"><div class="sk-label fitted sk-toggleable">
+<input class="sk-toggleable__control sk-hidden--visually" id="sk-estimator-id-3" type="checkbox"><label for="sk-estimator-id-3" class="sk-toggleable__label fitted sk-toggleable__label-arrow"><div><div>best_estimator_: RandomForestRegressor</div></div></label><div class="sk-toggleable__content fitted"><pre>RandomForestRegressor(max_depth=5, min_samples_leaf=4, min_samples_split=10,
+                      n_estimators=50, random_state=42)</pre></div> </div></div>
+<div class="sk-serial"><div class="sk-item"><div class="sk-estimator fitted sk-toggleable">
+<input class="sk-toggleable__control sk-hidden--visually" id="sk-estimator-id-4" type="checkbox"><label for="sk-estimator-id-4" class="sk-toggleable__label fitted sk-toggleable__label-arrow"><div><div>RandomForestRegressor</div></div>
+<div><a class="sk-estimator-doc-link fitted" rel="noreferrer" target="_blank" href="https://scikit-learn.org/1.6/modules/generated/sklearn.ensemble.RandomForestRegressor.html">?<span>Documentation for RandomForestRegressor</span></a></div></label><div class="sk-toggleable__content fitted"><pre>RandomForestRegressor(max_depth=5, min_samples_leaf=4, min_samples_split=10,
+                      n_estimators=50, random_state=42)</pre></div> </div></div></div>
+</div></div></div>
+</div></div>
+</div>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb68"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb68-1"><a href="#cb68-1"></a><span class="bu">print</span>(<span class="st">"最佳参数:"</span>)</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>最佳参数:</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb70"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb70-1"><a href="#cb70-1"></a><span class="bu">print</span>(grid_search.best_params_)</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>{'max_depth': 5, 'min_samples_leaf': 4, 'min_samples_split': 10, 'n_estimators': 50}</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb72"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb72-1"><a href="#cb72-1"></a><span class="bu">print</span>(<span class="ss">f"最佳分数: </span><span class="sc">{</span><span class="op">-</span>grid_search<span class="sc">.</span>best_score_<span class="sc">:.4f}</span><span class="ss">"</span>)</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>最佳分数: 0.0019</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb74"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb74-1"><a href="#cb74-1"></a><span class="co"># 使用最佳参数训练最终模型</span></span>
+<span id="cb74-2"><a href="#cb74-2"></a>best_rf <span class="op">=</span> grid_search.best_estimator_</span>
+<span id="cb74-3"><a href="#cb74-3"></a>y_pred_best <span class="op">=</span> best_rf.predict(X_test_scaled)</span>
+<span id="cb74-4"><a href="#cb74-4"></a>best_rmse <span class="op">=</span> np.sqrt(mean_squared_error(y_test, y_pred_best))</span>
+<span id="cb74-5"><a href="#cb74-5"></a><span class="bu">print</span>(<span class="ss">f"调优后测试集RMSE: </span><span class="sc">{</span>best_rmse<span class="sc">:.4f}</span><span class="ss">"</span>)</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>调优后测试集RMSE: 0.0382</code></pre>
+</div>
+</div>
+<p>模型解释</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb76"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb76-1"><a href="#cb76-1"></a><span class="co"># 模型解释 - 特征重要性</span></span>
+<span id="cb76-2"><a href="#cb76-2"></a></span>
+<span id="cb76-3"><a href="#cb76-3"></a><span class="co"># 使用最佳随机森林模型</span></span>
+<span id="cb76-4"><a href="#cb76-4"></a>feature_importance <span class="op">=</span> best_rf.feature_importances_</span>
+<span id="cb76-5"><a href="#cb76-5"></a>feature_names <span class="op">=</span> X.columns</span>
+<span id="cb76-6"><a href="#cb76-6"></a></span>
+<span id="cb76-7"><a href="#cb76-7"></a><span class="co"># 创建特征重要性DataFrame</span></span>
+<span id="cb76-8"><a href="#cb76-8"></a>importance_df <span class="op">=</span> pd.DataFrame({</span>
+<span id="cb76-9"><a href="#cb76-9"></a>    <span class="st">'Feature'</span>: feature_names,</span>
+<span id="cb76-10"><a href="#cb76-10"></a>    <span class="st">'Importance'</span>: feature_importance</span>
+<span id="cb76-11"><a href="#cb76-11"></a>}).sort_values(<span class="st">'Importance'</span>, ascending<span class="op">=</span><span class="va">False</span>)</span>
+<span id="cb76-12"><a href="#cb76-12"></a></span>
+<span id="cb76-13"><a href="#cb76-13"></a><span class="bu">print</span>(<span class="st">"特征重要性排序 - Python/sklearn:"</span>)</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>特征重要性排序 - Python/sklearn:</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb78"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb78-1"><a href="#cb78-1"></a><span class="bu">print</span>(importance_df)</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>  Feature  Importance
+2     bmi    0.270091
+0     age    0.211172
+7      s5    0.200046
+3      s1    0.106677
+4      s2    0.076392
+5      s3    0.066895
+6      s4    0.038475
+1     sex    0.030252</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb80"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb80-1"><a href="#cb80-1"></a><span class="co"># 可视化特征重要性</span></span>
+<span id="cb80-2"><a href="#cb80-2"></a>plt.figure(figsize<span class="op">=</span>(<span class="dv">10</span>, <span class="dv">6</span>))</span>
+<span id="cb80-3"><a href="#cb80-3"></a>sns.barplot(data<span class="op">=</span>importance_df, x<span class="op">=</span><span class="st">'Importance'</span>, y<span class="op">=</span><span class="st">'Feature'</span>, palette<span class="op">=</span><span class="st">'viridis'</span>)</span>
+<span id="cb80-4"><a href="#cb80-4"></a>plt.title(<span class="st">'特征重要性 - 随机森林 (Python/sklearn)'</span>)</span>
+<span id="cb80-5"><a href="#cb80-5"></a>plt.xlabel(<span class="st">'重要性'</span>)</span>
+<span id="cb80-6"><a href="#cb80-6"></a>plt.tight_layout()</span>
+<span id="cb80-7"><a href="#cb80-7"></a>plt.show()</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure"><p><img src="13-回归任务与基准测试_files/figure-html/unnamed-chunk-14-7.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb81"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb81-1"><a href="#cb81-1"></a><span class="co"># 排列重要性</span></span>
+<span id="cb81-2"><a href="#cb81-2"></a>perm_importance <span class="op">=</span> permutation_importance(best_rf, X_test_scaled, y_test, </span>
+<span id="cb81-3"><a href="#cb81-3"></a>                                        n_repeats<span class="op">=</span><span class="dv">10</span>, random_state<span class="op">=</span><span class="dv">42</span>)</span>
+<span id="cb81-4"><a href="#cb81-4"></a></span>
+<span id="cb81-5"><a href="#cb81-5"></a>perm_importance_df <span class="op">=</span> pd.DataFrame({</span>
+<span id="cb81-6"><a href="#cb81-6"></a>    <span class="st">'Feature'</span>: feature_names,</span>
+<span id="cb81-7"><a href="#cb81-7"></a>    <span class="st">'Importance'</span>: perm_importance.importances_mean</span>
+<span id="cb81-8"><a href="#cb81-8"></a>}).sort_values(<span class="st">'Importance'</span>, ascending<span class="op">=</span><span class="va">False</span>)</span>
+<span id="cb81-9"><a href="#cb81-9"></a></span>
+<span id="cb81-10"><a href="#cb81-10"></a><span class="bu">print</span>(<span class="st">"</span><span class="ch">\n</span><span class="st">排列特征重要性:"</span>)</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+排列特征重要性:</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb83"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb83-1"><a href="#cb83-1"></a><span class="bu">print</span>(perm_importance_df)</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>  Feature  Importance
+2     bmi    0.160578
+0     age    0.152412
+7      s5    0.106752
+4      s2    0.034918
+1     sex    0.026204
+3      s1    0.012667
+6      s4    0.010379
+5      s3   -0.016267</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb85"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb85-1"><a href="#cb85-1"></a><span class="co"># 可视化排列重要性</span></span>
+<span id="cb85-2"><a href="#cb85-2"></a>plt.figure(figsize<span class="op">=</span>(<span class="dv">10</span>, <span class="dv">6</span>))</span>
+<span id="cb85-3"><a href="#cb85-3"></a>sns.barplot(data<span class="op">=</span>perm_importance_df, x<span class="op">=</span><span class="st">'Importance'</span>, y<span class="op">=</span><span class="st">'Feature'</span>, palette<span class="op">=</span><span class="st">'rocket'</span>)</span>
+<span id="cb85-4"><a href="#cb85-4"></a>plt.title(<span class="st">'排列特征重要性 - 随机森林 (Python/sklearn)'</span>)</span>
+<span id="cb85-5"><a href="#cb85-5"></a>plt.xlabel(<span class="st">'重要性'</span>)</span>
+<span id="cb85-6"><a href="#cb85-6"></a>plt.tight_layout()</span>
+<span id="cb85-7"><a href="#cb85-7"></a>plt.show()</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure"><p><img src="13-回归任务与基准测试_files/figure-html/unnamed-chunk-14-8.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>模型预测与残差分析</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb86"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb86-1"><a href="#cb86-1"></a><span class="co"># 模型预测与残差分析</span></span>
+<span id="cb86-2"><a href="#cb86-2"></a></span>
+<span id="cb86-3"><a href="#cb86-3"></a><span class="co"># 使用最佳模型进行预测</span></span>
+<span id="cb86-4"><a href="#cb86-4"></a>y_pred <span class="op">=</span> best_rf.predict(X_test_scaled)</span>
+<span id="cb86-5"><a href="#cb86-5"></a>residuals <span class="op">=</span> y_test <span class="op">-</span> y_pred</span>
+<span id="cb86-6"><a href="#cb86-6"></a></span>
+<span id="cb86-7"><a href="#cb86-7"></a><span class="co"># 创建预测结果数据框</span></span>
+<span id="cb86-8"><a href="#cb86-8"></a>results_df <span class="op">=</span> pd.DataFrame({</span>
+<span id="cb86-9"><a href="#cb86-9"></a>    <span class="st">'Actual'</span>: y_test,</span>
+<span id="cb86-10"><a href="#cb86-10"></a>    <span class="st">'Predicted'</span>: y_pred,</span>
+<span id="cb86-11"><a href="#cb86-11"></a>    <span class="st">'Residual'</span>: residuals</span>
+<span id="cb86-12"><a href="#cb86-12"></a>})</span>
+<span id="cb86-13"><a href="#cb86-13"></a></span>
+<span id="cb86-14"><a href="#cb86-14"></a><span class="co"># 预测 vs 实际值图</span></span>
+<span id="cb86-15"><a href="#cb86-15"></a>fig, axes <span class="op">=</span> plt.subplots(<span class="dv">1</span>, <span class="dv">2</span>, figsize<span class="op">=</span>(<span class="dv">15</span>, <span class="dv">6</span>))</span>
+<span id="cb86-16"><a href="#cb86-16"></a></span>
+<span id="cb86-17"><a href="#cb86-17"></a>axes[<span class="dv">0</span>].scatter(results_df[<span class="st">'Actual'</span>], results_df[<span class="st">'Predicted'</span>], alpha<span class="op">=</span><span class="fl">0.6</span>, color<span class="op">=</span><span class="st">'steelblue'</span>)</span>
+<span id="cb86-18"><a href="#cb86-18"></a>axes[<span class="dv">0</span>].plot([results_df[<span class="st">'Actual'</span>].<span class="bu">min</span>(), results_df[<span class="st">'Actual'</span>].<span class="bu">max</span>()], </span>
+<span id="cb86-19"><a href="#cb86-19"></a>            [results_df[<span class="st">'Actual'</span>].<span class="bu">min</span>(), results_df[<span class="st">'Actual'</span>].<span class="bu">max</span>()], </span>
+<span id="cb86-20"><a href="#cb86-20"></a>            <span class="st">'r--'</span>, lw<span class="op">=</span><span class="dv">2</span>)</span>
+<span id="cb86-21"><a href="#cb86-21"></a>axes[<span class="dv">0</span>].set_xlabel(<span class="st">'实际值'</span>)</span>
+<span id="cb86-22"><a href="#cb86-22"></a>axes[<span class="dv">0</span>].set_ylabel(<span class="st">'预测值'</span>)</span>
+<span id="cb86-23"><a href="#cb86-23"></a>axes[<span class="dv">0</span>].set_title(<span class="st">'预测值 vs 实际值'</span>)</span>
+<span id="cb86-24"><a href="#cb86-24"></a>axes[<span class="dv">0</span>].grid(alpha<span class="op">=</span><span class="fl">0.3</span>)</span>
+<span id="cb86-25"><a href="#cb86-25"></a></span>
+<span id="cb86-26"><a href="#cb86-26"></a><span class="co"># 残差图</span></span>
+<span id="cb86-27"><a href="#cb86-27"></a>axes[<span class="dv">1</span>].scatter(results_df[<span class="st">'Predicted'</span>], results_df[<span class="st">'Residual'</span>], alpha<span class="op">=</span><span class="fl">0.6</span>, color<span class="op">=</span><span class="st">'darkred'</span>)</span>
+<span id="cb86-28"><a href="#cb86-28"></a>axes[<span class="dv">1</span>].axhline(y<span class="op">=</span><span class="dv">0</span>, color<span class="op">=</span><span class="st">'r'</span>, linestyle<span class="op">=</span><span class="st">'--'</span>)</span>
+<span id="cb86-29"><a href="#cb86-29"></a>axes[<span class="dv">1</span>].set_xlabel(<span class="st">'预测值'</span>)</span>
+<span id="cb86-30"><a href="#cb86-30"></a>axes[<span class="dv">1</span>].set_ylabel(<span class="st">'残差'</span>)</span>
+<span id="cb86-31"><a href="#cb86-31"></a>axes[<span class="dv">1</span>].set_title(<span class="st">'残差分析'</span>)</span>
+<span id="cb86-32"><a href="#cb86-32"></a>axes[<span class="dv">1</span>].grid(alpha<span class="op">=</span><span class="fl">0.3</span>)</span>
+<span id="cb86-33"><a href="#cb86-33"></a></span>
+<span id="cb86-34"><a href="#cb86-34"></a>plt.tight_layout()</span>
+<span id="cb86-35"><a href="#cb86-35"></a>plt.show()</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure"><p><img src="13-回归任务与基准测试_files/figure-html/unnamed-chunk-15-11.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+</section><section id="案例总结" class="level2"><h2 class="anchored" data-anchor-id="案例总结">13.3 案例总结</h2>
+<p>关键发现</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb87"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb87-1"><a href="#cb87-1"></a><span class="co"># 案例总结 - R语言</span></span>
+<span id="cb87-2"><a href="#cb87-2"></a><span class="fu">cat</span>(<span class="st">"=== 糖尿病进展预测案例总结 ===</span><span class="sc">\n</span><span class="st">"</span>)</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>=== 糖尿病进展预测案例总结 ===</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb89"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb89-1"><a href="#cb89-1"></a><span class="fu">cat</span>(<span class="st">"1. 数据特征:</span><span class="sc">\n</span><span class="st">"</span>)</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>1. 数据特征:</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb91"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb91-1"><a href="#cb91-1"></a><span class="fu">cat</span>(<span class="st">"   - 数据集包含"</span>, <span class="fu">nrow</span>(diabetes_data), <span class="st">"个样本，"</span>, <span class="fu">ncol</span>(diabetes_data)<span class="sc">-</span><span class="dv">1</span>, <span class="st">"个特征</span><span class="sc">\n</span><span class="st">"</span>)</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>   - 数据集包含 442 个样本， 10 个特征</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb93"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb93-1"><a href="#cb93-1"></a><span class="fu">cat</span>(<span class="st">"   - 目标变量: 疾病进展指标</span><span class="sc">\n</span><span class="st">"</span>)</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>   - 目标变量: 疾病进展指标</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb95"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb95-1"><a href="#cb95-1"></a><span class="fu">cat</span>(<span class="st">"   - 最重要的特征: bmi, s5(稳定血糖), bp(血压)</span><span class="sc">\n\n</span><span class="st">"</span>)</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>   - 最重要的特征: bmi, s5(稳定血糖), bp(血压)</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb97"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb97-1"><a href="#cb97-1"></a><span class="fu">cat</span>(<span class="st">"2. 模型性能比较:</span><span class="sc">\n</span><span class="st">"</span>)</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>2. 模型性能比较:</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb99"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb99-1"><a href="#cb99-1"></a><span class="fu">print</span>(results_r[<span class="fu">order</span>(RMSE)])</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>               Model     RMSE      MSE      MAE        R2
+              &lt;char&gt;    &lt;num&gt;    &lt;num&gt;    &lt;num&gt;     &lt;num&gt;
+1: linear_regression 54.32812 2959.818 44.08989 0.4992770
+2:     random_forest 56.24742 3175.846 46.10112 0.4634585
+3:               svm 57.29007 3286.445 44.91594 0.4431697
+4:               knn 61.63274 3808.714 48.02614 0.3550164
+5:           xgboost 63.20336 4017.177 50.00323 0.3230514</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb101"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb101-1"><a href="#cb101-1"></a><span class="fu">cat</span>(<span class="st">"</span><span class="sc">\n</span><span class="st">3. 最佳实践:</span><span class="sc">\n</span><span class="st">"</span>)</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+3. 最佳实践:</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb103"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb103-1"><a href="#cb103-1"></a><span class="fu">cat</span>(<span class="st">"   - 树模型在医疗数据上表现优异</span><span class="sc">\n</span><span class="st">"</span>)</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>   - 树模型在医疗数据上表现优异</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb105"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb105-1"><a href="#cb105-1"></a><span class="fu">cat</span>(<span class="st">"   - 特征标准化对模型性能至关重要</span><span class="sc">\n</span><span class="st">"</span>)</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>   - 特征标准化对模型性能至关重要</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb107"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb107-1"><a href="#cb107-1"></a><span class="fu">cat</span>(<span class="st">"   - 超参数调优可以显著提升模型性能</span><span class="sc">\n</span><span class="st">"</span>)</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>   - 超参数调优可以显著提升模型性能</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb109"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb109-1"><a href="#cb109-1"></a><span class="fu">cat</span>(<span class="st">"   - 模型解释性在医疗领域尤为重要</span><span class="sc">\n</span><span class="st">"</span>)</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>   - 模型解释性在医疗领域尤为重要</code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb111"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb111-1"><a href="#cb111-1"></a><span class="co"># 案例总结 - Python</span></span>
+<span id="cb111-2"><a href="#cb111-2"></a><span class="bu">print</span>(<span class="st">"=== 糖尿病进展预测案例总结 ==="</span>)</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>=== 糖尿病进展预测案例总结 ===</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb113"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb113-1"><a href="#cb113-1"></a><span class="bu">print</span>(<span class="st">"1. 数据特征:"</span>)</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>1. 数据特征:</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb115"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb115-1"><a href="#cb115-1"></a><span class="bu">print</span>(<span class="ss">f"   - 数据集包含 </span><span class="sc">{</span>diabetes_data<span class="sc">.</span>shape[<span class="dv">0</span>]<span class="sc">}</span><span class="ss"> 个样本，</span><span class="sc">{</span>diabetes_data<span class="sc">.</span>shape[<span class="dv">1</span>]<span class="op">-</span><span class="dv">1</span><span class="sc">}</span><span class="ss"> 个特征"</span>)</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>   - 数据集包含 442 个样本，8 个特征</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb117"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb117-1"><a href="#cb117-1"></a><span class="bu">print</span>(<span class="st">"   - 目标变量: 疾病进展指标"</span>)</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>   - 目标变量: 疾病进展指标</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb119"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb119-1"><a href="#cb119-1"></a><span class="bu">print</span>(<span class="st">"   - 最重要的特征: bmi, s5, bp</span><span class="ch">\n</span><span class="st">"</span>)</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>   - 最重要的特征: bmi, s5, bp</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb121"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb121-1"><a href="#cb121-1"></a><span class="bu">print</span>(<span class="st">"2. 模型性能比较:"</span>)</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>2. 模型性能比较:</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb123"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb123-1"><a href="#cb123-1"></a><span class="bu">print</span>(results_python[[<span class="st">'Model'</span>, <span class="st">'RMSE'</span>, <span class="st">'R2'</span>]].sort_values(<span class="st">'RMSE'</span>).to_string(index<span class="op">=</span><span class="va">False</span>))</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>                    Model     RMSE        R2
+         Ridge Regression 0.037728  0.346299
+        Linear Regression 0.037869  0.341403
+            Random Forest 0.039989  0.265591
+        Gradient Boosting 0.040339  0.252692
+              K-Neighbors 0.041668  0.202630
+         Lasso Regression 0.046838 -0.007507
+Support Vector Regression 0.048922 -0.099178</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb125"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb125-1"><a href="#cb125-1"></a><span class="bu">print</span>(<span class="st">"</span><span class="ch">\n</span><span class="st">3. 最佳实践:"</span>)</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+3. 最佳实践:</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb127"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb127-1"><a href="#cb127-1"></a><span class="bu">print</span>(<span class="st">"   - 集成学习方法在回归问题上表现稳定"</span>)</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>   - 集成学习方法在回归问题上表现稳定</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb129"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb129-1"><a href="#cb129-1"></a><span class="bu">print</span>(<span class="st">"   - 数据预处理对模型性能影响显著"</span>)</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>   - 数据预处理对模型性能影响显著</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb131"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb131-1"><a href="#cb131-1"></a><span class="bu">print</span>(<span class="st">"   - 交叉验证提供更可靠的性能估计"</span>)</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>   - 交叉验证提供更可靠的性能估计</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb133"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb133-1"><a href="#cb133-1"></a><span class="bu">print</span>(<span class="st">"   - 特征重要性分析增强模型可解释性"</span>)</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>   - 特征重要性分析增强模型可解释性</code></pre>
+</div>
+</div>
+<p>技术要点回顾</p>
+<p><strong>数据预处理</strong>： - 特征标准化：确保不同尺度的特征具有可比性 - 缺失值处理：根据数据特性选择合适的填充策略 - 特征工程：创建有意义的衍生特征</p>
+<p><strong>模型选择</strong>： - 线性模型：可解释性强，计算效率高 - 树模型：自动处理非线性关系，对异常值稳健 - 集成方法：通过模型组合提升预测性能</p>
+<p><strong>模型评估</strong>： - 使用多个评估指标（RMSE, MAE, R²） - 交叉验证提供稳健的性能估计 - 测试集用于最终模型评估</p>
+<p><strong>模型优化</strong>： - 超参数调优：网格搜索、随机搜索 - 特征选择：基于重要性或递归消除 - 集成策略：Bagging, Boosting, Stacking</p>
+<p>业务应用建议</p>
+<p>医疗诊断：使用训练好的模型对患者疾病进展进行预测 治疗方案制定：识别影响疾病进展的关键因素，指导治疗策略 患者管理：理解生理指标对疾病的影响，支持患者管理 风险评估：监测疾病进展风险，预警健康问题</p>
+<p>通过本回归案例，我们展示了从数据探索到模型部署的完整预测建模流程，为读者在实际工作中应用机器学习方法提供了完整的参考框架。</p>
+
+
+</section></main><!-- /main --><script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "已复制");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "已复制");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script><nav class="page-navigation"><div class="nav-page nav-page-previous">
+      <a href="../chapters/part-4-introduction.html" class="pagination-link" aria-label="part-4-introduction.html">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-title">part-4-introduction.html</span></span>
+      </a>          
+  </div>
+  <div class="nav-page nav-page-next">
+      <a href="../chapters/14 分类任务.html" class="pagination-link" aria-label="14 分类任务">
+        <span class="nav-page-text"><span class="chapter-title">14 分类任务</span></span> <i class="bi bi-arrow-right-short"></i>
+      </a>
+  </div>
+</nav>
+</div> <!-- /content -->
+
+
+
+</body></html>

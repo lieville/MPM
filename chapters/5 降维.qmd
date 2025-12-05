@@ -1,0 +1,592 @@
+---
+title: "5 降维"
+format: html
+editor: source
+---
+
+## 本章导读
+
+随着大数据时代的到来，高维数据问题日益普遍。当自变量数目 $p$ 接近甚至超过样本量 $n$ 时，传统的最小二乘法面临严重挑战。本章将系统介绍正则化方法和降维技术这两类处理高维问题的主流方法，为您提供在“维数灾难”下建立稳定预测模型的有效工具。
+
+## 5.1 多重共线性
+
+### 5.1.1 高维问题
+高维回归模型： 
+$$
+\mathbf{y} = \mathbf{X}\pmb{\beta} + \pmb{\varepsilon}
+$$ 
+其中 $\mathbf{X} \in \mathbb{R}^{n \times p}$，当 $p \gg n$ 或 $p \approx n$ 时出现高维问题。
+
+OLS的失效：
+
+-   当 $p > n$ 时，$\mathbf{X}'\mathbf{X}$ 不可逆
+
+-   当 $p \approx n$ 时，估计方差极大
+
+-   预测性能下降，模型过拟合
+
+**稀疏性假设**
+
+精确稀疏性： $$ ||\pmb{\beta}||_0 = \#\{j: \beta_j \neq 0\} \ll p $$
+
+近似稀疏性： 大多数系数的绝对值很小，只有少数系数较大。
+
+### 5.1.2 多重共线性原因与表现
+
+考虑线性回归模型： $$ \mathbf{y} = \beta_0 + \beta_1 x_1 + \beta_2 x_2 + \cdots + \beta_p x_p + \varepsilon $$
+
+**定义1（完全多重共线性）**： 如果存在不全为零的常数 $c_1, c_2, \dots, c_p$，使得： $$ c_1 x_1 + c_2 x_2 + \cdots + c_p x_p = 0 \quad \text{（几乎处处成立）} $$ 则称自变量间存在完全多重共线性（perfect multicollinearity）。
+
+在矩阵形式下，设设计矩阵 $\mathbf{X} = [\mathbf{1}, \mathbf{x}_1, \dots, \mathbf{x}_p] \in \mathbb{R}^{n \times (p+1)}$，完全多重共线性意味着： $$ \text{rank}(\mathbf{X}) < p+1 $$ 即 $\mathbf{X}^\top \mathbf{X}$ 是奇异的，不存在唯一的最小二乘解。
+
+**定义2（近似多重共线性）**： 如果存在不全为零的常数 $c_1, c_2, \dots, c_p$，使得： $$ c_1 x_1 + c_2 x_2 + \cdots + c_p x_p \approx 0 $$ 即自变量间存在高度但不完全的线性关系，则称为近似多重共线性。
+
+多重共线系的原因：
+
+-   变量之间的共同变化趋势
+
+-   时间序列数据趋势，滞后变量
+
+-   经济指标关系约束或者虚拟变量陷阱
+
+-   样本量不足
+
+-   截面数据的规模效应
+
+**多重共线性的表现**
+
+在回归结果中：
+
+系数估计异常
+
+-   符号异常：系数符号与理论预期相反
+
+-   数值异常大：系数绝对值异常大
+
+-   统计不显著但联合显著：
+
+-   单个 $t$ 检验：$H_0: \beta_j = 0$ 不拒绝
+
+-   整体 $F$ 检验：$H_0: \beta_1 = \cdots = \beta_p = 0$ 拒绝
+
+稳定性检验
+
+-   删除观测影响：删除个别观测导致系数估计剧烈变化
+-   添加/删除变量：添加或删除其他变量导致系数符号或大小显著变化
+
+### 5.1.3 多重共线性的影响：
+
+-   参数估计方面：参数估计仍然是无偏的，但是参数估计方差会很大
+
+-   假设检验方面：F检验会显著，但是t检验会失效
+
+-   预测：预测变得不稳定
+
+-   参数估计的值不稳定，正负符号可能不符合预期
+
+多重共线性的主要影响在于参数估计量的方程膨胀，下面给出简单的推导过程：
+
+这里只考虑考虑复共线性，即设计矩阵$X$的列向量之间存在近似线性相关关系。
+
+数学表述为：
+
+存在非零向量$c = (c_1, c_2, \ldots, c_p)' \neq 0$，使得：
+
+$$
+c_1X_1 + c_2X_2 + \cdots + c_pX_p \approx 0
+$$
+
+其中$X_j \in \mathbb{R}^n$表示第$j$个自变量的观测向量。
+
+考虑Gram矩阵$S = X'X$，其特征值问题为$Sv = \lambda v$。利用Rayleigh商的极值性质：
+
+$$\lambda_{min} = \min_{v \neq 0} \frac{v'Sv}{v'v} = \min_{v \neq 0} \frac{\lVert Xv \rVert^2}{\lVert v \rVert^2}$$
+
+当存在多重共线性时，取$v = c$（近似线性相关的系数向量），则有：
+
+$$
+\lambda_{min} \leq \frac{\lVert Xc \rVert^2}{\lVert c \rVert^2} \approx 0
+$$
+
+Gram矩阵的谱分解为： $$
+S = X'X = \sum_{j=1}^p \lambda_j v_j v_j'
+$$
+
+其逆矩阵相应为： $$
+(X'X)^{-1} = \sum_{j=1}^p \frac{1}{\lambda_j} v_j v_j'
+$$
+
+这时，逆矩阵中每个特征方向的贡献被$\frac{1}{\lambda_j}$放大。当某些$\lambda_j \to 0$时，对应项$\frac{1}{\lambda_j} \to \infty$。
+
+普通最小二乘估计的方差-协方差矩阵为： $$
+\text{Var}(\hat{\beta}) = \sigma^2(X'X)^{-1} = \sigma^2 \sum_{j=1}^p \frac{1}{\lambda_j} v_j v_j'
+$$
+
+第$j$个参数估计的方差为： $$
+\text{Var}(\hat{\beta}_j) = \sigma^2[(X'X)^{-1}]_{jj} = \sigma^2 \sum_{k=1}^p \frac{v_{kj}^2}{\lambda_k}
+$$
+
+每个参数估计的方差可分解为在各特征向量方向上的贡献之和，权重为$\frac{v_{kj}^2}{\lambda_k}$。
+
+设$\lambda_1 \geq \lambda_2 \geq \cdots \geq \lambda_p > 0$，当存在严重多重共线性时，假设前$m$个特征值显著大于零，后$p-m$个特征值接近零：
+
+$$
+\text{Var}(\hat{\beta}_j) = \sigma^2\left(\sum_{k=1}^m \frac{v_{kj}^2}{\lambda_k} + \sum_{k=m+1}^p \frac{v_{kj}^2}{\lambda_k}\right)
+$$
+
+其中第二项由于$\lambda_k \approx 0$而急剧增大：
+
+$$\sum_{k=m+1}^p \frac{v_{kj}^2}{\lambda_k} \to \infty$$
+
+小特征值对应的特征方向在方差表达式中产生巨大贡献。
+
+在多元线性回归模型 $Y = X\beta + \varepsilon$ 中，第 $j$ 个参数估计 $\hat{\beta}_j$ 的方差为： $$ \text{Var}(\hat{\beta}_j) = \frac{\sigma^2}{(1 - R_j^2) \sum_{i=1}^n (x_{ij} - \bar{x}_j)^2} $$将方差重写为： $$ \text{Var}(\hat{\beta}_j) = \underbrace{\frac{\sigma^2}{\sum_{i=1}^n (x_{ij} - \bar{x}_j)^2}}_{\text{简单回归方差}} \times \underbrace{\frac{1}{1 - R_j^2}}_{VIF_j} $$
+
+**方差膨胀因子(Variance Inflation Factor, VIF)** 是衡量多重共线性严重程度的核心指标，定义为： $$ VIF_j = \frac{1}{1 - R_j^2} $$ 其中：
+
+-   $R_j^2$ 是第 $j$ 个自变量 $X_j$ 对其他所有自变量 $X_1, X_2, \ldots, X_{j-1}, X_{j+1}, \ldots, X_p$ 进行回归所得的决定系数
+
+-   $VIF_j$ 度量了由于与其他自变量相关而导致的第 $j$ 个参数估计方差的膨胀倍数
+
+-   诊断标准： - $\text{VIF}_j > 10$：存在严重多重共线性 - $\text{VIF}_j > 5$：存在中度多重共线性
+
+这清晰地展示了方差膨胀因子的含义：参数估计方差相对于无多重共线性情况下的膨胀倍数。
+
+将方差代入： $$VIF_j = \frac{1}{1-R_j^2} = \frac{\sum_{i=1}^n (x_{ij}-\bar{x}_j)^2}{s^2} \cdot [(X'X)^{-1}]_{jj}$$
+
+可知： $$VIF_j \propto \sum_{k=1}^p \frac{v_{kj}^2}{\lambda_k}$$
+
+方差膨胀因子本质上度量了参数方差在各特征方向上的累积放大效应。
+
+矩阵$X'X$的**条件数**定义为： $$\kappa(X'X) = \frac{\lambda_{max}}{\lambda_{min}}$$
+
+多重共线性下$\lambda_{min} \to 0$，导致：
+
+-   $\kappa(X'X) \to \infty$
+
+-   矩阵求逆数值不稳定
+
+-   估计量对数据扰动敏感
+
+设计矩阵的病态性： 条件数 $\kappa(\mathbf{X}'\mathbf{X}) = \frac{\lambda_{\max}}{\lambda_{\min}}$ 过大，其中 $\lambda$ 是特征值。
+
+### 5.1.4 多重共线性的解决方法
+- 删除变量
+- 合并变量
+- 变量变换
+- 增加样本量
+- 正则化方法
+- 降维方法
+
+## 5.2 自变量选择
+
+### 5.2.1 子集回归模型
+
+考虑线性回归模型： $$ \mathbf{y} = \mathbf{X}\pmb{\beta} + \pmb{\varepsilon} $$
+
+其中：
+
+-   $\mathbf{y} \in \mathbb{R}^n$：响应变量
+
+-   $\mathbf{X} \in \mathbb{R}^{n \times p}$：设计矩阵（包含截距项）
+
+-   $\pmb{\beta} \in \mathbb{R}^p$：回归系数
+
+-   $\pmb{\varepsilon} \in \mathbb{R}^n$：误差项，$\pmb{\varepsilon} \sim N(\mathbf{0}, \sigma^2 \mathbf{I}_n)$
+
+子集模型
+
+设 $\mathcal{M}$ 表示一个候选模型，包含 $k$ 个自变量（不包括截距），则： $$ \mathbf{y} = \mathbf{X}_{\mathcal{M}}\pmb{\beta}_{\mathcal{M}} + \pmb{\varepsilon}_{\mathcal{M}} $$ 其中 $k = |\mathcal{M}|$。
+
+-   **残差平方和**： $$ \text{RSS}_{\mathcal{M}} = \|\mathbf{y} - \hat{\mathbf{y}}_{\mathcal{M}}\|^2 = \mathbf{y}^\top(\mathbf{I} - \mathbf{P}_{\mathcal{M}})\mathbf{y} $$ 其中 $\mathbf{P}_{\mathcal{M}} = \mathbf{X}_{\mathcal{M}}(\mathbf{X}_{\mathcal{M}}^\top \mathbf{X}_{\mathcal{M}})^{-1}\mathbf{X}_{\mathcal{M}}^\top$ 是投影矩阵。
+
+-   **最大似然估计**： 在正态假设下，似然函数为： $$ L(\pmb{\beta}_{\mathcal{M}}, \sigma^2) = (2\pi\sigma^2)^{-n/2} \exp\left(-\frac{\text{RSS}_{\mathcal{M}} + \|\mathbf{X}_{\mathcal{M}}\pmb{\beta}_{\mathcal{M}} - \mathbf{X}_{\mathcal{M}}\hat{\pmb{\beta}}_{\mathcal{M}}\|^2}{2\sigma^2}\right) $$ 最大似然估计为： $$ \hat{\pmb{\beta}}_{\mathcal{M}} = (\mathbf{X}_{\mathcal{M}}^\top \mathbf{X}_{\mathcal{M}})^{-1}\mathbf{X}_{\mathcal{M}}^\top \mathbf{y}, \quad \hat{\sigma}^2_{\mathcal{M}} = \frac{\text{RSS}_{\mathcal{M}}}{n} $$
+
+-   **对数似然**： $$ \ell(\mathcal{M}) = -\frac{n}{2} \log(2\pi) - \frac{n}{2} \log(\hat{\sigma}^2_{\mathcal{M}}) - \frac{n}{2} $$
+
+### 5.2.2 自变量选择标准
+
+在线性回归模型中，当有大量潜在自变量时，我们需要选择最优的子集。自变量选择的目标是：
+
+-   **提高预测精度**：减少过拟合，降低预测方差
+-   **增强模型解释性**：识别真正重要的变量
+-   **简化模型**：减少数据收集和计算成本
+
+1 决定系数 $R^2$
+
+$$ R^2_{\mathcal{M}} = 1 - \frac{\text{RSS}_{\mathcal{M}}}{\text{TSS}} $$ 其中 $\text{TSS} = \sum_{i=1}^n (y_i - \bar{y})^2$ 是总平方和。
+
+**问题**：$R^2$ 随自变量增加而单调增加，倾向于选择大模型。
+
+为了惩罚模型复杂度： $$ R^2_{\text{adj},\mathcal{M}} = 1 - \frac{\text{RSS}_{\mathcal{M}}/(n-k-1)}{\text{TSS}/(n-1)} = 1 - \frac{n-1}{n-k-1}(1 - R^2_{\mathcal{M}}) $$
+
+**性质**： - 仅当新变量的 $t$ 统计量绝对值大于 1 时，$R^2_{\text{adj}}$ 才会增加 - 但仍不是一致模型选择准则
+
+2 Akaike 信息准则 (AIC)
+
+AIC 基于 Kullback-Leibler 散度最小化。设真实分布为 $g(y)$，模型分布为 $f(y|\theta)$，K-L 散度为： $$ I(g; f) = \int g(y) \log g(y) dy - \int g(y) \log f(y|\theta) dy $$
+
+最小化 K-L 散度等价于最大化 $\mathbb{E}_g[\log f(y|\theta)]$。AIC 估计： $$ \text{AIC} = -2 \log L(\hat{\theta}) + 2k $$
+
+对于线性回归： $$ \text{AIC} = n \log\left(\frac{\text{RSS}_{\mathcal{M}}}{n}\right) + 2(k+1) + n[\log(2\pi) + 1] $$
+
+去掉常数项，常用简化形式： $$ \text{AIC} = n \log(\hat{\sigma}^2_{\mathcal{M}}) + 2k $$
+
+或等价的： $$ \text{AIC} = \frac{\text{RSS}_{\mathcal{M}}}{n} e^{2k/n} $$
+
+**版本差异**：
+
+-   AIC：$n \log(\text{RSS}/n) + 2k$
+
+-   AICc（小样本校正）：$n \log(\text{RSS}/n) + 2k + \frac{2k(k+1)}{n-k-1}$
+
+-   AICu：$n \log[\text{RSS}/(n-k)] + 2k$
+
+3 贝叶斯信息准则 (BIC)
+
+BIC 源于贝叶斯因子的 Laplace 近似。模型 $\mathcal{M}$ 的后验概率： $$ P(\mathcal{M}|\mathbf{y}) \propto P(\mathbf{y}|\mathcal{M}) P(\mathcal{M}) $$
+
+边缘似然： $$ P(\mathbf{y}|\mathcal{M}) = \int L(\pmb{\beta}_{\mathcal{M}}, \sigma^2) \pi(\pmb{\beta}_{\mathcal{M}}, \sigma^2) d\pmb{\beta}_{\mathcal{M}} d\sigma^2 $$
+
+使用 Jeffrey 无信息先验 $\pi(\pmb{\beta}, \sigma^2) \propto 1/\sigma^2$，可得： $$ -2 \log P(\mathbf{y}|\mathcal{M}) \approx n \log(\hat{\sigma}^2_{\mathcal{M}}) + k \log n $$
+
+BIC 公式
+
+$$ \text{BIC} = n \log\left(\frac{\text{RSS}_{\mathcal{M}}}{n}\right) + k \log n $$
+
+或等价地： $$ \text{BIC} = \frac{\text{RSS}_{\mathcal{M}}}{n} n^{k/n} $$
+
+AIC 与 BIC 比较
+
+| 准则 | 惩罚项     | 目标     | 渐近性质 | 模型倾向 |
+|------|------------|----------|----------|----------|
+| AIC  | $2k$       | 预测最优 | 非一致   | 偏大模型 |
+| BIC  | $k \log n$ | 真实模型 | 一致     | 偏小模型 |
+
+**一致性**：当 $n \to \infty$ 时，BIC 以概率 1 选择真实模型（如果真实模型在候选集中），而 AIC 可能选择过参数化模型。
+
+**效率**：在错误设定下，AIC 选择的模型可能有更好的预测性能。
+
+-   AIC：渐近有效（当真实模型不在候选集中时，选择的模型预测误差接近最优）
+
+-   BIC：渐近一致但非有效
+
+模拟研究显示： 1. 当信噪比低、样本量小时，AIC 倾向于选择过大的模型 2. BIC 在样本量足够大时表现更好 3. $C_p$ 与 AIC 渐近等价（$C_p = \text{AIC}/n + \text{常数}$） 高维情况 ($p > n$)
+
+传统准则失效，需要改进： - 扩展 BIC(EBIC)：$\text{BIC} + \gamma \log \binom{p}{k}$，$\gamma \in [0,1]$ - 高维 AIC：使用有效自由度代替 $k$
+
+4 Mallow's $C_p$ 统计量
+
+考虑标准化预测误差： $$ \Gamma_p(\mathcal{M}) = \frac{1}{\sigma^2} \mathbb{E}[\|\mathbf{X}\hat{\pmb{\beta}}_{\mathcal{M}} - \mathbf{X}\pmb{\beta}\|^2] $$
+
+可以证明： $$ \mathbb{E}[\text{RSS}_{\mathcal{M}}] = (n-k)\sigma^2 + \|\mathbf{X}\pmb{\beta} - \mathbf{X}_{\mathcal{M}}\pmb{\beta}_{\mathcal{M}}^*\|^2 $$
+
+其中 $\pmb{\beta}_{\mathcal{M}}^*$ 是 $\pmb{\beta}$ 在子空间上的投影。因此： $$ \mathbb{E}[C_p(\mathcal{M})] \approx \frac{1}{\sigma^2} \|\mathbf{X}\pmb{\beta} - \mathbf{X}_{\mathcal{M}}\pmb{\beta}_{\mathcal{M}}^*\|^2 + k $$
+
+假设全模型（包含所有 $p$ 个变量）是正确的，则： $$ C_p(\mathcal{M}) = \frac{\text{RSS}_{\mathcal{M}}}{\hat{\sigma}^2_{\text{full}}} + 2k - n $$ 其中 $\hat{\sigma}^2_{\text{full}} = \text{RSS}_{\text{full}}/(n-p)$。
+
+可以证明 $C_p$ 是 $\Gamma_p(k)$ 的无偏估计
+
+解释 - $C_p \approx k$：模型无偏 - $C_p > k$：模型有偏 - $C_p < k$：可能过拟合或随机波动
+
+选择 $C_p$ 小且接近 $k$ 的模型。
+
+准则选择指南
+
+-   预测导向：用 AIC、$C_p$ 或交叉验证
+-   解释导向：用 BIC 或调整 $R^2$
+-   大数据：BIC 更可靠（$n \geq 1000$）
+-   小数据：AICc 或交叉验证
+
+自变量选择需要权衡偏差-方差、解释性与预测精度。没有单一最优准则，实际应用中应： 1. 考虑研究目标（预测 vs 解释） 2. 结合多种准则 3. 进行模型诊断和验证 4. 考虑计算成本和可解释性
+
+**核心公式总结**：
+
+-   $R^2_{\text{adj}} = 1 - \frac{n-1}{n-k-1}(1-R^2)$
+
+-   $\text{AIC} = n \log(\text{RSS}/n) + 2k$
+
+-   $\text{BIC} = n \log(\text{RSS}/n) + k \log n$
+
+-   $C_p = \text{RSS}/\hat{\sigma}^2_{\text{full}} + 2k - n$
+
+选择准则本身也有不确定性，模型平均和集成方法可以进一步改善预测性能。
+
+最优子集回归
+
+最优子集选择： 对于每个 $k = 1, 2, \cdots, p$，选择使RSS最小的包含 $k$ 个自变量的模型。
+
+计算挑战： 需要评估 $2^p$ 个模型，计算不可行。
+
+逐步回归： - 前向选择 - 后向剔除 - 逐步选择
+
+局限性： - 路径依赖 - 多重检验问题 - 标准误低估
+
+### 5.2.3 最优子集回归：
+
+对于给定的模型大小 $k$，最优子集问题是组合优化问题： $$ \mathcal{M}_k^* = \arg\min_{\mathcal{M}:|\mathcal{M}|=k} \text{RSS}(\mathcal{M}) $$
+
+总搜索空间大小为 $\sum_{k=0}^p \binom{p}{k} = 2^p$，是NP-hard问题。
+
+### 5.2.4 逐步回归
+
+**前向选择**
+
+前向选择等价于求解以下序列优化问题： $$ j_t = \arg\max_{j \notin \mathcal{M}_{t-1}} \frac{|\mathbf{x}_j^\top \mathbf{r}_{t-1}|}{\|\mathbf{x}_j\|} $$
+
+其中 $\mathbf{r}_{t-1}$ 是第 $t-1$ 步的残差向量。
+
+与正交匹配追踪（OMP）的关系
+
+前向选择是OMP的特例。在正交化版本中： 1. 计算当前残差与所有预测变量的相关系数 2. 选择最大相关系数对应的变量 3. 正交化更新残差
+
+**数学表达**： $$ \mathbf{q}_t = \frac{(\mathbf{I} - \mathbf{Q}_{t-1}\mathbf{Q}_{t-1}^\top)\mathbf{x}_{j_t}}{\|(\mathbf{I} - \mathbf{Q}_{t-1}\mathbf{Q}_{t-1}^\top)\mathbf{x}_{j_t}\|} $$ 其中 $\mathbf{Q}_{t-1} = [\mathbf{q}_1, \dots, \mathbf{q}_{t-1}]$ 为正交基。
+
+**后向删除的**
+
+后向删除基于假设检验： $$ H_0: \beta_j = 0 \quad \text{vs} \quad H_1: \beta_j \neq 0 $$
+
+使用 $F$ 统计量： $$ F_j = \frac{(\text{RSS}_{-j} - \text{RSS})/1}{\text{RSS}/(n-k)} $$ 其中 $\text{RSS}_{-j}$ 是删除变量 $j$ 后的RSS。
+
+**双向逐步回归**
+
+算法描述
+
+结合前向和后向步骤： 1. **初始化**：$\mathcal{M} = \emptyset$ 2. **迭代直到收敛**： - **前向步**：尝试添加一个变量 - **后向步**：尝试删除一个变量 - 每次选择使 RSS 减少最多（或增加最少）的操作 - 通常基于统计显著性（如 $p$ 值）决定
+
+基于 $F$ 检验的版本
+
+常用的停止准则是 $F$ 统计量： - **添加变量**：计算偏 $F$ 统计量 $$   F_{\text{add}} = \frac{(\text{RSS}_{\text{old}} - \text{RSS}_{\text{new}})/1}{\text{RSS}_{\text{new}}/(n-|\mathcal{M}|-1)}   $$ 如果 $F_{\text{add}} > F_{\text{in}}$（进入临界值），则添加该变量 - **删除变量**：计算 $F$ 统计量 $$   F_{\text{drop}} = \frac{(\text{RSS}_{\text{without}} - \text{RSS}_{\text{with}})/1}{\text{RSS}_{\text{with}}/(n-|\mathcal{M}|)}   $$ 如果 $F_{\text{drop}} < F_{\text{out}}$（删除临界值），则删除该变量
+
+** 与LAR 算法联系**
+
+最小角回归（Least Angle Regression, LAR）可以看作逐步回归的连续版本： 1. 开始时，所有系数为0 2. 找到与当前残差最相关的变量 3. 沿该方向移动系数，直到另一个变量与残差的相关性相等 4. 沿这两个变量的角平分线方向移动 5. 重复直到所有变量都进入模型
+
+总结与比较
+
+| 方法 | 优点 | 缺点 | 计算复杂度 | 适用场景 |
+|---------------|---------------|---------------|---------------|---------------|
+| 最优子集 | 全局最优 | 计算不可行（$p>40$） | $O(2^p)$ | $p \leq 20$，精确解重要 |
+| 前向选择 | 计算快，可处理 $p>n$ | 贪心，可能不是最优 | $O(p^2)$ | 高维数据，计算资源有限 |
+| 后向删除 | 考虑变量间交互 | 需要 $n>p$ | $O(p^3)$ | $p$ 中等，全模型可拟合 |
+| 双向逐步 | 更灵活 | 可能过拟合 | $O(p^3)$ | 中等维度，平衡探索利用 |
+
+实际建议
+
+-   当 $p \leq 20$ 时，考虑最优子集（或所有子集）
+-   当 $p > n$ 时，使用前向选择或 LASSO
+-   当关心解释性时，逐步回归可能优于黑箱方法
+-   总是使用交叉验证选择最终模型大小
+
+数学洞察
+
+逐步回归本质上是在逐步优化的基础上进行的坐标下降。设目标函数： $$
+J(\pmb{\beta}) = \frac{1}{2}\|\mathbf{y} - \mathbf{X}\pmb{\beta}\|^2 + \lambda\|\pmb{\beta}\|_0
+$$ 其中 $\|\pmb{\beta}\|_0 = \sum_{j=1}^p I(\beta_j \neq 0)$。这是 NP 难问题，逐步回归提供了近似解。
+
+现代发展表明，凸松弛（如 LASSO）在理论和计算上都有优势，但逐步回归因其简单直观，仍在实践中广泛使用。
+
+
+### 5.2.6 调参策略
+
+网格搜索： 在 $\lambda$（和 $\alpha$）的网格上计算交叉验证误差。
+
+信息准则：
+
+-   AIC：$AIC = n\ln(\hat{\sigma}^2) + 2k$
+
+-   BIC：$BIC = n\ln(\hat{\sigma}^2) + k\ln(n)$
+
+一倍标准误准则： 选择调优参数，使得交叉验证误差在最小误差的一倍标准误范围内。
+
+
+
+
+## 5.3 主成分回归
+
+### 5.3.1 主成分回归原理
+
+主成分回归（Principal Component Regression, PCR）是多元线性回归与主成分分析（PCA）的结合。当自变量存在多重共线性时，普通最小二乘法（OLS）估计的方差会变得很大，PCR通过先对自变量进行主成分分析，然后选取部分主成分作为新的自变量进行回归，从而改善估计的稳定性。
+
+### 5.3.2 理论推导过程
+
+设线性回归模型： $$ \mathbf{y} = \mathbf{X}\pmb{\beta} + \pmb{\varepsilon} $$
+
+其中：
+
+-   $\mathbf{y} \in \mathbb{R}^{n}$ 是因变量观测向量
+
+-   $\mathbf{X} \in \mathbb{R}^{n \times p}$ 是自变量设计矩阵（已中心化）
+
+-   $\pmb{\beta} \in \mathbb{R}^{p}$ 是回归系数向量
+
+-   $\pmb{\varepsilon} \in \mathbb{R}^{n}$ 是误差向量，满足 $\mathbb{E}(\pmb{\varepsilon}) = \mathbf{0}$, $\text{Var}(\pmb{\varepsilon}) = \sigma^2 \mathbf{I}_n$
+
+假设 $\mathbf{X}$ 已中心化（即每列均值为0），则无需考虑截距项。
+
+则$\mathbf{X}$ 的样本协方差矩阵为： $$ \mathbf{S} = \frac{1}{n-1} \mathbf{X}^\top \mathbf{X} $$
+
+对 $\mathbf{S}$ 进行特征分解： $$ \mathbf{S} = \mathbf{V}\pmb{\Lambda}\mathbf{V}^\top $$
+
+其中：
+
+-   $\pmb{\Lambda} = \text{diag}(\lambda_1, \lambda_2, \dots, \lambda_p)$，$\lambda_1 \geq \lambda_2 \geq \cdots \geq \lambda_p \geq 0$ 是特征值
+
+-   $\mathbf{V} = [\mathbf{v}_1, \mathbf{v}_2, \dots, \mathbf{v}_p]$ 是正交特征向量矩阵，满足 $\mathbf{V}^\top \mathbf{V} = \mathbf{I}_p$
+
+主成分得分矩阵为： $$ \mathbf{Z} = \mathbf{X}\mathbf{V} $$
+
+其中 $\mathbf{Z} = [\mathbf{z}_1, \mathbf{z}_2, \dots, \mathbf{z}_p]$，第 $j$ 个主成分 $\mathbf{z}_j = \mathbf{X}\mathbf{v}_j$。
+
+原模型 $\mathbf{y} = \mathbf{X}\pmb{\beta} + \pmb{\varepsilon}$ 可写为： $$ \mathbf{y} = \mathbf{X}\mathbf{V}\mathbf{V}^\top\pmb{\beta} + \pmb{\varepsilon} = \mathbf{Z}\pmb{\alpha} + \pmb{\varepsilon} $$
+
+其中 $\pmb{\alpha} = \mathbf{V}^\top\pmb{\beta}$ 是主成分回归中的系数向量。
+
+选择前 $k$ ($k \leq p$) 个主成分，得到约简模型： $$ \mathbf{y} = \mathbf{Z}_k\pmb{\alpha}_k + \pmb{\varepsilon}^* $$
+
+其中：
+
+-   $\mathbf{Z}_k = \mathbf{X}\mathbf{V}_k$，$\mathbf{V}_k = [\mathbf{v}_1, \dots, \mathbf{v}_k]$
+-   $\pmb{\alpha}_k = (\alpha_1, \dots, \alpha_k)^\top$
+
+对约简模型应用最小二乘法： $$ \hat{\pmb{\alpha}}_k = (\mathbf{Z}_k^\top \mathbf{Z}_k)^{-1} \mathbf{Z}_k^\top \mathbf{y} $$
+
+由于 $\mathbf{Z}_k^\top \mathbf{Z}_k = (n-1)\pmb{\Lambda}_k$，其中 $\pmb{\Lambda}_k = \text{diag}(\lambda_1, \dots, \lambda_k)$，可得： $$ \hat{\pmb{\alpha}}_k = \frac{1}{n-1} \pmb{\Lambda}_k^{-1} \mathbf{Z}_k^\top \mathbf{y} $$
+
+分量形式为： $$ \hat{\alpha}_j = \frac{\mathbf{z}_j^\top \mathbf{y}}{(n-1)\lambda_j}, \quad j=1,\dots,k $$
+
+原始参数 $\pmb{\beta}$ 的PCR估计为： $$ \hat{\pmb{\beta}}_{\text{PCR}} = \mathbf{V}_k \hat{\pmb{\alpha}}_k = \sum_{j=1}^k \mathbf{v}_j \hat{\alpha}_j $$
+
+代入 $\hat{\alpha}_j$ 表达式： $$ \hat{\pmb{\beta}}_{\text{PCR}} = \sum_{j=1}^k \mathbf{v}_j \frac{\mathbf{z}_j^\top \mathbf{y}}{(n-1)\lambda_j} = \sum_{j=1}^k \mathbf{v}_j \frac{\mathbf{v}_j^\top \mathbf{X}^\top \mathbf{y}}{(n-1)\lambda_j} $$
+
+**算法步骤总结**
+
+-   中心化 $\mathbf{X}$ 和 $\mathbf{y}$
+
+-   计算 $\mathbf{X}$ 的协方差矩阵 $\mathbf{S}$
+
+-   对 $\mathbf{S}$ 进行特征分解，得到 $\mathbf{V}$ 和 $\pmb{\Lambda}$
+
+-   选择主成分个数 $k$
+
+-   计算主成分得分 $\mathbf{Z}_k = \mathbf{X}\mathbf{V}_k$
+
+-   用OLS估计 $\mathbf{y}$ 对 $\mathbf{Z}_k$ 的回归系数 $\hat{\pmb{\alpha}}_k$
+
+-   转换回原始空间：$\hat{\pmb{\beta}}_{\text{PCR}} = \mathbf{V}_k \hat{\pmb{\alpha}}_k$
+
+**选择主成分个数** $k$ 的常用方法：
+
+1.  **累积方差贡献率**：选择最小的 $k$ 使得 $$    \frac{\sum_{j=1}^k \lambda_j}{\sum_{j=1}^p \lambda_j} \geq \tau    $$ 通常取 $\tau = 0.7 \sim 0.9$
+
+2.  **交叉验证**：通过最小化预测误差的交叉验证估计来选择 $k$
+
+3.  **特征值大于1准则**（适用于标准化数据）
+
+## 5.3.3 估计量的性质
+
+1.  偏差
+
+PCR估计是有偏估计（除非 $k=p$）： $$
+  \mathbb{E}[\hat{\pmb{\beta}}_{\text{PCR}}] = \mathbf{V}_k\mathbf{V}_k^\top\pmb{\beta} 
+ $$
+
+偏差为： $$ 
+ \text{Bias}(\hat{\pmb{\beta}}_{\text{PCR}}) = (\mathbf{V}_k\mathbf{V}_k^\top - \mathbf{I})\pmb{\beta} = -\sum_{j=k+1}^p \mathbf{v}_j\mathbf{v}_j^\top\pmb{\beta} 
+ $$
+
+2.  方差
+
+$$
+ \text{Var}(\hat{\pmb{\beta}}_{\text{PCR}}) = \sigma^2 \mathbf{V}_k \pmb{\Lambda}_k^{-1} \mathbf{V}_k^\top = \sigma^2 \sum_{j=1}^k \frac{\mathbf{v}_j\mathbf{v}_j^\top}{(n-1)\lambda_j} 
+ $$
+
+3.  均方误差
+
+$$
+ \text{MSE}(\hat{\pmb{\beta}}_{\text{PCR}}) = \text{Var}(\hat{\pmb{\beta}}_{\text{PCR}}) + \|\text{Bias}(\hat{\pmb{\beta}}_{\text{PCR}})\|^2 
+ $$
+
+当存在小特征值时，PCR通过牺牲偏差来显著降低方差，从而可能获得比OLS更小的均方误差。
+
+## 5.4 偏最小二乘回归
+
+### 5.4.1 PLS的基本思想
+
+潜变量构建： 寻找潜变量 $\mathbf{t} = \mathbf{X}\mathbf{w}$，使得： 1. $\mathbf{t}$ 的方差尽可能大 2. $\mathbf{t}$ 与 $\mathbf{y}$ 的相关性尽可能大
+
+优化问题：
+
+$$
+\begin{aligned}
+\max_{\mathbf{w}} & \quad \text{Cov}(\mathbf{X}\mathbf{w}, \mathbf{y}) \\
+\text{s.t.} & \quad \|\mathbf{w}\|_2 = 1
+\end{aligned}
+$$
+
+### 5.4.2 PLS算法（NIPALS）
+
+初始化
+
+令： $$E_0 = X - \bar{X}, \quad f_0 = y - \bar{y}$$ 其中$E_0$和$f_0$是中心化后的数据。
+
+第h个成分的提取
+
+步骤1：计算权重向量$w_h$
+
+$$w_h = \frac{E_{h-1}^T f_{h-1}}{\|E_{h-1}^T f_{h-1}\|}$$
+
+**解释**：找到$X$中与当前$y$残差最相关的方向。
+
+步骤2：计算得分向量$t_h$
+
+$$t_h = E_{h-1} w_h$$
+
+**解释**：$X$在权重方向上的投影，即潜变量。
+
+步骤3：计算X载荷向量$p_h$
+
+$$p_h = \frac{E_{h-1}^T t_h}{t_h^T t_h}$$
+
+**解释**：$t_h$对原始$X$变量的解释程度。
+
+步骤4：计算y载荷$c_h$
+
+$$c_h = \frac{f_{h-1}^T t_h}{t_h^T t_h}$$
+
+**解释**：$t_h$对$y$的解释程度（标量）。
+
+步骤5：更新残差
+
+$$E_h = E_{h-1} - t_h p_h^T$$ $$f_h = f_{h-1} - c_h t_h$$
+
+
+
+## 5.5 案例分析
+
+## 本章总结
+
+核心公式回顾
+1.  主成分：$\mathbf{Z} = \mathbf{X}\mathbf{V}$，其中 $\mathbf{S} = \mathbf{V}\pmb{\Lambda}\mathbf{V}'$
+2.  坐标下降：$\beta_j \leftarrow S\left(\frac{1}{n}\sum_{i=1}^n x_{ij}(y_i - \tilde{y}_i^{(j)}), \lambda\right)$
+
+方法选择指南
+
+
+|方法          	|核心思想         |	优点               |	缺点	         |适用场景
+|----------------|---------------|--------------------|----------------|----------------|
+|最优子集	        |穷举搜索	       |全局最优解	         |计算量大，不可行	|变量数较少(<20)|
+|逐步回归	        |逐步筛选      	|计算高效，自动选择    	|局部最优，结果不稳定	|初步变量筛选|
+|主成分回归	      |正交变换      	|消除共线性，稳定	      |可解释性差       |	强共线性，预测为主|
+|偏最小二乘	      |协同降维     	|利用Y信息，预测好	    |计算复杂，理论深	 |高维数据，预测精度要求高|
+
+
+实践建议
+
+1.  数据预处理：标准化自变量，确保惩罚的公平性
+2.  模型评估：使用交叉验证，避免过拟合
+3.  结果验证：在测试集上评估预测性能
+4.  稳健性检查：尝试不同方法，比较结果一致性
+5.  领域知识：结合实际问题背景选择合适方法
+
+“传统变量选择方法如逐步回归，虽然应用广泛，但存在选择结果不稳定、忽略变量间理论关系等局限性。而降维方法如主成分回归，虽然解决了共线性问题，却损失了原始变量的可解释性。20世纪70年代以来，一种基于惩罚似然的新思路——正则化方法逐渐发展起来，它通过在损失函数中加入惩罚项，同时实现参数估计和变量选择。下一章将系统介绍岭回归、Lasso及其变体，这些方法不仅能够处理多重共线性，还能产生稀疏解，在高维数据分析中表现出显著优势。”

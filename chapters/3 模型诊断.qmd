@@ -1,0 +1,251 @@
+---
+title: "3 模型诊断"
+format: html
+editor: visual
+---
+
+## 本章导读
+
+在建立线性回归模型后，我们绝不能将其视为终极真理。模型诊断如同一次严谨的"体检"，旨在评估模型的基本假设是否成立，数据中是否存在异常情况。本章将系统学习如何使用残差分析这一核心工具，检验模型的线性性、正态性及同方差性假设，并深入探讨异常值和高杠杆点的识别方法。更重要的是，我们将建立完整的问题诊断与处理框架，为构建更可靠的预测模型奠定基础。
+
+## 3.1 残差分析
+
+### 3.1.1 残差的基本概念与理论基础
+
+残差的定义：对于线性回归模型 $$
+y_i = \beta_0 + \beta_1x_{i1} + \beta_2x_{i2} + \cdots + \beta_px_{ip} + \varepsilon_i
+$$
+
+第 $i$ 个观测值的残差定义为： $$
+e_i = y_i - \hat{y}_i
+$$ 其中 $\hat{y}_i$ 是模型的预测值。
+
+经典线性回归的基本假设：
+
+（1）. 线性关系：$E(\varepsilon_i) = 0$
+
+（2）. 同方差性：$\text{Var}(\varepsilon_i) = \sigma^2$（常数）
+
+（3）. 无自相关：$\text{Cov}(\varepsilon_i, \varepsilon_j) = 0$（当 $i \neq j$）
+
+（4）. 正态性：$\varepsilon_i \sim N(0, \sigma^2)$ 5. 无多重共线性：自变量之间不存在完全线性关系
+
+### 3.1.2 标准化残差与学生化残差
+
+标准化残差： $$
+z_i = \frac{e_i}{\hat{\sigma}} = \frac{e_i}{\sqrt{\frac{1}{n-p-1}\sum_{i=1}^n e_i^2}}
+$$
+
+学生化残差（内部学生化）： $$
+r_i = \frac{e_i}{\hat{\sigma}\sqrt{1 - h_{ii}}}
+$$
+
+外部学生化残差： $$
+t_i = \frac{e_i}{\hat{\sigma}_{(i)}\sqrt{1 - h_{ii}}} \sim t(n-p-2)
+$$ 其中 $\hat{\sigma}_{(i)}$ 是剔除第 $i$ 个观测值后重新估计的标准差： $$
+\hat{\sigma}_{(i)}^2 = \frac{(n-p-1)\hat{\sigma}^2 - e_i^2/(1-h_{ii})}{n-p-2}
+$$
+
+### 3.1.3 残差图的系统分析
+
+残差vs拟合值图
+
+这是最重要的诊断图，用于检验： - 线性性：点应随机分布在水平带 around 0 - 同方差性：点的散布范围应恒定
+
+异常模式识别： - 喇叭口形：$\text{Var}(e_i) \propto \hat{y}_i^k$，提示异方差 - 曲线模式：提示非线性关系，需考虑 $E(y|x) = f(x'\beta)$
+
+正态Q-Q图
+
+检验残差的正态性假设。理论分位数与样本分位数应大致在直线上：
+
+理论分位数：$z_{(i)} = \Phi^{-1}\left(\frac{i-0.375}{n+0.25}\right)$
+
+偏离模式：
+
+-   \- S形曲线：分布有偏
+
+-   \- 尾部偏离：重尾或轻尾分布
+
+残差vs自变量图
+
+用于识别特定自变量的非线性关系： $$
+e_i \text{ vs } x_{ij}
+$$
+
+## 3.2 异常值与高杠杆点
+
+### 3.2.1 杠杆值分析
+
+杠杆值的定义： $$
+h_{ii} = \mathbf{x}_i'(\mathbf{X}'\mathbf{X})^{-1}\mathbf{x}_i
+$$
+
+其中 $\mathbf{x}_i = (1, x_{i1}, x_{i2}, \cdots, x_{ip})'$
+
+杠杆值的性质：
+
+\- $0 \leq h_{ii} \leq 1$ - $\sum_{i=1}^n h_{ii} = p + 1$
+
+\- 平均杠杆值：$\bar{h} = \frac{p+1}{n}$
+
+高杠杆点的识别：
+
+-   \- 经验法则：$h_{ii} > 2\bar{h} = \frac{2(p+1)}{n}$
+
+-   \- 严格标准：$h_{ii} > 3\bar{h} = \frac{3(p+1)}{n}$
+
+### 3.2.2 异常值检测
+
+基于学生化残差的准则： $$
+|t_i| > t_{1-\alpha/2}(n-p-2)
+$$
+
+异常值的数学定义：观测值 $(y_i, \mathbf{x}_i)$ 被称为异常值，如果 $$
+|y_i - \mathbf{x}_i'\hat{\pmb{\beta}}| \gg \sigma
+$$
+
+### 3.2.3 影响点的综合度量
+
+Cook距离
+
+定义： $$
+D_i = \frac{(\hat{\pmb{\beta}} - \hat{\pmb{\beta}}_{(i)})'(\mathbf{X}'\mathbf{X})(\hat{\pmb{\beta}} - \hat{\pmb{\beta}}_{(i)})}{(p+1)\hat{\sigma}^2}
+$$
+
+计算公式： $$
+D_i = \frac{e_i^2}{(p+1)\hat{\sigma}^2} \times \frac{h_{ii}}{(1-h_{ii})^2}
+$$
+
+判断准则：
+
+\- $D_i > 1$：绝对需要检查
+
+\- $D_i > \frac{4}{n}$：建议检查
+
+DFFITS统计量
+
+定义：衡量第 $i$ 个观测对自身拟合值的影响 $$
+\text{DFFITS}_i = \frac{\hat{y}_i - \hat{y}_{i(i)}}{\hat{\sigma}_{(i)}\sqrt{h_{ii}}}
+$$
+
+计算公式： $$
+\text{DFFITS}_i = t_i \times \sqrt{\frac{h_{ii}}{1-h_{ii}}}
+$$
+
+判断准则：$|\text{DFFITS}_i| > 2\sqrt{\frac{p+1}{n}}$
+
+DFBETAS统计量
+
+定义：衡量第 $i$ 个观测对每个系数估计的影响 $$
+\text{DFBETAS}_{j(i)} = \frac{\hat{\beta}_j - \hat{\beta}_{j(i)}}{\hat{\sigma}_{(i)}\sqrt{[(\mathbf{X}'\mathbf{X})^{-1}]_{jj}}}
+$$
+
+判断准则：$|\text{DFBETAS}_{j(i)}| > \frac{2}{\sqrt{n}}$
+
+### 3.2.4 影响点的处理策略
+
+诊断流程： 1. 计算杠杆值 $h_{ii}$，识别高杠杆点 2. 计算学生化残差 $t_i$，识别异常值 3. 计算Cook距离 $D_i$，识别强影响点 4. 分析DFFITS和DFBETAS，了解具体影响
+
+处理方案： 1. 数据核查：检查是否存在录入错误 2. 稳健回归：如M估计，最小化 $\sum_{i=1}^n \rho(e_i)$ 3. 变量变换：降低异常值的影响 4. 分段建模：对异常区域单独建立模型
+
+## 3.3 异方差及处理
+
+### 3.3.1 异方差的数学表述与影响
+
+异方差的定义： $$
+\text{Var}(\varepsilon_i) = \sigma_i^2 \neq \text{常数}
+$$
+
+异方差对OLS估计的影响：
+
+\- 无偏性：$E(\hat{\beta}) = \beta$（仍然成立）
+
+\- 有效性：$\text{Var}(\hat{\beta})$ 不是最小方差
+
+\- 推断可靠性：标准误估计有偏，$t$ 检验和 $F$ 检验失效
+
+方差-协方差矩阵： $$
+\text{Var}(\hat{\pmb{\beta}}) = (\mathbf{X}'\mathbf{X})^{-1}\mathbf{X}'\pmb{\Omega}\mathbf{X}(\mathbf{X}'\mathbf{X})^{-1}
+$$ 其中 $\pmb{\Omega} = \text{diag}(\sigma_1^2, \sigma_2^2, \cdots, \sigma_n^2)$
+
+### 3.3.2 异方差的统计检验
+
+#### Breusch-Pagan检验
+
+辅助回归模型： $$
+e_i^2 = \alpha_0 + \alpha_1x_{i1} + \cdots + \alpha_px_{ip} + u_i
+$$
+
+检验统计量： $$
+\text{LM} = nR^2 \sim \chi^2(p)
+$$ 其中 $R^2$ 是辅助回归的决定系数。
+
+#### White检验
+
+辅助回归： $$
+e_i^2 = \alpha_0 + \sum_{j=1}^p \alpha_jx_{ij} + \sum_{j=1}^p \sum_{k\geq j}^p \alpha_{jk}x_{ij}x_{ik} + u_i
+$$
+
+检验统计量： $$
+\text{LM} = nR^2 \sim \chi^2(q)
+$$ 其中 $q$ 是辅助回归中自变量的个数（不包括常数项）。
+
+## 3.4 异方差的修正
+
+### 3.4.1 稳健标准误（Eicker-Huber-White标准误）
+
+HC0估计量： $$
+\text{Var}_{HC0}(\hat{\pmb{\beta}}) = (\mathbf{X}'\mathbf{X})^{-1}\mathbf{X}'\hat{\pmb{\Omega}}_{HC0}\mathbf{X}(\mathbf{X}'\mathbf{X})^{-1}
+$$ 其中 $\hat{\pmb{\Omega}}_{HC0} = \text{diag}(e_1^2, e_2^2, \cdots, e_n^2)$
+
+HC3估计量（小样本更优）： $$
+\hat{\pmb{\Omega}}_{HC3} = \text{diag}\left(\frac{e_1^2}{(1-h_{11})^2}, \frac{e_2^2}{(1-h_{22})^2}, \cdots, \frac{e_n^2}{(1-h_{nn})^2}\right)
+$$
+
+### 3.4.2 加权最小二乘法
+
+权重选择：$w_i = 1/\sigma_i^2$
+
+WLS估计量： $$
+\hat{\pmb{\beta}}_{WLS} = (\mathbf{X}'\mathbf{W}\mathbf{X})^{-1}\mathbf{X}'\mathbf{W}\mathbf{y}
+$$ 其中 $\mathbf{W} = \text{diag}(w_1, w_2, \cdots, w_n)$
+
+可行GLS：当 $\sigma_i^2$ 未知时，使用 $\hat{w}_i = 1/\hat{\sigma}_i^2$
+
+其他方法：变量变换法
+
+对数变换：$y^* = \ln(y)$，当 $\text{Var}(\varepsilon) \propto [E(y)]^2$ 时适用
+
+平方根变换：$y^* = \sqrt{y}$，当 $\text{Var}(\varepsilon) \propto E(y)$ 时适用
+
+## 3.5 案例分析
+
+## 本章总结
+
+核心公式回顾
+
+1.  学生化残差：$t_i = \frac{e_i}{\hat{\sigma}_{(i)}\sqrt{1-h_{ii}}}$
+2.  杠杆值：$h_{ii} = \mathbf{x}_i'(\mathbf{X}'\mathbf{X})^{-1}\mathbf{x}_i$
+3.  Cook距离：$D_i = \frac{e_i^2}{(p+1)\hat{\sigma}^2} \times \frac{h_{ii}}{(1-h_{ii})^2}$
+4.  稳健标准误：$\text{Var}_{HC3}(\hat{\pmb{\beta}}) = (\mathbf{X}'\mathbf{X})^{-1}\mathbf{X}'\hat{\pmb{\Omega}}_{HC3}\mathbf{X}(\mathbf{X}'\mathbf{X})^{-1}$
+5.  DFFITS：$\text{DFFITS}_i = t_i \times \sqrt{\frac{h_{ii}}{1-h_{ii}}}$
+
+诊断决策框架
+
+| 问题类型 | 诊断工具 | 判断标准 | 处理方案 |
+|------------------|------------------|------------------|------------------|
+| 异方差 | 残差vs拟合值图、BP检验 | 残差方差非常数、BP检验显著 | 稳健标准误、WLS、变量变换 |
+| 非线性 | 残差vs拟合值图 | 残差呈现曲线模式 | 多项式项、样条回归、变量变换 |
+| 高杠杆点 | 杠杆值 | $h_{ii} > 2(p+1)/n$ | 数据核查、增加样本量 |
+| 异常值 | 学生化残差 | $\|t_i\| > t_{1-\alpha/2}(n-p-2)$ | 数据核查、稳健回归 |
+| 强影响点 | Cook距离 | $D_i > 4/n$ | 综合分析、谨慎处理 |
+
+诊断流程体系
+
+1.  初步筛查：残差vs拟合值图、Q-Q图
+2.  异方差检验：Breusch-Pagan检验、White检验
+3.  影响分析：杠杆值、学生化残差、Cook距离
+4.  深入诊断：DFFITS、DFBETAS分析
+5.  处理实施：根据诊断结果选择适当修正方案
+
+模型诊断是建立可靠预测模型的关键环节。通过系统性的诊断分析，我们能够识别模型缺陷，采取针对性改进措施，最终获得更加稳健、可靠的预测结果。
