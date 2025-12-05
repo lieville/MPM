@@ -1,0 +1,324 @@
+---
+title: "广义线性模型与线性分类"
+format: html
+editor: source
+---
+
+## 本章导读
+在实际应用中，响应变量并不总是连续型的。当面临分类问题或计数数据时，传统线性回归模型的局限性凸显。本章将系统介绍广义线性模型的统一框架，重点讲解逻辑斯谛回归、Probit回归和线性判别分析等经典分类方法，为您提供处理分类问题的完整理论体系和实用工具。
+
+## 6.1 广义线性模型理论基础
+
+### 6.1.1 指数族分布
+
+指数族的概率密度函数：
+$$
+f(y|\theta,\phi) = \exp\left\{\frac{y\theta - b(\theta)}{a(\phi)} + c(y,\phi)\right\}
+$$
+
+其中：
+- $\theta$：自然参数（典则参数）
+- $\phi$：离散参数
+- $a(\cdot), b(\cdot), c(\cdot)$：已知函数
+
+常见分布的指数族形式：
+
+| 分布 | $\theta$ | $\phi$ | $b(\theta)$ | $a(\phi)$ |
+|------|----------|--------|-------------|------------|
+| 正态 | $\mu$ | $\sigma^2$ | $\frac{\theta^2}{2}$ | $\phi$ |
+| 泊松 | $\ln\mu$ | 1 | $e^\theta$ | 1 |
+| 二项 | $\ln\left(\frac{\pi}{1-\pi}\right)$ | 1 | $\ln(1+e^\theta)$ | 1 |
+| Gamma | $-\frac{1}{\mu}$ | $\nu$ | $-\ln(-\theta)$ | $\frac{1}{\nu}$ |
+
+### 6.1.2 GLM的三组成部分
+
+随机成分：
+响应变量 $Y$ 来自指数族分布：
+$$
+Y \sim f(y|\theta,\phi)
+$$
+
+系统成分：
+线性预测器：
+$$
+\eta = \beta_0 + \beta_1X_1 + \cdots + \beta_pX_p = \mathbf{X}\boldsymbol{\beta}
+$$
+
+连接函数：
+连接随机成分和系统成分：
+$$
+g(\mu) = \eta
+$$
+其中 $\mu = E(Y) = b'(\theta)$
+
+### 6.1.3 典则连接函数
+
+定义：
+当 $g(\mu) = \theta$ 时，称为典则连接函数。
+
+性质：
+- 简化计算和理论推导
+- 保证 $\mathbf{X}'\mathbf{y}$ 是充分统计量
+- 在多数情况下具有良好的统计性质
+
+## 6.2 逻辑斯谛回归
+
+### 6.2.1 二项分布的GLM框架
+
+伯努利分布：
+$$
+P(Y=1) = \pi, \quad P(Y=0) = 1-\pi
+$$
+
+典则连接函数（logit函数）：
+$$
+\eta = \ln\left(\frac{\pi}{1-\pi}\right) = \mathbf{X}\boldsymbol{\beta}
+$$
+
+逆连接函数（sigmoid函数）：
+$$
+\pi = \frac{e^{\mathbf{X}\boldsymbol{\beta}}}{1 + e^{\mathbf{X}\boldsymbol{\beta}}} = \frac{1}{1 + e^{-\mathbf{X}\boldsymbol{\beta}}}
+$$
+
+### 6.2.2 参数估计：极大似然法
+
+似然函数：
+$$
+L(\boldsymbol{\beta}) = \prod_{i=1}^n \pi_i^{y_i}(1-\pi_i)^{1-y_i}
+$$
+
+对数似然函数：
+$$
+\ell(\boldsymbol{\beta}) = \sum_{i=1}^n \left[y_i\ln\pi_i + (1-y_i)\ln(1-\pi_i)\right]
+$$
+
+得分函数：
+$$
+\frac{\partial \ell}{\partial \boldsymbol{\beta}} = \sum_{i=1}^n (y_i - \pi_i)\mathbf{x}_i = \mathbf{0}
+$$
+
+### 6.2.3 迭代加权最小二乘算法
+
+权重矩阵：
+$$
+\mathbf{W} = \text{diag}\left[\pi_i(1-\pi_i)\right]
+$$
+
+工作响应变量：
+$$
+z_i = \mathbf{x}_i'\boldsymbol{\beta} + \frac{y_i - \pi_i}{\pi_i(1-\pi_i)}
+$$
+
+迭代更新：
+$$
+\boldsymbol{\beta}^{(t+1)} = (\mathbf{X}'\mathbf{W}^{(t)}\mathbf{X})^{-1}\mathbf{X}'\mathbf{W}^{(t)}\mathbf{z}^{(t)}
+$$
+
+### 6.2.4 统计推断与解释
+
+优势比解释：
+对于二值自变量 $X_j$：
+$$
+\text{OR}_j = e^{\beta_j} = \frac{\pi|X_j=1/(1-\pi|X_j=1)}{\pi|X_j=0/(1-\pi|X_j=0)}
+$$
+
+Wald检验：
+$$
+z_j = \frac{\hat{\beta}_j}{SE(\hat{\beta}_j)} \sim N(0,1)
+$$
+
+似然比检验：
+$$
+G = 2[\ell(\hat{\boldsymbol{\beta}}) - \ell(\hat{\boldsymbol{\beta}}_0)] \sim \chi^2(p-p_0)
+$$
+
+## 6.3 Probit回归
+
+### 6.3.1 Probit模型设定
+
+Probit连接函数：
+$$
+\Phi^{-1}(\pi) = \mathbf{X}\boldsymbol{\beta}
+$$
+
+其中 $\Phi(\cdot)$ 是标准正态分布的累积分布函数。
+
+概率形式：
+$$
+\pi = \Phi(\mathbf{X}\boldsymbol{\beta})
+$$
+
+### 6.3.2 潜在变量解释
+
+潜变量模型：
+假设存在连续潜变量 $Y^*$：
+$$
+Y^* = \mathbf{X}\boldsymbol{\beta} + \varepsilon, \quad \varepsilon \sim N(0,1)
+$$
+
+观测响应：
+$$
+Y = \begin{cases}
+1 & \text{if } Y^* > 0 \\
+0 & \text{otherwise}
+\end{cases}
+$$
+
+概率推导：
+$$
+P(Y=1|\mathbf{X}) = P(Y^* > 0) = P(\varepsilon > -\mathbf{X}\boldsymbol{\beta}) = \Phi(\mathbf{X}\boldsymbol{\beta})
+$$
+
+### 6.3.3 与Logit模型的比较
+
+连接函数形状：
+- Logit：$g(p) = \ln\left(\frac{p}{1-p}\right)$
+- Probit：$g(p) = \Phi^{-1}(p)$
+
+尾部行为：
+- Logit函数有更重的尾部
+- 在实践中两者通常给出相似的结果
+
+系数转换：
+$$
+\beta_{\text{logit}} \approx 1.6 \times \beta_{\text{probit}}
+$$
+
+## 6.4 线性判别分析
+
+### 6.4.1 生成式分类框架
+
+基本假设：
+- 每个类别的特征服从多元正态分布
+- 所有类别共享相同的协方差矩阵
+
+类条件密度：
+$$
+f_k(\mathbf{x}) = \frac{1}{(2\pi)^{p/2}|\boldsymbol{\Sigma}|^{1/2}} \exp\left(-\frac{1}{2}(\mathbf{x}-\boldsymbol{\mu}_k)'\boldsymbol{\Sigma}^{-1}(\mathbf{x}-\boldsymbol{\mu}_k)\right)
+$$
+
+### 6.4.2 贝叶斯判别规则
+
+后验概率：
+$$
+P(Y=k|\mathbf{X}=\mathbf{x}) = \frac{\pi_k f_k(\mathbf{x})}{\sum_{l=1}^K \pi_l f_l(\mathbf{x})}
+$$
+
+判别函数（对数后验）：
+$$
+\delta_k(\mathbf{x}) = \mathbf{x}'\boldsymbol{\Sigma}^{-1}\boldsymbol{\mu}_k - \frac{1}{2}\boldsymbol{\mu}_k'\boldsymbol{\Sigma}^{-1}\boldsymbol{\mu}_k + \ln\pi_k
+$$
+
+### 6.4.3 二分类LDA的显式解
+
+判别边界：
+当 $K=2$ 时，判别规则简化为：
+$$
+\mathbf{x}'\boldsymbol{\Sigma}^{-1}(\boldsymbol{\mu}_1 - \boldsymbol{\mu}_2) > \frac{1}{2}(\boldsymbol{\mu}_1 + \boldsymbol{\mu}_2)'\boldsymbol{\Sigma}^{-1}(\boldsymbol{\mu}_1 - \boldsymbol{\mu}_2) - \ln\left(\frac{\pi_1}{\pi_2}\right)
+$$
+
+线性判别函数：
+$$
+L(\mathbf{x}) = \mathbf{x}'\boldsymbol{\Sigma}^{-1}(\boldsymbol{\mu}_1 - \boldsymbol{\mu}_2)
+$$
+
+### 6.4.4 参数估计
+
+先验概率：
+$$
+\hat{\pi}_k = \frac{n_k}{n}
+$$
+
+均值向量：
+$$
+\hat{\boldsymbol{\mu}}_k = \frac{1}{n_k}\sum_{i:y_i=k} \mathbf{x}_i
+$$
+
+合并协方差矩阵：
+$$
+\hat{\boldsymbol{\Sigma}} = \frac{1}{n-K}\sum_{k=1}^K \sum_{i:y_i=k} (\mathbf{x}_i - \hat{\boldsymbol{\mu}}_k)(\mathbf{x}_i - \hat{\boldsymbol{\mu}}_k)'
+$$
+
+## 6.5 模型比较与选择
+
+### 6.5.1 分类性能评估
+
+混淆矩阵：
+
+| | 预测正类 | 预测负类 |
+|--|----------|----------|
+| 实际正类 | TP | FN |
+| 实际负类 | FP | TN |
+
+常用指标：
+- 准确率：$\frac{TP+TN}{n}$
+- 精确率：$\frac{TP}{TP+FP}$
+- 召回率：$\frac{TP}{TP+FN}$
+- F1分数：$\frac{2\times\text{精确率}\times\text{召回率}}{\text{精确率}+\text{召回率}}$
+
+### 6.5.2 ROC曲线与AUC
+
+ROC曲线：
+以假正率为横轴，真正率为纵轴的曲线。
+
+AUC解释：
+- AUC = 0.5：随机猜测
+- AUC = 1.0：完美分类
+- AUC > 0.8：通常认为模型表现良好
+
+### 6.5.3 方法比较
+
+| 方法 | 类型 | 假设 | 优点 | 局限性 |
+|------|------|------|------|--------|
+| 逻辑回归 | 判别式 | 线性决策边界 | 概率输出，可解释性强 | 对特征相关性敏感 |
+| Probit回归 | 判别式 | 线性决策边界 | 有潜在变量解释 | 计算稍复杂 |
+| LDA | 生成式 | 正态分布，等协方差 | 小样本表现好，多分类自然 | 假设较强 |
+
+### 6.5.4 模型诊断
+
+离群值检测：
+- Pearson残差：$r_i = \frac{y_i - \hat{\pi}_i}{\sqrt{\hat{\pi}_i(1-\hat{\pi}_i)}}$
+- Deviance残差：$d_i = \text{sign}(y_i - \hat{\pi}_i)\sqrt{-2[y_i\ln\hat{\pi}_i + (1-y_i)\ln(1-\hat{\pi}_i)]}$
+
+拟合优度检验：
+- Hosmer-Lemeshow检验
+- 皮尔逊卡方检验
+
+过度离散检验：
+$$
+\frac{\sum_{i=1}^n (y_i - \hat{\pi}_i)^2}{\hat{\pi}_i(1-\hat{\pi}_i)} \sim \chi^2(n-p-1)
+$$
+
+## 6.6 案例分析
+
+
+## 本章总结
+
+ 核心公式回顾
+
+1. GLM连接函数：$g(\mu) = \mathbf{X}\boldsymbol{\beta}$
+2. Logit模型：$\ln\left(\frac{\pi}{1-\pi}\right) = \mathbf{X}\boldsymbol{\beta}$
+3. Probit模型：$\Phi^{-1}(\pi) = \mathbf{X}\boldsymbol{\beta}$
+4. LDA判别函数：$\delta_k(\mathbf{x}) = \mathbf{x}'\boldsymbol{\Sigma}^{-1}\boldsymbol{\mu}_k - \frac{1}{2}\boldsymbol{\mu}_k'\boldsymbol{\Sigma}^{-1}\boldsymbol{\mu}_k + \ln\pi_k$
+5. IWLS更新：$\boldsymbol{\beta}^{(t+1)} = (\mathbf{X}'\mathbf{W}^{(t)}\mathbf{X})^{-1}\mathbf{X}'\mathbf{W}^{(t)}\mathbf{z}^{(t)}$
+
+ 方法选择指南
+
+| 问题场景 | 推荐方法 | 理由 |
+|---------|----------|------|
+| 需要概率输出 | 逻辑回归、Probit回归 | 直接建模条件概率 |
+| 小样本问题 | LDA | 参数更少，估计更稳定 |
+| 多分类问题 | LDA、多项逻辑回归 | 天然处理多类别 |
+| 可解释性重要 | 逻辑回归 | 优势比有明确解释 |
+| 理论一致性 | Probit回归 | 有潜在变量理论基础 |
+
+ 实践建议
+
+1. 数据预处理：检查类别平衡性，必要时重采样
+2. 特征工程：考虑交互项和非线性变换
+3. 模型验证：使用交叉验证评估泛化能力
+4. 结果解释：结合领域知识理解系数含义
+5. 稳健性分析：尝试不同方法，比较结果一致性
+
+广义线性模型为处理非正态响应变量提供了统一的框架，而线性分类方法则是机器学习中最基础且重要的工具。掌握这些方法为进一步学习更复杂的非线性模型奠定了坚实基础。
+

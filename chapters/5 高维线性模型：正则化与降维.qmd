@@ -1,0 +1,261 @@
+---
+title: "高维线性模型：正则化与降维"
+format: html
+editor: source
+---
+
+## 本章导读
+
+随着大数据时代的到来，高维数据问题日益普遍。当自变量数目 $p$ 接近甚至超过样本量 $n$ 时，传统的最小二乘法面临严重挑战。本章将系统介绍正则化方法和降维技术这两类处理高维问题的主流方法，为您提供在“维数灾难”下建立稳定预测模型的有效工具。
+
+## 5.1 高维挑战与稀疏性假设
+
+### 5.1.1 高维问题的数学描述
+
+高维回归模型： $$
+\mathbf{y} = \mathbf{X}\boldsymbol{\beta} + \boldsymbol{\varepsilon}
+$$ 其中 $\mathbf{X} \in \mathbb{R}^{n \times p}$，当 $p \gg n$ 或 $p \approx n$ 时出现高维问题。
+
+OLS的失效： - 当 $p > n$ 时，$\mathbf{X}'\mathbf{X}$ 不可逆 - 当 $p \approx n$ 时，估计方差极大 - 预测性能下降，模型过拟合
+
+### 5.1.2 多重共线性的严格定义
+
+多重共线性的定义：
+
+1、完全的多重共线系–自变量线性相关
+
+2、复多重共线性–自变量近似线性相关
+
+多重共线系的原因：
+
+1、变量之间的共同变化趋势
+
+2、滞后变量
+
+3、截面数据
+
+4、样本的原因
+
+多重共线系的影响：
+
+1、参数估计方面：参数估计仍然是无偏的，但是参数估计方差会很大
+
+2、假设检验方面：F检验会显著，但是t检验会失效
+
+3、预测：预测变得不稳定
+
+4、参数估计的值不稳定，正负可能不符合预期
+
+设计矩阵的病态性： 条件数 $\kappa(\mathbf{X}'\mathbf{X}) = \frac{\lambda_{\max}}{\lambda_{\min}}$ 过大，其中 $\lambda$ 是特征值。
+
+方差膨胀因子(VIF)： 对于第 $j$ 个自变量： $$
+\text{VIF}_j = \frac{1}{1-R_j^2}
+$$ 其中 $R_j^2$ 是 $X_j$ 对其他自变量回归的决定系数。
+
+诊断标准： - $\text{VIF}_j > 10$：存在严重多重共线性 - $\text{VIF}_j > 5$：存在中度多重共线性
+
+### 5.1.3 稀疏性假设
+
+精确稀疏性： $$
+||\boldsymbol{\beta}||_0 = \#\{j: \beta_j \neq 0\} \ll p
+$$
+
+近似稀疏性： 大多数系数的绝对值很小，只有少数系数较大。
+
+## 5.2 正则化方法理论基础
+
+### 5.2.1 正则化的一般框架
+
+惩罚最小二乘： $$
+\hat{\boldsymbol{\beta}} = \arg\min_{\boldsymbol{\beta}} \left\{ \frac{1}{2n}||\mathbf{y} - \mathbf{X}\boldsymbol{\beta}||_2^2 + \lambda P(\boldsymbol{\beta}) \right\}
+$$
+
+其中 $P(\boldsymbol{\beta})$ 是惩罚函数，$\lambda \geq 0$ 是调节参数。
+
+### 5.2.2 偏差-方差权衡的数学表达
+
+期望预测误差分解： $$
+\mathbb{E}[(y_0 - \mathbf{x}_0'\hat{\boldsymbol{\beta}})^2] = \text{Var}(\mathbf{x}_0'\hat{\boldsymbol{\beta}}) + [\text{Bias}(\mathbf{x}_0'\hat{\boldsymbol{\beta}})]^2 + \sigma^2
+$$
+
+正则化的作用： 通过引入偏差来降低方差，从而减少期望预测误差。
+
+## 5.3 岭回归
+
+### 5.3.1 岭估计的定义与性质
+
+岭估计量： $$
+\hat{\boldsymbol{\beta}}_{\text{ridge}} = (\mathbf{X}'\mathbf{X} + \lambda\mathbf{I})^{-1}\mathbf{X}'\mathbf{y}
+$$
+
+理论性质： - 有偏性：$\mathbb{E}[\hat{\boldsymbol{\beta}}_{\text{ridge}}] = (\mathbf{X}'\mathbf{X} + \lambda\mathbf{I})^{-1}\mathbf{X}'\mathbf{X}\boldsymbol{\beta}$ - 方差：$\text{Var}(\hat{\boldsymbol{\beta}}_{\text{ridge}}) = \sigma^2(\mathbf{X}'\mathbf{X} + \lambda\mathbf{I})^{-1}\mathbf{X}'\mathbf{X}(\mathbf{X}'\mathbf{X} + \lambda\mathbf{I})^{-1}$
+
+### 5.3.2 岭回归的几何解释
+
+约束优化形式： $$
+\min_{\boldsymbol{\beta}} ||\mathbf{y} - \mathbf{X}\boldsymbol{\beta}||_2^2 \quad \text{s.t.} \quad ||\boldsymbol{\beta}||_2^2 \leq t
+$$
+
+贝叶斯解释： 在高斯先验 $\boldsymbol{\beta} \sim N(0, \tau^2\mathbf{I})$ 下的后验众数。
+
+### 5.3.3 岭参数的选择
+
+交叉验证： $$
+CV(\lambda) = \frac{1}{n}\sum_{i=1}^n (y_i - \mathbf{x}_i'\hat{\boldsymbol{\beta}}^{(-i)}(\lambda))^2
+$$
+
+广义交叉验证(GCV)： $$
+GCV(\lambda) = \frac{\frac{1}{n}||(\mathbf{I} - \mathbf{S}(\lambda))\mathbf{y}||_2^2}{[1 - \frac{1}{n}\text{tr}(\mathbf{S}(\lambda))]^2}
+$$ 其中 $\mathbf{S}(\lambda) = \mathbf{X}(\mathbf{X}'\mathbf{X} + \lambda\mathbf{I})^{-1}\mathbf{X}'$
+
+## 5.4 LASSO回归
+
+### 5.4.1 LASSO的定义与特性
+
+LASSO估计量： $$
+\hat{\boldsymbol{\beta}}_{\text{lasso}} = \arg\min_{\boldsymbol{\beta}} \left\{ \frac{1}{2n}||\mathbf{y} - \mathbf{X}\boldsymbol{\beta}||_2^2 + \lambda||\boldsymbol{\beta}||_1 \right\}
+$$
+
+约束形式： $$
+\min_{\boldsymbol{\beta}} ||\mathbf{y} - \mathbf{X}\boldsymbol{\beta}||_2^2 \quad \text{s.t.} \quad ||\boldsymbol{\beta}||_1 \leq t
+$$
+
+### 5.4.2 LASSO的变量选择性质
+
+软阈值： 在正交设计情况下，LASSO解有显式表达式： $$
+\hat{\beta}_j^{\text{lasso}} = \text{sign}(\hat{\beta}_j^{\text{OLS}})(|\hat{\beta}_j^{\text{OLS}}| - \lambda)_+
+$$
+
+变量选择一致性： 在适当条件下，LASSO能以概率1选择出真实模型。
+
+### 5.4.3 求解算法
+
+坐标下降法： 对每个 $j$，固定其他系数，更新： $$
+\beta_j \leftarrow S\left(\frac{1}{n}\sum_{i=1}^n x_{ij}(y_i - \tilde{y}_i^{(j)}), \lambda\right)
+$$ 其中 $S(z, \lambda) = \text{sign}(z)(|z| - \lambda)_+$ 是软阈值函数。
+
+LARS算法： 通过分段线性路径高效计算整个解路径。
+
+## 5.5 主成分回归
+
+### 5.5.1 主成分分析理论基础
+
+样本协方差矩阵： $$
+\mathbf{S} = \frac{1}{n}\mathbf{X}'\mathbf{X}
+$$
+
+特征值分解： $$
+\mathbf{S} = \mathbf{V}\boldsymbol{\Lambda}\mathbf{V}'
+$$ 其中 $\mathbf{V} = [\mathbf{v}_1, \cdots, \mathbf{v}_p]$ 是特征向量，$\boldsymbol{\Lambda} = \text{diag}(\lambda_1, \cdots, \lambda_p)$ 是特征值。
+
+### 5.5.2 主成分回归的构建
+
+主成分得分： $$
+\mathbf{Z} = \mathbf{X}\mathbf{V}
+$$
+
+PCR估计量： 使用前 $k$ 个主成分建立回归模型： $$
+\mathbf{y} = \mathbf{Z}_k\boldsymbol{\alpha} + \boldsymbol{\varepsilon}
+$$ 然后转换回原坐标： $$
+\hat{\boldsymbol{\beta}}_{\text{PCR}} = \mathbf{V}_k\hat{\boldsymbol{\alpha}}
+$$
+
+### 5.5.3 主成分选择
+
+方差解释比例： $$
+\frac{\sum_{j=1}^k \lambda_j}{\sum_{j=1}^p \lambda_j} \geq 0.8 \quad \text{或} \quad 0.9
+$$
+
+交叉验证：基于预测误差选择主成分个数。
+
+## 5.6 偏最小二乘回归
+
+### 5.6.1 PLS的基本思想
+
+潜变量构建： 寻找潜变量 $\mathbf{t} = \mathbf{X}\mathbf{w}$，使得： 1. $\mathbf{t}$ 的方差尽可能大 2. $\mathbf{t}$ 与 $\mathbf{y}$ 的相关性尽可能大
+
+优化问题： $$
+\max_{\mathbf{w}} \text{Cov}(\mathbf{X}\mathbf{w}, \mathbf{y}) \quad \text{s.t.} \quad ||\mathbf{w}||_2 = 1
+$$
+
+### 5.6.2 PLS算法（NIPALS）
+
+步骤： 1. 初始化：$\mathbf{X}_1 = \mathbf{X}$，$\mathbf{y}_1 = \mathbf{y}$ 2. 对于 $h = 1$ 到 $k$： - $\mathbf{w}_h = \mathbf{X}_h'\mathbf{y}_h / ||\mathbf{X}_h'\mathbf{y}_h||$ - $\mathbf{t}_h = \mathbf{X}_h\mathbf{w}_h$ - $\mathbf{p}_h = \mathbf{X}_h'\mathbf{t}_h / \mathbf{t}_h'\mathbf{t}_h$ - $\mathbf{q}_h = \mathbf{y}_h'\mathbf{t}_h / \mathbf{t}_h'\mathbf{t}_h$ - $\mathbf{X}_{h+1} = \mathbf{X}_h - \mathbf{t}_h\mathbf{p}_h'$ - $\mathbf{y}_{h+1} = \mathbf{y}_h - \mathbf{t}_h\mathbf{q}_h$
+
+### 5.6.3 PLS与PCR的比较
+
+| 特性       | PCR           | PLS                |
+|------------|---------------|--------------------|
+| 构建原理   | 最大化X的变异 | 最大化X与y的协方差 |
+| 监督性     | 无监督        | 监督               |
+| 计算复杂度 | 中等          | 较高               |
+| 预测性能   | 稳定          | 可能更优           |
+
+## 5.7 模型比较与选择
+
+### 5.7.1 传统变量选择方法
+
+最优子集选择： 对于每个 $k = 1, 2, \cdots, p$，选择使RSS最小的包含 $k$ 个自变量的模型。
+
+计算挑战： 需要评估 $2^p$ 个模型，计算不可行。
+
+逐步回归： - 前向选择 - 后向剔除 - 逐步选择
+
+局限性： - 路径依赖 - 多重检验问题 - 标准误低估
+
+### 5.7.2 正则化路径比较
+
+弹性网： 结合岭回归和LASSO的优点： $$
+\hat{\boldsymbol{\beta}}_{\text{enet}} = \arg\min_{\boldsymbol{\beta}} \left\{ \frac{1}{2n}||\mathbf{y} - \mathbf{X}\boldsymbol{\beta}||_2^2 + \lambda[\alpha||\boldsymbol{\beta}||_1 + \frac{1}{2}(1-\alpha)||\boldsymbol{\beta}||_2^2] \right\}
+$$
+
+方法比较：
+
+| 方法   | 变量选择 | 组效应 | 高维适用性 |
+|--------|----------|--------|------------|
+| 岭回归 | 否       | 是     | 是         |
+| LASSO  | 是       | 否     | 是         |
+| 弹性网 | 是       | 是     | 是         |
+| PCR    | 否       | 是     | 是         |
+| PLS    | 否       | 是     | 是         |
+
+### 5.7.3 调参策略
+
+网格搜索： 在 $\lambda$（和 $\alpha$）的网格上计算交叉验证误差。
+
+信息准则： - AIC：$AIC = n\ln(\hat{\sigma}^2) + 2k$ - BIC：$BIC = n\ln(\hat{\sigma}^2) + k\ln(n)$
+
+一倍标准误准则： 选择调优参数，使得交叉验证误差在最小误差的一倍标准误范围内。
+
+## 5.8 案例分析
+
+
+## 本章总结
+
+核心公式回顾
+
+1.  岭回归：$\hat{\boldsymbol{\beta}}_{\text{ridge}} = (\mathbf{X}'\mathbf{X} + \lambda\mathbf{I})^{-1}\mathbf{X}'\mathbf{y}$
+2.  LASSO：$\hat{\boldsymbol{\beta}}_{\text{lasso}} = \arg\min_{\boldsymbol{\beta}} \left\{ \frac{1}{2n}||\mathbf{y} - \mathbf{X}\boldsymbol{\beta}||_2^2 + \lambda||\boldsymbol{\beta}||_1 \right\}$
+3.  弹性网：$P_{\alpha}(\boldsymbol{\beta}) = \alpha||\boldsymbol{\beta}||_1 + \frac{1}{2}(1-\alpha)||\boldsymbol{\beta}||_2^2$
+4.  主成分：$\mathbf{Z} = \mathbf{X}\mathbf{V}$，其中 $\mathbf{S} = \mathbf{V}\boldsymbol{\Lambda}\mathbf{V}'$
+5.  坐标下降：$\beta_j \leftarrow S\left(\frac{1}{n}\sum_{i=1}^n x_{ij}(y_i - \tilde{y}_i^{(j)}), \lambda\right)$
+
+方法选择指南
+
+| 问题场景       | 推荐方法      | 理由               |
+|----------------|---------------|--------------------|
+| 多重共线性严重 | 岭回归、PCR   | 稳定估计，降低方差 |
+| 变量选择需求   | LASSO、弹性网 | 自动特征选择       |
+| 预测精度优先   | 弹性网、PLS   | 平衡偏差与方差     |
+| 可解释性重要   | LASSO         | 稀疏解，易于解释   |
+| 计算效率要求   | 坐标下降      | 高效处理高维问题   |
+
+实践建议
+
+1.  数据预处理：标准化自变量，确保惩罚的公平性
+2.  模型评估：使用交叉验证，避免过拟合
+3.  结果验证：在测试集上评估预测性能
+4.  稳健性检查：尝试不同方法，比较结果一致性
+5.  领域知识：结合实际问题背景选择合适方法
+
+高维数据分析是现代统计学习的重要组成部分。掌握正则化和降维技术，能够帮助您在面对复杂数据时建立更加稳健和可解释的预测模型。

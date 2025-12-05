@@ -1,0 +1,1205 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="zh-Hans" xml:lang="zh-Hans"><head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.8.26">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+<meta name="author" content="李老师">
+<title>11&nbsp; 基准测试 – 现代预测建模：从回归到机器学习</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+<script src="../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../">
+<link href="../chapters/12 回归任务.html" rel="next">
+<link href="../chapters/10 神经网络与深度学习基础.html" rel="prev">
+<script src="../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../site_libs/quarto-html/axe/axe-check.js" type="module"></script>
+<script src="../site_libs/quarto-html/popper.min.js"></script>
+<script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-587c61ba64f3a5504c4d52d930310e48.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../site_libs/bootstrap/bootstrap-70a47bd5681a7291082a5b9f83d58762.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light"><script id="quarto-search-options" type="application/json">{
+  "location": "sidebar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "start",
+  "type": "textbox",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "没有结果",
+    "search-matching-documents-text": "匹配的文档",
+    "search-copy-link-title": "复制搜索链接",
+    "search-hide-matches-text": "隐藏其它匹配结果",
+    "search-more-match-text": "更多匹配结果",
+    "search-more-matches-text": "更多匹配结果",
+    "search-clear-button-title": "清除",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "取消",
+    "search-submit-button-title": "提交",
+    "search-label": "搜索"
+  }
+}</script><link rel="stylesheet" href="science-textbook.css">
+</head>
+<body class="nav-sidebar floating quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top"><nav class="quarto-secondary-nav"><div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="展开或折叠侧边栏导航" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../chapters/11 基准测试.html">实训——综合案例建模实践</a></li><li class="breadcrumb-item"><a href="../chapters/11 基准测试.html"><span class="chapter-number">11</span>&nbsp; <span class="chapter-title">基准测试</span></a></li></ol></nav>
+        <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="展开或折叠侧边栏导航" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+      <button type="button" class="btn quarto-search-button" aria-label="搜索" onclick="window.quartoOpenSearch();">
+        <i class="bi bi-search"></i>
+      </button>
+    </div>
+  </nav></header><!-- content --><div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto"><div class="pt-lg-2 mt-2 text-left sidebar-header">
+    <div class="sidebar-title mb-0 py-0">
+      <a href="../">现代预测建模：从回归到机器学习</a> 
+    </div>
+      </div>
+        <div class="mt-2 flex-shrink-0 align-items-center">
+        <div class="sidebar-search">
+        <div id="quarto-search" class="" title="搜索"></div>
+        </div>
+        </div>
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+<li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../introduction.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">前言</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">index.html</span></a>
+  </div>
+</li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true">
+ <span class="menu-text">起步-线性回归分析</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true" aria-label="展开或折叠此栏">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">
+<li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/1 预测、过拟合与模型评估.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">预测、过拟合与模型评估</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/2 线性回归.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">线性回归</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/3 模型诊断.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">模型诊断</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/4 时间序列分析初步.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">时间序列分析初步</span></span></a>
+  </div>
+</li>
+      </ul>
+</li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true">
+ <span class="menu-text">扩展——线性分析模型及其超越</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="true" aria-label="展开或折叠此栏">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth1 show">
+<li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/5 高维线性模型：正则化与降维.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">高维线性模型：正则化与降维</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/6 广义线性模型与线性分类.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">6</span>&nbsp; <span class="chapter-title">广义线性模型与线性分类</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/7 多项式回归与样条回归.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">7</span>&nbsp; <span class="chapter-title">多项式与样条回归</span></span></a>
+  </div>
+</li>
+      </ul>
+</li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="true">
+ <span class="menu-text">进阶——超越线性的机器学习</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="true" aria-label="展开或折叠此栏">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-3" class="collapse list-unstyled sidebar-section depth1 show">
+<li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/8 决策树与集成学习.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">8</span>&nbsp; <span class="chapter-title">决策树与集成学习</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/9 支持向量机.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">9</span>&nbsp; <span class="chapter-title">支持向量机</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/10 神经网络与深度学习基础.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">10</span>&nbsp; <span class="chapter-title">神经网络与深度学习基础</span></span></a>
+  </div>
+</li>
+      </ul>
+</li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="true">
+ <span class="menu-text">实训——综合案例建模实践</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="true" aria-label="展开或折叠此栏">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-4" class="collapse list-unstyled sidebar-section depth1 show">
+<li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/11 基准测试.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text"><span class="chapter-number">11</span>&nbsp; <span class="chapter-title">基准测试</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/12 回归任务.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">12</span>&nbsp; <span class="chapter-title">回归任务</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/13 分类任务.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">13</span>&nbsp; <span class="chapter-title">分类任务</span></span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/14 案例综合分析.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">14</span>&nbsp; <span class="chapter-title">综合数据分析</span></span></a>
+  </div>
+</li>
+      </ul>
+</li>
+    </ul>
+</div>
+</nav><div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active"><h2 id="toc-title">目录</h2>
+   
+  <ul>
+<li><a href="#mlr3%E4%B8%AD%E7%9A%84benchmark%E5%88%86%E6%9E%90" id="toc-mlr3中的benchmark分析" class="nav-link active" data-scroll-target="#mlr3%E4%B8%AD%E7%9A%84benchmark%E5%88%86%E6%9E%90"><span class="header-section-number">11.1</span> 11.1 mlr3中的Benchmark分析</a></li>
+  <li><a href="#benchmark%E5%88%86%E6%9E%90%E6%80%BB%E7%BB%93" id="toc-benchmark分析总结" class="nav-link" data-scroll-target="#benchmark%E5%88%86%E6%9E%90%E6%80%BB%E7%BB%93"><span class="header-section-number">11.2</span> 11.2 Benchmark分析总结</a></li>
+  </ul></nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content"><header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../chapters/11 基准测试.html">实训——综合案例建模实践</a></li><li class="breadcrumb-item"><a href="../chapters/11 基准测试.html"><span class="chapter-number">11</span>&nbsp; <span class="chapter-title">基准测试</span></a></li></ol></nav><div class="quarto-title">
+<h1 class="title">
+<span class="chapter-number">11</span>&nbsp; <span class="chapter-title">基准测试</span>
+</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">作者</div>
+    <div class="quarto-title-meta-contents">
+             <p>李老师 </p>
+          </div>
+  </div>
+    
+  
+    
+  </div>
+  
+
+
+</header><section id="mlr3中的benchmark分析" class="level2" data-number="11.1"><h2 data-number="11.1" class="anchored" data-anchor-id="mlr3中的benchmark分析">
+<span class="header-section-number">11.1</span> 11.1 mlr3中的Benchmark分析</h2>
+<p>mlr3提供了强大的Benchmark功能，可以系统性地比较多个学习器在多个任务上的性能。</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1"></a><span class="fu">library</span>(mlr3)</span>
+<span id="cb1-2"><a href="#cb1-2"></a><span class="fu">library</span>(mlr3verse)</span>
+<span id="cb1-3"><a href="#cb1-3"></a><span class="fu">library</span>(mlr3pipelines)</span>
+<span id="cb1-4"><a href="#cb1-4"></a><span class="fu">library</span>(mlr3tuning)</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Loading required package: paradox</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1"></a><span class="fu">library</span>(data.table)</span>
+<span id="cb3-2"><a href="#cb3-2"></a><span class="fu">library</span>(ggplot2)</span>
+<span id="cb3-3"><a href="#cb3-3"></a><span class="fu">library</span>(corrplot)</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>corrplot 0.95 loaded</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1"></a><span class="fu">library</span>(gridExtra)</span>
+<span id="cb5-2"><a href="#cb5-2"></a><span class="fu">library</span>(patchwork)</span>
+<span id="cb5-3"><a href="#cb5-3"></a><span class="fu">library</span>(paradox)</span>
+<span id="cb5-4"><a href="#cb5-4"></a><span class="co"># 查看mlr包支持的学习算法</span></span>
+<span id="cb5-5"><a href="#cb5-5"></a>mlr_learners</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>&lt;DictionaryLearner&gt; with 51 stored values
+Keys: classif.cv_glmnet, classif.debug, classif.featureless,
+  classif.glmnet, classif.kknn, classif.lda, classif.log_reg,
+  classif.multinom, classif.naive_bayes, classif.nnet, classif.qda,
+  classif.ranger, classif.rpart, classif.svm, classif.xgboost,
+  clust.agnes, clust.ap, clust.bico, clust.birch, clust.cmeans,
+  clust.cobweb, clust.dbscan, clust.dbscan_fpc, clust.diana, clust.em,
+  clust.fanny, clust.featureless, clust.ff, clust.hclust,
+  clust.hdbscan, clust.kkmeans, clust.kmeans, clust.MBatchKMeans,
+  clust.mclust, clust.meanshift, clust.optics, clust.pam,
+  clust.SimpleKMeans, clust.xmeans, regr.cv_glmnet, regr.debug,
+  regr.featureless, regr.glmnet, regr.kknn, regr.km, regr.lm,
+  regr.nnet, regr.ranger, regr.rpart, regr.svm, regr.xgboost</code></pre>
+</div>
+</div>
+<p>加载数据，建立任务</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1"></a><span class="co"># 创建多个任务（不同特征子集）</span></span>
+<span id="cb7-2"><a href="#cb7-2"></a><span class="fu">data</span>(<span class="st">"Ionosphere"</span>, <span class="at">package =</span> <span class="st">"mlbench"</span>)</span>
+<span id="cb7-3"><a href="#cb7-3"></a>Ionosphere_data <span class="ot">&lt;-</span> <span class="fu">as.data.table</span>(Ionosphere)</span>
+<span id="cb7-4"><a href="#cb7-4"></a>Ionosphere_data<span class="ot">=</span>Ionosphere_data[, <span class="sc">-</span><span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">2</span>)]</span>
+<span id="cb7-5"><a href="#cb7-5"></a><span class="fu">str</span>(Ionosphere_data )</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Classes 'data.table' and 'data.frame':  351 obs. of  33 variables:
+ $ V3   : num  0.995 1 1 1 1 ...
+ $ V4   : num  -0.0589 -0.1883 -0.0336 -0.4516 -0.024 ...
+ $ V5   : num  0.852 0.93 1 1 0.941 ...
+ $ V6   : num  0.02306 -0.36156 0.00485 1 0.06531 ...
+ $ V7   : num  0.834 -0.109 1 0.712 0.921 ...
+ $ V8   : num  -0.377 -0.936 -0.121 -1 -0.233 ...
+ $ V9   : num  1 1 0.89 0 0.772 ...
+ $ V10  : num  0.0376 -0.0455 0.012 0 -0.164 ...
+ $ V11  : num  0.852 0.509 0.731 0 0.528 ...
+ $ V12  : num  -0.1776 -0.6774 0.0535 0 -0.2028 ...
+ $ V13  : num  0.598 0.344 0.854 0 0.564 ...
+ $ V14  : num  -0.44945 -0.69707 0.00827 0 -0.00712 ...
+ $ V15  : num  0.605 -0.517 0.546 -1 0.344 ...
+ $ V16  : num  -0.38223 -0.97515 0.00299 0.14516 -0.27457 ...
+ $ V17  : num  0.844 0.055 0.838 0.541 0.529 ...
+ $ V18  : num  -0.385 -0.622 -0.136 -0.393 -0.218 ...
+ $ V19  : num  0.582 0.331 0.755 -1 0.451 ...
+ $ V20  : num  -0.3219 -1 -0.0854 -0.5447 -0.1781 ...
+ $ V21  : num  0.5697 -0.1315 0.7089 -0.6997 0.0598 ...
+ $ V22  : num  -0.297 -0.453 -0.275 1 -0.356 ...
+ $ V23  : num  0.3695 -0.1806 0.4339 0 0.0231 ...
+ $ V24  : num  -0.474 -0.357 -0.121 0 -0.529 ...
+ $ V25  : num  0.5681 -0.2033 0.5753 1 0.0329 ...
+ $ V26  : num  -0.512 -0.266 -0.402 0.907 -0.652 ...
+ $ V27  : num  0.411 -0.205 0.59 0.516 0.133 ...
+ $ V28  : num  -0.462 -0.184 -0.221 1 -0.532 ...
+ $ V29  : num  0.2127 -0.1904 0.431 1 0.0243 ...
+ $ V30  : num  -0.341 -0.116 -0.174 -0.201 -0.622 ...
+ $ V31  : num  0.4227 -0.1663 0.6044 0.2568 -0.0571 ...
+ $ V32  : num  -0.5449 -0.0629 -0.2418 1 -0.5957 ...
+ $ V33  : num  0.1864 -0.1374 0.5605 -0.3238 -0.0461 ...
+ $ V34  : num  -0.453 -0.0245 -0.3824 1 -0.657 ...
+ $ Class: Factor w/ 2 levels "bad","good": 2 1 2 1 2 1 2 1 2 1 ...
+ - attr(*, ".internal.selfref")=&lt;externalptr&gt; </code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1"></a><span class="fu">cat</span>(<span class="st">"</span><span class="sc">\n</span><span class="st">缺失值检查:</span><span class="sc">\n</span><span class="st">"</span>)</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+缺失值检查:</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1"></a>missing_counts <span class="ot">&lt;-</span> <span class="fu">colSums</span>(<span class="fu">is.na</span>(Ionosphere_data))</span>
+<span id="cb11-2"><a href="#cb11-2"></a><span class="fu">print</span>(missing_counts)</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>   V3    V4    V5    V6    V7    V8    V9   V10   V11   V12   V13   V14   V15 
+    0     0     0     0     0     0     0     0     0     0     0     0     0 
+  V16   V17   V18   V19   V20   V21   V22   V23   V24   V25   V26   V27   V28 
+    0     0     0     0     0     0     0     0     0     0     0     0     0 
+  V29   V30   V31   V32   V33   V34 Class 
+    0     0     0     0     0     0     0 </code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1"></a><span class="fu">data</span>(<span class="st">"Sonar"</span>, <span class="at">package =</span> <span class="st">"mlbench"</span>)</span>
+<span id="cb13-2"><a href="#cb13-2"></a>sonar_data <span class="ot">&lt;-</span> <span class="fu">as.data.table</span>(Sonar)</span>
+<span id="cb13-3"><a href="#cb13-3"></a><span class="fu">cat</span>(<span class="st">"</span><span class="sc">\n</span><span class="st">缺失值检查:</span><span class="sc">\n</span><span class="st">"</span>)</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+缺失值检查:</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb15"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1"></a>missing_sonar <span class="ot">&lt;-</span> <span class="fu">colSums</span>(<span class="fu">is.na</span>(sonar_data)) </span>
+<span id="cb15-2"><a href="#cb15-2"></a><span class="fu">print</span>(missing_sonar)</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>   V1    V2    V3    V4    V5    V6    V7    V8    V9   V10   V11   V12   V13 
+    0     0     0     0     0     0     0     0     0     0     0     0     0 
+  V14   V15   V16   V17   V18   V19   V20   V21   V22   V23   V24   V25   V26 
+    0     0     0     0     0     0     0     0     0     0     0     0     0 
+  V27   V28   V29   V30   V31   V32   V33   V34   V35   V36   V37   V38   V39 
+    0     0     0     0     0     0     0     0     0     0     0     0     0 
+  V40   V41   V42   V43   V44   V45   V46   V47   V48   V49   V50   V51   V52 
+    0     0     0     0     0     0     0     0     0     0     0     0     0 
+  V53   V54   V55   V56   V57   V58   V59   V60 Class 
+    0     0     0     0     0     0     0     0     0 </code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb17"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1"></a><span class="fu">str</span>(sonar_data)</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Classes 'data.table' and 'data.frame':  208 obs. of  61 variables:
+ $ V1   : num  0.02 0.0453 0.0262 0.01 0.0762 0.0286 0.0317 0.0519 0.0223 0.0164 ...
+ $ V2   : num  0.0371 0.0523 0.0582 0.0171 0.0666 0.0453 0.0956 0.0548 0.0375 0.0173 ...
+ $ V3   : num  0.0428 0.0843 0.1099 0.0623 0.0481 ...
+ $ V4   : num  0.0207 0.0689 0.1083 0.0205 0.0394 ...
+ $ V5   : num  0.0954 0.1183 0.0974 0.0205 0.059 ...
+ $ V6   : num  0.0986 0.2583 0.228 0.0368 0.0649 ...
+ $ V7   : num  0.154 0.216 0.243 0.11 0.121 ...
+ $ V8   : num  0.16 0.348 0.377 0.128 0.247 ...
+ $ V9   : num  0.3109 0.3337 0.5598 0.0598 0.3564 ...
+ $ V10  : num  0.211 0.287 0.619 0.126 0.446 ...
+ $ V11  : num  0.1609 0.4918 0.6333 0.0881 0.4152 ...
+ $ V12  : num  0.158 0.655 0.706 0.199 0.395 ...
+ $ V13  : num  0.2238 0.6919 0.5544 0.0184 0.4256 ...
+ $ V14  : num  0.0645 0.7797 0.532 0.2261 0.4135 ...
+ $ V15  : num  0.066 0.746 0.648 0.173 0.453 ...
+ $ V16  : num  0.227 0.944 0.693 0.213 0.533 ...
+ $ V17  : num  0.31 1 0.6759 0.0693 0.7306 ...
+ $ V18  : num  0.3 0.887 0.755 0.228 0.619 ...
+ $ V19  : num  0.508 0.802 0.893 0.406 0.203 ...
+ $ V20  : num  0.48 0.782 0.862 0.397 0.464 ...
+ $ V21  : num  0.578 0.521 0.797 0.274 0.415 ...
+ $ V22  : num  0.507 0.405 0.674 0.369 0.429 ...
+ $ V23  : num  0.433 0.396 0.429 0.556 0.573 ...
+ $ V24  : num  0.555 0.391 0.365 0.485 0.54 ...
+ $ V25  : num  0.671 0.325 0.533 0.314 0.316 ...
+ $ V26  : num  0.641 0.32 0.241 0.533 0.229 ...
+ $ V27  : num  0.71 0.327 0.507 0.526 0.7 ...
+ $ V28  : num  0.808 0.277 0.853 0.252 1 ...
+ $ V29  : num  0.679 0.442 0.604 0.209 0.726 ...
+ $ V30  : num  0.386 0.203 0.851 0.356 0.472 ...
+ $ V31  : num  0.131 0.379 0.851 0.626 0.51 ...
+ $ V32  : num  0.26 0.295 0.504 0.734 0.546 ...
+ $ V33  : num  0.512 0.198 0.186 0.612 0.288 ...
+ $ V34  : num  0.7547 0.2341 0.2709 0.3497 0.0981 ...
+ $ V35  : num  0.854 0.131 0.423 0.395 0.195 ...
+ $ V36  : num  0.851 0.418 0.304 0.301 0.418 ...
+ $ V37  : num  0.669 0.384 0.612 0.541 0.46 ...
+ $ V38  : num  0.61 0.106 0.676 0.881 0.322 ...
+ $ V39  : num  0.494 0.184 0.537 0.986 0.283 ...
+ $ V40  : num  0.274 0.197 0.472 0.917 0.243 ...
+ $ V41  : num  0.051 0.167 0.465 0.612 0.198 ...
+ $ V42  : num  0.2834 0.0583 0.2587 0.5006 0.2444 ...
+ $ V43  : num  0.282 0.14 0.213 0.321 0.185 ...
+ $ V44  : num  0.4256 0.1628 0.2222 0.3202 0.0841 ...
+ $ V45  : num  0.2641 0.0621 0.2111 0.4295 0.0692 ...
+ $ V46  : num  0.1386 0.0203 0.0176 0.3654 0.0528 ...
+ $ V47  : num  0.1051 0.053 0.1348 0.2655 0.0357 ...
+ $ V48  : num  0.1343 0.0742 0.0744 0.1576 0.0085 ...
+ $ V49  : num  0.0383 0.0409 0.013 0.0681 0.023 0.0264 0.0507 0.0285 0.0777 0.0092 ...
+ $ V50  : num  0.0324 0.0061 0.0106 0.0294 0.0046 0.0081 0.0159 0.0178 0.0439 0.0198 ...
+ $ V51  : num  0.0232 0.0125 0.0033 0.0241 0.0156 0.0104 0.0195 0.0052 0.0061 0.0118 ...
+ $ V52  : num  0.0027 0.0084 0.0232 0.0121 0.0031 0.0045 0.0201 0.0081 0.0145 0.009 ...
+ $ V53  : num  0.0065 0.0089 0.0166 0.0036 0.0054 0.0014 0.0248 0.012 0.0128 0.0223 ...
+ $ V54  : num  0.0159 0.0048 0.0095 0.015 0.0105 0.0038 0.0131 0.0045 0.0145 0.0179 ...
+ $ V55  : num  0.0072 0.0094 0.018 0.0085 0.011 0.0013 0.007 0.0121 0.0058 0.0084 ...
+ $ V56  : num  0.0167 0.0191 0.0244 0.0073 0.0015 0.0089 0.0138 0.0097 0.0049 0.0068 ...
+ $ V57  : num  0.018 0.014 0.0316 0.005 0.0072 0.0057 0.0092 0.0085 0.0065 0.0032 ...
+ $ V58  : num  0.0084 0.0049 0.0164 0.0044 0.0048 0.0027 0.0143 0.0047 0.0093 0.0035 ...
+ $ V59  : num  0.009 0.0052 0.0095 0.004 0.0107 0.0051 0.0036 0.0048 0.0059 0.0056 ...
+ $ V60  : num  0.0032 0.0044 0.0078 0.0117 0.0094 0.0062 0.0103 0.0053 0.0022 0.004 ...
+ $ Class: Factor w/ 2 levels "M","R": 2 2 2 2 2 2 2 2 2 2 ...
+ - attr(*, ".internal.selfref")=&lt;externalptr&gt; </code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb19"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1"></a>task_Ionosphere <span class="ot">&lt;-</span> <span class="fu">as_task_classif</span>(Ionosphere_data, <span class="at">target =</span> <span class="st">"Class"</span>, <span class="at">id =</span> <span class="st">"Ionosphere"</span>)</span>
+<span id="cb19-2"><a href="#cb19-2"></a></span>
+<span id="cb19-3"><a href="#cb19-3"></a>task_sonar <span class="ot">&lt;-</span> <span class="fu">as_task_classif</span>(sonar_data, <span class="at">target =</span> <span class="st">"Class"</span>, <span class="at">id =</span> <span class="st">"sonar"</span>)</span>
+<span id="cb19-4"><a href="#cb19-4"></a></span>
+<span id="cb19-5"><a href="#cb19-5"></a>tasks <span class="ot">=</span> <span class="fu">list</span>(task_Ionosphere, task_sonar)</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb20"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1"></a><span class="co"># 定义学习器</span></span>
+<span id="cb20-2"><a href="#cb20-2"></a>learners_extended <span class="ot">&lt;-</span> <span class="fu">list</span>(</span>
+<span id="cb20-3"><a href="#cb20-3"></a>  <span class="fu">lrn</span>(<span class="st">"classif.ranger"</span>, <span class="at">id =</span> <span class="st">"random_forest"</span>, <span class="at">predict_type =</span> <span class="st">"prob"</span>),</span>
+<span id="cb20-4"><a href="#cb20-4"></a>  <span class="fu">lrn</span>(<span class="st">"classif.xgboost"</span>, <span class="at">id =</span> <span class="st">"xgboost"</span>, <span class="at">predict_type =</span> <span class="st">"prob"</span>),</span>
+<span id="cb20-5"><a href="#cb20-5"></a>  <span class="fu">lrn</span>(<span class="st">"classif.svm"</span>, <span class="at">id =</span> <span class="st">"svm"</span>, <span class="at">predict_type =</span> <span class="st">"prob"</span>),</span>
+<span id="cb20-6"><a href="#cb20-6"></a>  <span class="fu">lrn</span>(<span class="st">"classif.kknn"</span>, <span class="at">id =</span> <span class="st">"knn"</span>, <span class="at">predict_type =</span> <span class="st">"prob"</span>),</span>
+<span id="cb20-7"><a href="#cb20-7"></a>  <span class="fu">lrn</span>(<span class="st">"classif.naive_bayes"</span>, <span class="at">id =</span> <span class="st">"naive_bayes"</span>, <span class="at">predict_type =</span> <span class="st">"prob"</span>),</span>
+<span id="cb20-8"><a href="#cb20-8"></a>  <span class="fu">lrn</span>(<span class="st">"classif.rpart"</span>, <span class="at">id =</span> <span class="st">"decision_tree"</span>, <span class="at">predict_type =</span> <span class="st">"prob"</span>)</span>
+<span id="cb20-9"><a href="#cb20-9"></a>)</span>
+<span id="cb20-10"><a href="#cb20-10"></a></span>
+<span id="cb20-11"><a href="#cb20-11"></a><span class="co"># 设置不同的重采样策略</span></span>
+<span id="cb20-12"><a href="#cb20-12"></a>resamplings <span class="ot">&lt;-</span> <span class="fu">list</span>(</span>
+<span id="cb20-13"><a href="#cb20-13"></a>  <span class="at">cv5 =</span> <span class="fu">rsmp</span>(<span class="st">"cv"</span>, <span class="at">folds =</span> <span class="dv">5</span>),</span>
+<span id="cb20-14"><a href="#cb20-14"></a>  <span class="at">cv10 =</span> <span class="fu">rsmp</span>(<span class="st">"cv"</span>, <span class="at">folds =</span> <span class="dv">10</span>),</span>
+<span id="cb20-15"><a href="#cb20-15"></a>  <span class="at">holdout =</span> <span class="fu">rsmp</span>(<span class="st">"holdout"</span>, <span class="at">ratio =</span> <span class="fl">0.7</span>),</span>
+<span id="cb20-16"><a href="#cb20-16"></a>  <span class="at">bootstrap =</span> <span class="fu">rsmp</span>(<span class="st">"bootstrap"</span>, <span class="at">repeats =</span> <span class="dv">5</span>)</span>
+<span id="cb20-17"><a href="#cb20-17"></a>)</span>
+<span id="cb20-18"><a href="#cb20-18"></a></span>
+<span id="cb20-19"><a href="#cb20-19"></a><span class="co"># 创建Benchmark设计</span></span>
+<span id="cb20-20"><a href="#cb20-20"></a>design_extended <span class="ot">&lt;-</span> <span class="fu">benchmark_grid</span>(</span>
+<span id="cb20-21"><a href="#cb20-21"></a>  <span class="at">tasks =</span> tasks,</span>
+<span id="cb20-22"><a href="#cb20-22"></a>  <span class="at">learners =</span> learners_extended,</span>
+<span id="cb20-23"><a href="#cb20-23"></a>  <span class="at">resamplings =</span> resamplings[<span class="dv">1</span>]  <span class="co"># 使用5折交叉验证以节省时间</span></span>
+<span id="cb20-24"><a href="#cb20-24"></a>)</span>
+<span id="cb20-25"><a href="#cb20-25"></a></span>
+<span id="cb20-26"><a href="#cb20-26"></a><span class="co"># 执行Benchmark</span></span>
+<span id="cb20-27"><a href="#cb20-27"></a><span class="fu">cat</span>(<span class="st">"开始扩展Benchmark分析...</span><span class="sc">\n</span><span class="st">"</span>)</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>开始扩展Benchmark分析...</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb22"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1"></a>bmr_extended <span class="ot">&lt;-</span> <span class="fu">benchmark</span>(design_extended, <span class="at">store_models =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb22-2"><a href="#cb22-2"></a></span>
+<span id="cb22-3"><a href="#cb22-3"></a><span class="co"># 性能汇总</span></span>
+<span id="cb22-4"><a href="#cb22-4"></a><span class="fu">cat</span>(<span class="st">"</span><span class="sc">\n</span><span class="st">=== Benchmark性能汇总 ===</span><span class="sc">\n</span><span class="st">"</span>)</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+=== Benchmark性能汇总 ===</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb24"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1"></a>measures_all <span class="ot">&lt;-</span> <span class="fu">msrs</span>(<span class="fu">c</span>(<span class="st">"classif.acc"</span>, <span class="st">"classif.auc"</span>, <span class="st">"classif.bacc"</span>, <span class="st">"classif.ce"</span>))</span>
+<span id="cb24-2"><a href="#cb24-2"></a>bmr_results <span class="ot">&lt;-</span> bmr_extended<span class="sc">$</span><span class="fu">aggregate</span>(measures_all)</span>
+<span id="cb24-3"><a href="#cb24-3"></a></span>
+<span id="cb24-4"><a href="#cb24-4"></a><span class="co"># 格式化结果</span></span>
+<span id="cb24-5"><a href="#cb24-5"></a>results_detailed <span class="ot">&lt;-</span> bmr_results[, .(</span>
+<span id="cb24-6"><a href="#cb24-6"></a>  <span class="at">Task =</span> task_id,</span>
+<span id="cb24-7"><a href="#cb24-7"></a>  <span class="at">Model =</span> learner_id,</span>
+<span id="cb24-8"><a href="#cb24-8"></a>  <span class="at">Resampling =</span> resampling_id,</span>
+<span id="cb24-9"><a href="#cb24-9"></a>  <span class="at">Accuracy =</span> classif.acc,</span>
+<span id="cb24-10"><a href="#cb24-10"></a>  <span class="at">AUC =</span> classif.auc,</span>
+<span id="cb24-11"><a href="#cb24-11"></a>  <span class="at">Balanced_Accuracy =</span> classif.bacc,</span>
+<span id="cb24-12"><a href="#cb24-12"></a>  <span class="at">LogLoss =</span> classif.ce</span>
+<span id="cb24-13"><a href="#cb24-13"></a>)]</span>
+<span id="cb24-14"><a href="#cb24-14"></a></span>
+<span id="cb24-15"><a href="#cb24-15"></a><span class="fu">print</span>(results_detailed[<span class="fu">order</span>(Task, <span class="sc">-</span>Accuracy)])</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>          Task         Model Resampling  Accuracy       AUC Balanced_Accuracy
+        &lt;char&gt;        &lt;char&gt;     &lt;char&gt;     &lt;num&gt;     &lt;num&gt;             &lt;num&gt;
+ 1: Ionosphere           svm         cv 0.9515091 0.9797107         0.9458711
+ 2: Ionosphere       xgboost         cv 0.9288129 0.9740562         0.9146227
+ 3: Ionosphere random_forest         cv 0.9286922 0.9765388         0.9199816
+ 4: Ionosphere decision_tree         cv 0.8718310 0.8988363         0.8439666
+ 5: Ionosphere           knn         cv 0.8433803 0.9281165         0.7895956
+ 6: Ionosphere   naive_bayes         cv 0.8261167 0.9364667         0.8371351
+ 7:      sonar       xgboost         cv 0.8651568 0.9455901         0.8675650
+ 8:      sonar           knn         cv 0.8465738 0.9351881         0.8467873
+ 9:      sonar random_forest         cv 0.8457607 0.9365961         0.8505182
+10:      sonar           svm         cv 0.8319396 0.9339255         0.8363401
+11:      sonar decision_tree         cv 0.7213705 0.7554980         0.7196913
+12:      sonar   naive_bayes         cv 0.6970964 0.8122079         0.7083422
+       LogLoss
+         &lt;num&gt;
+ 1: 0.04849095
+ 2: 0.07118712
+ 3: 0.07130785
+ 4: 0.12816901
+ 5: 0.15661972
+ 6: 0.17388330
+ 7: 0.13484321
+ 8: 0.15342625
+ 9: 0.15423926
+10: 0.16806039
+11: 0.27862950
+12: 0.30290360</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb26"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1"></a><span class="co"># 按任务分组统计</span></span>
+<span id="cb26-2"><a href="#cb26-2"></a><span class="fu">cat</span>(<span class="st">"</span><span class="sc">\n</span><span class="st">=== 按任务分组的性能统计 ===</span><span class="sc">\n</span><span class="st">"</span>)</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+=== 按任务分组的性能统计 ===</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb28"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb28-1"><a href="#cb28-1"></a>task_stats <span class="ot">&lt;-</span> results_detailed[, .(</span>
+<span id="cb28-2"><a href="#cb28-2"></a>  <span class="at">Mean_Accuracy =</span> <span class="fu">mean</span>(Accuracy),</span>
+<span id="cb28-3"><a href="#cb28-3"></a>  <span class="at">Std_Accuracy =</span> <span class="fu">sd</span>(Accuracy),</span>
+<span id="cb28-4"><a href="#cb28-4"></a>  <span class="at">Best_Model =</span> .SD[<span class="fu">which.max</span>(Accuracy)]<span class="sc">$</span>Model,</span>
+<span id="cb28-5"><a href="#cb28-5"></a>  <span class="at">Best_Accuracy =</span> <span class="fu">max</span>(Accuracy)</span>
+<span id="cb28-6"><a href="#cb28-6"></a>), by <span class="ot">=</span> Task]</span>
+<span id="cb28-7"><a href="#cb28-7"></a></span>
+<span id="cb28-8"><a href="#cb28-8"></a><span class="fu">print</span>(task_stats)</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>         Task Mean_Accuracy Std_Accuracy Best_Model Best_Accuracy
+       &lt;char&gt;         &lt;num&gt;        &lt;num&gt;     &lt;char&gt;         &lt;num&gt;
+1: Ionosphere     0.8917237   0.05167910        svm     0.9515091
+2:      sonar     0.8013163   0.07251215    xgboost     0.8651568</code></pre>
+</div>
+</div>
+<p>Benchmark结果可视化</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb30"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb30-1"><a href="#cb30-1"></a><span class="co"># Benchmark结果可视化</span></span>
+<span id="cb30-2"><a href="#cb30-2"></a></span>
+<span id="cb30-3"><a href="#cb30-3"></a><span class="co"># 1. 按任务和模型的准确率热图</span></span>
+<span id="cb30-4"><a href="#cb30-4"></a>accuracy_matrix <span class="ot">&lt;-</span> <span class="fu">dcast</span>(results_detailed, Model <span class="sc">~</span> Task, <span class="at">value.var =</span> <span class="st">"Accuracy"</span>)</span>
+<span id="cb30-5"><a href="#cb30-5"></a><span class="fu">print</span>(<span class="st">"准确率矩阵:"</span>)</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] "准确率矩阵:"</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb32"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb32-1"><a href="#cb32-1"></a><span class="fu">print</span>(accuracy_matrix)</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Key: &lt;Model&gt;
+           Model Ionosphere     sonar
+          &lt;char&gt;      &lt;num&gt;     &lt;num&gt;
+1: decision_tree  0.8718310 0.7213705
+2:           knn  0.8433803 0.8465738
+3:   naive_bayes  0.8261167 0.6970964
+4: random_forest  0.9286922 0.8457607
+5:           svm  0.9515091 0.8319396
+6:       xgboost  0.9288129 0.8651568</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb34"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb34-1"><a href="#cb34-1"></a><span class="co"># 可视化热图</span></span>
+<span id="cb34-2"><a href="#cb34-2"></a>heatmap_data <span class="ot">&lt;-</span> <span class="fu">as.matrix</span>(accuracy_matrix[, <span class="sc">-</span><span class="dv">1</span>])</span>
+<span id="cb34-3"><a href="#cb34-3"></a><span class="fu">rownames</span>(heatmap_data) <span class="ot">&lt;-</span> accuracy_matrix<span class="sc">$</span>Model</span>
+<span id="cb34-4"><a href="#cb34-4"></a></span>
+<span id="cb34-5"><a href="#cb34-5"></a><span class="fu">library</span>(reshape2)</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>
+Attaching package: 'reshape2'</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>The following objects are masked from 'package:data.table':
+
+    dcast, melt</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb37"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb37-1"><a href="#cb37-1"></a>heatmap_df <span class="ot">&lt;-</span> <span class="fu">melt</span>(accuracy_matrix, <span class="at">id.vars =</span> <span class="st">"Model"</span>, </span>
+<span id="cb37-2"><a href="#cb37-2"></a>                   <span class="at">variable.name =</span> <span class="st">"Task"</span>, <span class="at">value.name =</span> <span class="st">"Accuracy"</span>)</span>
+<span id="cb37-3"><a href="#cb37-3"></a></span>
+<span id="cb37-4"><a href="#cb37-4"></a>p1 <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(heatmap_df, <span class="fu">aes</span>(<span class="at">x =</span> Task, <span class="at">y =</span> Model, <span class="at">fill =</span> Accuracy)) <span class="sc">+</span></span>
+<span id="cb37-5"><a href="#cb37-5"></a>  <span class="fu">geom_tile</span>(<span class="at">color =</span> <span class="st">"white"</span>) <span class="sc">+</span></span>
+<span id="cb37-6"><a href="#cb37-6"></a>  <span class="fu">geom_text</span>(<span class="fu">aes</span>(<span class="at">label =</span> <span class="fu">round</span>(Accuracy, <span class="dv">3</span>)), <span class="at">color =</span> <span class="st">"black"</span>, <span class="at">size =</span> <span class="dv">3</span>) <span class="sc">+</span></span>
+<span id="cb37-7"><a href="#cb37-7"></a>  <span class="fu">scale_fill_gradient2</span>(<span class="at">low =</span> <span class="st">"red"</span>, <span class="at">mid =</span> <span class="st">"white"</span>, <span class="at">high =</span> <span class="st">"blue"</span>, <span class="at">midpoint =</span> <span class="fl">0.9</span>) <span class="sc">+</span></span>
+<span id="cb37-8"><a href="#cb37-8"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"模型在不同任务上的准确率热图"</span>, </span>
+<span id="cb37-9"><a href="#cb37-9"></a>       <span class="at">x =</span> <span class="st">"任务"</span>, <span class="at">y =</span> <span class="st">"模型"</span>) <span class="sc">+</span></span>
+<span id="cb37-10"><a href="#cb37-10"></a>  <span class="fu">theme_minimal</span>() <span class="sc">+</span></span>
+<span id="cb37-11"><a href="#cb37-11"></a>  <span class="fu">theme</span>(<span class="at">axis.text.x =</span> <span class="fu">element_text</span>(<span class="at">angle =</span> <span class="dv">45</span>, <span class="at">hjust =</span> <span class="dv">1</span>))</span>
+<span id="cb37-12"><a href="#cb37-12"></a></span>
+<span id="cb37-13"><a href="#cb37-13"></a><span class="co"># 2. 模型性能比较箱线图</span></span>
+<span id="cb37-14"><a href="#cb37-14"></a>p2 <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(results_detailed, <span class="fu">aes</span>(<span class="at">x =</span> <span class="fu">reorder</span>(Model, Accuracy), <span class="at">y =</span> Accuracy, <span class="at">fill =</span> Model)) <span class="sc">+</span></span>
+<span id="cb37-15"><a href="#cb37-15"></a>  <span class="fu">geom_boxplot</span>(<span class="at">alpha =</span> <span class="fl">0.7</span>) <span class="sc">+</span></span>
+<span id="cb37-16"><a href="#cb37-16"></a>  <span class="fu">geom_jitter</span>(<span class="at">width =</span> <span class="fl">0.2</span>, <span class="at">alpha =</span> <span class="fl">0.5</span>) <span class="sc">+</span></span>
+<span id="cb37-17"><a href="#cb37-17"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"模型性能分布"</span>, <span class="at">x =</span> <span class="st">"模型"</span>, <span class="at">y =</span> <span class="st">"准确率"</span>) <span class="sc">+</span></span>
+<span id="cb37-18"><a href="#cb37-18"></a>  <span class="fu">theme_minimal</span>() <span class="sc">+</span></span>
+<span id="cb37-19"><a href="#cb37-19"></a>  <span class="fu">theme</span>(<span class="at">axis.text.x =</span> <span class="fu">element_text</span>(<span class="at">angle =</span> <span class="dv">45</span>, <span class="at">hjust =</span> <span class="dv">1</span>),</span>
+<span id="cb37-20"><a href="#cb37-20"></a>        <span class="at">legend.position =</span> <span class="st">"none"</span>) <span class="sc">+</span></span>
+<span id="cb37-21"><a href="#cb37-21"></a>  <span class="fu">coord_flip</span>()</span>
+<span id="cb37-22"><a href="#cb37-22"></a></span>
+<span id="cb37-23"><a href="#cb37-23"></a><span class="co"># 3. 任务性能比较</span></span>
+<span id="cb37-24"><a href="#cb37-24"></a>p3 <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(results_detailed, <span class="fu">aes</span>(<span class="at">x =</span> Task, <span class="at">y =</span> Accuracy, <span class="at">fill =</span> Task)) <span class="sc">+</span></span>
+<span id="cb37-25"><a href="#cb37-25"></a>  <span class="fu">geom_boxplot</span>(<span class="at">alpha =</span> <span class="fl">0.7</span>) <span class="sc">+</span></span>
+<span id="cb37-26"><a href="#cb37-26"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"不同任务的性能比较"</span>, <span class="at">x =</span> <span class="st">"任务"</span>, <span class="at">y =</span> <span class="st">"准确率"</span>) <span class="sc">+</span></span>
+<span id="cb37-27"><a href="#cb37-27"></a>  <span class="fu">theme_minimal</span>() <span class="sc">+</span></span>
+<span id="cb37-28"><a href="#cb37-28"></a>  <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">"none"</span>)</span>
+<span id="cb37-29"><a href="#cb37-29"></a></span>
+<span id="cb37-30"><a href="#cb37-30"></a><span class="co"># 组合图形</span></span>
+<span id="cb37-31"><a href="#cb37-31"></a><span class="fu">library</span>(patchwork)</span>
+<span id="cb37-32"><a href="#cb37-32"></a>(p1) <span class="sc">/</span> (p2 <span class="sc">|</span> p3)</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure"><p><img src="11-基准测试_files/figure-html/unnamed-chunk-4-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>统计显著性检验</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb38"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb38-1"><a href="#cb38-1"></a><span class="co"># 统计显著性检验</span></span>
+<span id="cb38-2"><a href="#cb38-2"></a></span>
+<span id="cb38-3"><a href="#cb38-3"></a><span class="co"># 提取所有resample结果的预测</span></span>
+<span id="cb38-4"><a href="#cb38-4"></a>predictions_all <span class="ot">&lt;-</span> bmr_extended<span class="sc">$</span><span class="fu">score</span>()</span>
+<span id="cb38-5"><a href="#cb38-5"></a></span>
+<span id="cb38-6"><a href="#cb38-6"></a><span class="co"># 查看提取的结果结构</span></span>
+<span id="cb38-7"><a href="#cb38-7"></a><span class="fu">str</span>(predictions_all, <span class="at">max.level =</span> <span class="dv">1</span>)</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Classes 'bmr_score', 'data.table' and 'data.frame': 60 obs. of  11 variables:
+ $ uhash          : chr  "b592c830-2976-41e3-970f-077d1494b6c2" "b592c830-2976-41e3-970f-077d1494b6c2" "b592c830-2976-41e3-970f-077d1494b6c2" "b592c830-2976-41e3-970f-077d1494b6c2" ...
+ $ nr             : int  1 1 1 1 1 2 2 2 2 2 ...
+ $ task           :List of 60
+ $ task_id        : chr  "Ionosphere" "Ionosphere" "Ionosphere" "Ionosphere" ...
+ $ learner        :List of 60
+ $ learner_id     : chr  "random_forest" "random_forest" "random_forest" "random_forest" ...
+ $ resampling     :List of 60
+ $ resampling_id  : chr  "cv" "cv" "cv" "cv" ...
+ $ iteration      : int  1 2 3 4 5 1 2 3 4 5 ...
+ $ prediction_test:List of 60
+ $ classif.ce     : num  0.0423 0.0857 0.0571 0.1143 0.0571 ...
+ - attr(*, ".internal.selfref")=&lt;externalptr&gt; </code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb40"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb40-1"><a href="#cb40-1"></a><span class="co"># 提取具体的预测对象</span></span>
+<span id="cb40-2"><a href="#cb40-2"></a>predictions_list <span class="ot">&lt;-</span> predictions_all<span class="sc">$</span>prediction</span>
+<span id="cb40-3"><a href="#cb40-3"></a></span>
+<span id="cb40-4"><a href="#cb40-4"></a><span class="co"># Friedman检验 - 比较多个模型的性能</span></span>
+<span id="cb40-5"><a href="#cb40-5"></a><span class="cf">if</span> (<span class="fu">requireNamespace</span>(<span class="st">"scmamp"</span>, <span class="at">quietly =</span> <span class="cn">TRUE</span>)) {</span>
+<span id="cb40-6"><a href="#cb40-6"></a>  <span class="fu">library</span>(scmamp)</span>
+<span id="cb40-7"><a href="#cb40-7"></a>  </span>
+<span id="cb40-8"><a href="#cb40-8"></a>  <span class="co"># 准备数据用于Friedman检验</span></span>
+<span id="cb40-9"><a href="#cb40-9"></a>  accuracy_matrix <span class="ot">&lt;-</span> <span class="fu">dcast</span>(results_detailed, Task <span class="sc">~</span> Model, <span class="at">value.var =</span> <span class="st">"Accuracy"</span>)</span>
+<span id="cb40-10"><a href="#cb40-10"></a>  accuracy_data <span class="ot">&lt;-</span> <span class="fu">as.matrix</span>(accuracy_matrix[, <span class="sc">-</span><span class="dv">1</span>])</span>
+<span id="cb40-11"><a href="#cb40-11"></a>  </span>
+<span id="cb40-12"><a href="#cb40-12"></a>  <span class="fu">cat</span>(<span class="st">"</span><span class="sc">\n</span><span class="st">=== Friedman检验 ===</span><span class="sc">\n</span><span class="st">"</span>)</span>
+<span id="cb40-13"><a href="#cb40-13"></a>  friedman_test <span class="ot">&lt;-</span> <span class="fu">friedmanTest</span>(accuracy_data)</span>
+<span id="cb40-14"><a href="#cb40-14"></a>  <span class="fu">print</span>(friedman_test)</span>
+<span id="cb40-15"><a href="#cb40-15"></a>  </span>
+<span id="cb40-16"><a href="#cb40-16"></a>  <span class="cf">if</span> (friedman_test<span class="sc">$</span>p.value <span class="sc">&lt;</span> <span class="fl">0.05</span>) {</span>
+<span id="cb40-17"><a href="#cb40-17"></a>    <span class="fu">cat</span>(<span class="st">"模型间存在显著差异，进行事后检验...</span><span class="sc">\n</span><span class="st">"</span>)</span>
+<span id="cb40-18"><a href="#cb40-18"></a>    </span>
+<span id="cb40-19"><a href="#cb40-19"></a>    <span class="co"># Nemenyi事后检验</span></span>
+<span id="cb40-20"><a href="#cb40-20"></a>    nemenyi_test <span class="ot">&lt;-</span> <span class="fu">nemenyiTest</span>(accuracy_data)</span>
+<span id="cb40-21"><a href="#cb40-21"></a>    <span class="fu">print</span>(nemenyi_test)</span>
+<span id="cb40-22"><a href="#cb40-22"></a>    </span>
+<span id="cb40-23"><a href="#cb40-23"></a>    <span class="co"># 可视化CD图</span></span>
+<span id="cb40-24"><a href="#cb40-24"></a>    <span class="fu">plotCD</span>(accuracy_data, <span class="at">alpha =</span> <span class="fl">0.05</span>)</span>
+<span id="cb40-25"><a href="#cb40-25"></a>  } <span class="cf">else</span> {</span>
+<span id="cb40-26"><a href="#cb40-26"></a>    <span class="fu">cat</span>(<span class="st">"模型间无显著差异</span><span class="sc">\n</span><span class="st">"</span>)</span>
+<span id="cb40-27"><a href="#cb40-27"></a>  }</span>
+<span id="cb40-28"><a href="#cb40-28"></a>} <span class="cf">else</span> {</span>
+<span id="cb40-29"><a href="#cb40-29"></a>  <span class="fu">cat</span>(<span class="st">"scmamp包未安装，跳过统计检验</span><span class="sc">\n</span><span class="st">"</span>)</span>
+<span id="cb40-30"><a href="#cb40-30"></a>}</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>scmamp包未安装，跳过统计检验</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb42"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb42-1"><a href="#cb42-1"></a><span class="co"># 简单的成对t检验</span></span>
+<span id="cb42-2"><a href="#cb42-2"></a><span class="fu">cat</span>(<span class="st">"</span><span class="sc">\n</span><span class="st">=== 最佳模型 vs 其他模型的成对t检验 ===</span><span class="sc">\n</span><span class="st">"</span>)</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+=== 最佳模型 vs 其他模型的成对t检验 ===</code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb44"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb44-1"><a href="#cb44-1"></a>best_model <span class="ot">&lt;-</span> results_detailed[<span class="fu">which.max</span>(Accuracy)]<span class="sc">$</span>Model</span>
+<span id="cb44-2"><a href="#cb44-2"></a>best_accuracies <span class="ot">&lt;-</span> results_detailed[Model <span class="sc">==</span> best_model]<span class="sc">$</span>Accuracy</span>
+<span id="cb44-3"><a href="#cb44-3"></a></span>
+<span id="cb44-4"><a href="#cb44-4"></a><span class="cf">for</span> (model <span class="cf">in</span> <span class="fu">unique</span>(results_detailed<span class="sc">$</span>Model)) {</span>
+<span id="cb44-5"><a href="#cb44-5"></a>  <span class="cf">if</span> (model <span class="sc">!=</span> best_model) {</span>
+<span id="cb44-6"><a href="#cb44-6"></a>    model_accuracies <span class="ot">&lt;-</span> results_detailed[Model <span class="sc">==</span> model]<span class="sc">$</span>Accuracy</span>
+<span id="cb44-7"><a href="#cb44-7"></a>    t_test <span class="ot">&lt;-</span> <span class="fu">t.test</span>(best_accuracies, model_accuracies, <span class="at">paired =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb44-8"><a href="#cb44-8"></a>    <span class="fu">cat</span>(<span class="fu">sprintf</span>(<span class="st">"%s vs %s: p-value = %.4f</span><span class="sc">\n</span><span class="st">"</span>, best_model, model, t_test<span class="sc">$</span>p.value))</span>
+<span id="cb44-9"><a href="#cb44-9"></a>  }</span>
+<span id="cb44-10"><a href="#cb44-10"></a>}</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>svm vs random_forest: p-value = 0.8467
+svm vs xgboost: p-value = 0.8816
+svm vs knn: p-value = 0.5856
+svm vs naive_bayes: p-value = 0.0231
+svm vs decision_tree: p-value = 0.1025</code></pre>
+</div>
+</div>
+</section><section id="benchmark分析总结" class="level2" data-number="11.2"><h2 data-number="11.2" class="anchored" data-anchor-id="benchmark分析总结">
+<span class="header-section-number">11.2</span> 11.2 Benchmark分析总结</h2>
+<p>mlr3 Benchmark优势</p>
+<ol type="1">
+<li>
+<strong>统一的接口</strong>：<code>benchmark()</code>函数提供统一的Benchmark接口</li>
+<li>
+<strong>灵活的设计</strong>：支持多个任务、学习器、重采样策略的组合</li>
+<li>
+<strong>内置存储</strong>：可以存储模型和预测结果用于后续分析</li>
+<li>
+<strong>丰富的结果</strong>：自动计算多个评估指标</li>
+<li>
+<strong>统计检验</strong>：内置Friedman检验等统计方法</li>
+</ol>
+<p>最佳实践建议</p>
+<ol type="1">
+<li>
+<strong>系统化比较</strong>：在项目初期进行全面的Benchmark分析</li>
+<li>
+<strong>多维度评估</strong>：考虑准确率、训练时间、可解释性等多个维度</li>
+<li>
+<strong>统计验证</strong>：使用统计检验验证性能差异的显著性</li>
+<li>
+<strong>业务导向</strong>：根据具体业务需求选择最适合的模型</li>
+<li>
+<strong>可重复性</strong>：设置随机种子确保结果可重复</li>
+</ol>
+<p>这样的Benchmark分析为模型选择提供了科学依据，确保选择的模型不仅在测试集上表现好，而且具有统计显著性。</p>
+
+
+</section></main><!-- /main --><script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "已复制");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "已复制");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script><nav class="page-navigation"><div class="nav-page nav-page-previous">
+      <a href="../chapters/10 神经网络与深度学习基础.html" class="pagination-link" aria-label="神经网络与深度学习基础">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-number">10</span>&nbsp; <span class="chapter-title">神经网络与深度学习基础</span></span>
+      </a>          
+  </div>
+  <div class="nav-page nav-page-next">
+      <a href="../chapters/12 回归任务.html" class="pagination-link" aria-label="回归任务">
+        <span class="nav-page-text"><span class="chapter-number">12</span>&nbsp; <span class="chapter-title">回归任务</span></span> <i class="bi bi-arrow-right-short"></i>
+      </a>
+  </div>
+</nav>
+</div> <!-- /content -->
+
+
+
+</body></html>

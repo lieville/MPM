@@ -1,0 +1,637 @@
+---
+title: "回归任务"
+format: html
+editor: visual
+---
+
+## 回归任务导读
+
+回归分析是预测建模中最基础且重要的任务，广泛应用于房价预测、销量预测、风险评估等领域。本章将通过波士顿房价预测案例，完整展示回归问题的解决方案，涵盖数据探索、特征工程、多种回归算法比较、模型评估等关键环节。
+
+数据集说明 本案例使用糖尿病数据集（Diabetes Dataset），包含糖尿病患者的生理指标和疾病进展指标。
+
+问题定义 **目标**：预测糖尿病疾病的进展（target）\
+**任务类型**：回归分析\
+**业务价值**：为医疗诊断和治疗方案制定提供数据支持
+
+## 12.1 R语言实现 (mlr3框架)
+
+数据加载与探索
+
+```{r}
+# 综合案例：糖尿病进展预测 - R语言实现 (mlr3框架)
+
+# 加载必要的包
+library(mlr3)
+library(mlr3verse)
+library(mlr3pipelines)
+library(mlr3tuning)
+library(data.table)
+library(ggplot2)
+library(corrplot)
+library(gridExtra)
+
+
+# 加载糖尿病数据集
+library(lars)
+data(diabetes)
+variable_names <- c("age", "sex", "bmi", "map", "tc", "ldl", "hdl", "tch", "ltg", "glu")
+
+diabetes_data <- as.data.frame(matrix(unlist(diabetes$x), ncol = 10))
+colnames(diabetes_data) <- variable_names
+
+str(diabetes_data)
+diabetes_data$target <- diabetes$y
+
+# 检查缺失值
+cat("\n缺失值检查:\n")
+print(colSums(is.na(diabetes_data)))
+```
+
+数据可视化分析
+
+```{r}
+# 数据可视化分析 - R语言
+
+# 目标变量分布
+p1 <- ggplot(diabetes_data, aes(x = target)) +
+  geom_histogram(bins = 30, fill = "steelblue", alpha = 0.7) +
+  labs(title = "疾病进展分布", x = "疾病进展指标", y = "频数") +
+  theme_minimal()
+
+# 疾病进展与关键变量的关系
+p2 <- ggplot(diabetes_data, aes(x = bmi, y = target)) +
+  geom_point(alpha = 0.6, color = "darkred") +
+  geom_smooth(method = "lm", color = "blue") +
+  labs(title = "BMI与疾病进展关系", x = "BMI", y = "疾病进展") +
+  theme_minimal()
+
+p3 <- ggplot(diabetes_data, aes(x = ltg, y = target)) +
+  geom_point(alpha = 0.6, color = "darkgreen") +
+  geom_smooth(method = "loess", color = "red") +
+  labs(title = "稳定血糖与疾病进展", x = "稳定血糖", y = "疾病进展") +
+  theme_minimal()
+
+p4 <- ggplot(diabetes_data, aes(x = age, y = target)) +
+  geom_point(alpha = 0.6, color = "purple") +
+  geom_smooth(method = "lm", color = "orange") +
+  labs(title = "年龄与疾病进展关系", x = "年龄", y = "疾病进展") +
+  theme_minimal()
+
+# 组合图形
+grid.arrange(p1, p2, p3, p4, ncol = 2)
+
+# 相关性热图
+cor_matrix <- cor(diabetes_data)
+corrplot(cor_matrix, method = "color", type = "upper", 
+         order = "hclust", tl.cex = 0.7, tl.col = "black",
+         title = "变量相关性热图")
+```
+
+创建mlr3任务和数据预处理
+
+```{r}
+# 创建mlr3任务和数据预处理
+
+# 创建回归任务
+task_diabetes <- as_task_regr(diabetes_data, target = "target", id = "diabetes")
+
+# 查看任务信息
+cat("任务信息:\n")
+print(task_diabetes)
+
+# 数据预处理管道
+preprocess_pipeline <- po("scale") %>>% 
+  po("colapply", applicator = as.numeric)
+
+# 应用预处理
+task_preprocessed <- preprocess_pipeline$train(task_diabetes)[[1]]
+
+cat("\n预处理后的任务信息:\n")
+print(task_preprocessed)
+```
+
+模型训练与比较
+
+```{r}
+# 模型训练与比较 - mlr3
+
+# 定义学习器
+learners <- list(
+  lrn("regr.lm", id = "linear_regression"),
+  lrn("regr.ranger", id = "random_forest"),
+  lrn("regr.xgboost", id = "xgboost"),
+  lrn("regr.svm", id = "svm"),
+  lrn("regr.kknn", id = "knn")
+)
+
+# 设置交叉验证
+resampling <- rsmp("cv", folds = 5)
+
+# 基准测试
+design <- benchmark_grid(
+  tasks = task_preprocessed,
+  learners = learners,
+  resamplings = resampling
+)
+
+bmr <- benchmark(design)
+
+# 性能评估
+cat("模型性能比较:\n")
+performance_measures <- msrs(c("regr.mse", "regr.rmse", "regr.mae", "regr.rsq"))
+bmr_aggregated <- bmr$aggregate(performance_measures)
+
+# 格式化输出结果
+results_r <- bmr_aggregated[, .(
+  Model = learner_id,
+  RMSE = regr.rmse,
+  MSE = regr.mse,
+  MAE = regr.mae,
+  R2 = regr.rsq
+)]
+
+print(results_r[order(RMSE)])
+
+# 性能可视化
+ggplot(results_r, aes(x = reorder(Model, RMSE), y = RMSE)) +
+  geom_bar(stat = "identity", fill = "steelblue", alpha = 0.7) +
+  labs(title = "模型性能比较 (RMSE) - R/mlr3", x = "模型", y = "RMSE") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+超参数调优
+
+```{r}
+# 超参数调优示例 - 随机森林
+
+# 定义随机森林学习器
+learner_rf_tune <- lrn("regr.ranger", num.trees = 100)
+
+# 定义超参数空间
+param_set <- ps(
+  mtry = p_int(lower = 2, upper = ncol(diabetes_data) - 1),
+  min.node.size = p_int(lower = 1, upper = 10),
+  sample.fraction = p_dbl(lower = 0.6, upper = 0.9)
+)
+
+# 定义调优器
+tuner <- tnr("grid_search", resolution = 5)
+terminator <- trm("evals", n_evals = 10)
+
+# 自动调优
+at <- auto_tuner(
+  tuner = tuner,
+  learner = learner_rf_tune,
+  resampling = rsmp("holdout"),
+  measure = msr("regr.rmse"),
+  search_space = param_set,
+  terminator = terminator
+)
+
+# 在数据上演示调优
+set.seed(123)
+at$train(task_preprocessed)
+
+cat("最佳参数:\n")
+print(at$tuning_result)
+
+# 使用调优后的模型进行预测
+predictions_tuned <- at$predict(task_preprocessed)
+cat("调优完成\n")
+cat("调优后模型RMSE:", predictions_tuned$score(msr("regr.rmse")), "\n")
+```
+
+模型解释
+
+```{r}
+# 模型解释 - 特征重要性
+
+# 训练最佳模型（随机森林）
+set.seed(123)
+learner_best <- lrn("regr.ranger", importance = "permutation")
+learner_best$train(task_preprocessed)
+
+# 特征重要性
+if (!is.null(learner_best$importance)) {
+  feature_importance <- learner_best$importance()
+  importance_df <- data.frame(
+    Feature = names(feature_importance),
+    Importance = as.numeric(feature_importance)
+  )
+  importance_df <- importance_df[order(-importance_df$Importance), ]
+  
+  cat("特征重要性排序:\n")
+  print(importance_df)
+  
+  # 可视化特征重要性
+  ggplot(head(importance_df, 8), aes(x = reorder(Feature, Importance), y = Importance)) +
+    geom_bar(stat = "identity", fill = "darkorange", alpha = 0.7) +
+    labs(title = "特征重要性 - 随机森林", x = "特征", y = "重要性") +
+    coord_flip() +
+    theme_minimal()
+} else {
+  cat("该学习器不支持特征重要性计算\n")
+}
+```
+
+模型预测与残差分析
+
+```{r}
+# 模型预测与残差分析
+
+# 使用最佳模型进行预测
+predictions <- learner_best$predict(task_preprocessed)
+
+# 创建预测结果数据框
+results_df <- data.frame(
+  Actual = predictions$truth,
+  Predicted = predictions$response,
+  Residual = predictions$truth - predictions$response
+)
+
+# 预测 vs 实际值图
+p1 <- ggplot(results_df, aes(x = Actual, y = Predicted)) +
+  geom_point(alpha = 0.6, color = "steelblue") +
+  geom_abline(slope = 1, intercept = 0, color = "red", linetype = "dashed") +
+  labs(title = "预测值 vs 实际值", x = "实际值", y = "预测值") +
+  theme_minimal()
+
+# 残差图
+p2 <- ggplot(results_df, aes(x = Predicted, y = Residual)) +
+  geom_point(alpha = 0.6, color = "darkred") +
+  geom_hline(yintercept = 0, color = "red", linetype = "dashed") +
+  labs(title = "残差分析", x = "预测值", y = "残差") +
+  theme_minimal()
+
+grid.arrange(p1, p2, ncol = 2)
+```
+
+## 12.2 Python (sklearn框架)--回归
+
+数据加载与探索
+
+```{python}
+# 综合案例：糖尿病进展预测 - Python语言实现 (sklearn框架)
+
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+from sklearn.datasets import load_diabetes
+from sklearn.model_selection import train_test_split, cross_val_score, GridSearchCV
+from sklearn.preprocessing import StandardScaler
+from sklearn.linear_model import LinearRegression, Ridge, Lasso
+from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor
+from sklearn.svm import SVR
+from sklearn.neighbors import KNeighborsRegressor
+from sklearn.metrics import mean_squared_error, r2_score, mean_absolute_error
+from sklearn.inspection import permutation_importance
+import warnings
+warnings.filterwarnings('ignore')
+
+# 设置图形样式
+plt.style.use('default')
+sns.set_palette("husl")
+
+# 加载糖尿病数据集
+diabetes = load_diabetes()
+X = pd.DataFrame(diabetes.data, columns=diabetes.feature_names)
+y = pd.Series(diabetes.target, name='target')
+diabetes_data = pd.concat([X, y], axis=1)
+
+print("数据集基本信息:")
+print(f"样本数: {diabetes_data.shape[0]}")
+print(f"变量数: {diabetes_data.shape[1]}")
+print("\n变量名称:")
+print(diabetes_data.columns.tolist())
+
+print("\n数据概览:")
+print(diabetes_data.describe())
+
+print("\n缺失值检查:")
+print(diabetes_data.isnull().sum())
+```
+
+数据可视化分析
+
+```{python}
+# 数据可视化分析 - Python
+
+fig, axes = plt.subplots(2, 2, figsize=(15, 12))
+
+# 目标变量分布
+axes[0,0].hist(diabetes_data['target'], bins=30, color='steelblue', alpha=0.7)
+axes[0,0].set_title('疾病进展分布')
+axes[0,0].set_xlabel('疾病进展指标')
+axes[0,0].set_ylabel('频数')
+
+# 疾病进展与关键变量的关系
+axes[0,1].scatter(diabetes_data['bmi'], diabetes_data['target'], alpha=0.6, color='darkred')
+z = np.polyfit(diabetes_data['bmi'], diabetes_data['target'], 1)
+p = np.poly1d(z)
+axes[0,1].plot(diabetes_data['bmi'], p(diabetes_data['bmi']), "b-", alpha=0.8)
+axes[0,1].set_title('BMI与疾病进展关系')
+axes[0,1].set_xlabel('BMI')
+axes[0,1].set_ylabel('疾病进展')
+
+axes[1,0].scatter(diabetes_data['s5'], diabetes_data['target'], alpha=0.6, color='darkgreen')
+z = np.polyfit(diabetes_data['s5'], diabetes_data['target'], 1)
+p = np.poly1d(z)
+axes[1,0].plot(diabetes_data['s5'], p(diabetes_data['s5']), "r-", alpha=0.8)
+axes[1,0].set_title('稳定血糖与疾病进展')
+axes[1,0].set_xlabel('稳定血糖')
+axes[1,0].set_ylabel('疾病进展')
+
+axes[1,1].scatter(diabetes_data['age'], diabetes_data['target'], alpha=0.6, color='purple')
+z = np.polyfit(diabetes_data['age'], diabetes_data['target'], 1)
+p = np.poly1d(z)
+axes[1,1].plot(diabetes_data['age'], p(diabetes_data['age']), "orange", alpha=0.8)
+axes[1,1].set_title('年龄与疾病进展关系')
+axes[1,1].set_xlabel('年龄')
+axes[1,1].set_ylabel('疾病进展')
+
+plt.tight_layout()
+plt.show()
+
+# 相关性热图
+plt.figure(figsize=(12, 10))
+corr_matrix = diabetes_data.corr()
+sns.heatmap(corr_matrix, annot=True, cmap='coolwarm', center=0,
+            square=True, linewidths=0.5, cbar_kws={"shrink": 0.8}, fmt='.2f')
+plt.title('变量相关性热图 - Python/sklearn')
+plt.tight_layout()
+plt.show()
+```
+
+数据预处理
+
+```{python}
+# 数据预处理 - Python
+
+# 准备特征和目标变量
+X = diabetes_data.drop('target', axis=1)
+y = diabetes_data['target']
+
+# 数据划分
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
+
+print(f"训练集大小: {X_train.shape[0]}")
+print(f"测试集大小: {X_test.shape[0]}")
+
+# 数据标准化
+scaler = StandardScaler()
+X_train_scaled = scaler.fit_transform(X_train)
+X_test_scaled = scaler.transform(X_test)
+
+print("数据预处理完成")
+```
+
+模型训练与比较
+
+```{python}
+# 模型训练与比较 - sklearn
+
+# 定义模型字典
+models = {
+    'Linear Regression': LinearRegression(),
+    'Ridge Regression': Ridge(alpha=1.0),
+    'Lasso Regression': Lasso(alpha=0.1),
+    'Random Forest': RandomForestRegressor(n_estimators=100, random_state=42),
+    'Gradient Boosting': GradientBoostingRegressor(n_estimators=100, random_state=42),
+    'Support Vector Regression': SVR(kernel='rbf', C=1.0),
+    'K-Neighbors': KNeighborsRegressor(n_neighbors=5)
+}
+
+# 训练和评估模型
+results = []
+
+for name, model in models.items():
+    # 训练模型
+    model.fit(X_train_scaled, y_train)
+    
+    # 预测
+    y_pred = model.predict(X_test_scaled)
+    
+    # 计算评估指标
+    mse = mean_squared_error(y_test, y_pred)
+    rmse = np.sqrt(mse)
+    mae = mean_absolute_error(y_test, y_pred)
+    r2 = r2_score(y_test, y_pred)
+    
+    # 交叉验证
+    cv_scores = cross_val_score(model, X_train_scaled, y_train, cv=5, scoring='neg_mean_squared_error')
+    cv_rmse = np.sqrt(-cv_scores.mean())
+    
+    results.append({
+        'Model': name,
+        'RMSE': rmse,
+        'MSE': mse,
+        'MAE': mae,
+        'R2': r2,
+        'CV_RMSE': cv_rmse
+    })
+
+# 创建结果DataFrame
+results_python = pd.DataFrame(results)
+print("模型性能比较 - Python/sklearn:")
+print(results_python.sort_values('RMSE'))
+
+# 可视化模型比较
+fig, axes = plt.subplots(1, 2, figsize=(15, 6))
+
+# RMSE比较
+models_sorted = results_python.sort_values('RMSE')
+axes[0].barh(models_sorted['Model'], models_sorted['RMSE'], color='lightcoral')
+axes[0].set_xlabel('RMSE')
+axes[0].set_title('模型RMSE比较 - Python/sklearn')
+axes[0].grid(axis='x', alpha=0.3)
+
+# R²比较
+axes[1].barh(models_sorted['Model'], models_sorted['R2'], color='lightseagreen')
+axes[1].set_xlabel('R²')
+axes[1].set_title('模型R²比较 - Python/sklearn')
+axes[1].grid(axis='x', alpha=0.3)
+
+plt.tight_layout()
+plt.show()
+```
+
+超参数调优
+
+```{python}
+# 超参数调优示例 - 随机森林
+
+# 定义参数网格
+param_grid = {
+    'n_estimators': [50, 100, 200],
+    'max_depth': [5, 10, 15],
+    'min_samples_split': [2, 5, 10],
+    'min_samples_leaf': [1, 2, 4]
+}
+
+# 使用网格搜索
+rf = RandomForestRegressor(random_state=42)
+grid_search = GridSearchCV(rf, param_grid, cv=3, scoring='neg_mean_squared_error', 
+                          n_jobs=-1, verbose=1)
+
+print("开始超参数调优...")
+grid_search.fit(X_train_scaled, y_train)
+
+print("最佳参数:")
+print(grid_search.best_params_)
+print(f"最佳分数: {-grid_search.best_score_:.4f}")
+
+# 使用最佳参数训练最终模型
+best_rf = grid_search.best_estimator_
+y_pred_best = best_rf.predict(X_test_scaled)
+best_rmse = np.sqrt(mean_squared_error(y_test, y_pred_best))
+print(f"调优后测试集RMSE: {best_rmse:.4f}")
+```
+
+模型解释
+
+```{python}
+# 模型解释 - 特征重要性
+
+# 使用最佳随机森林模型
+feature_importance = best_rf.feature_importances_
+feature_names = X.columns
+
+# 创建特征重要性DataFrame
+importance_df = pd.DataFrame({
+    'Feature': feature_names,
+    'Importance': feature_importance
+}).sort_values('Importance', ascending=False)
+
+print("特征重要性排序 - Python/sklearn:")
+print(importance_df)
+
+# 可视化特征重要性
+plt.figure(figsize=(10, 6))
+sns.barplot(data=importance_df, x='Importance', y='Feature', palette='viridis')
+plt.title('特征重要性 - 随机森林 (Python/sklearn)')
+plt.xlabel('重要性')
+plt.tight_layout()
+plt.show()
+
+# 排列重要性
+perm_importance = permutation_importance(best_rf, X_test_scaled, y_test, 
+                                        n_repeats=10, random_state=42)
+
+perm_importance_df = pd.DataFrame({
+    'Feature': feature_names,
+    'Importance': perm_importance.importances_mean
+}).sort_values('Importance', ascending=False)
+
+print("\n排列特征重要性:")
+print(perm_importance_df)
+
+# 可视化排列重要性
+plt.figure(figsize=(10, 6))
+sns.barplot(data=perm_importance_df, x='Importance', y='Feature', palette='rocket')
+plt.title('排列特征重要性 - 随机森林 (Python/sklearn)')
+plt.xlabel('重要性')
+plt.tight_layout()
+plt.show()
+```
+
+模型预测与残差分析
+
+```{python}
+# 模型预测与残差分析
+
+# 使用最佳模型进行预测
+y_pred = best_rf.predict(X_test_scaled)
+residuals = y_test - y_pred
+
+# 创建预测结果数据框
+results_df = pd.DataFrame({
+    'Actual': y_test,
+    'Predicted': y_pred,
+    'Residual': residuals
+})
+
+# 预测 vs 实际值图
+fig, axes = plt.subplots(1, 2, figsize=(15, 6))
+
+axes[0].scatter(results_df['Actual'], results_df['Predicted'], alpha=0.6, color='steelblue')
+axes[0].plot([results_df['Actual'].min(), results_df['Actual'].max()], 
+            [results_df['Actual'].min(), results_df['Actual'].max()], 
+            'r--', lw=2)
+axes[0].set_xlabel('实际值')
+axes[0].set_ylabel('预测值')
+axes[0].set_title('预测值 vs 实际值')
+axes[0].grid(alpha=0.3)
+
+# 残差图
+axes[1].scatter(results_df['Predicted'], results_df['Residual'], alpha=0.6, color='darkred')
+axes[1].axhline(y=0, color='r', linestyle='--')
+axes[1].set_xlabel('预测值')
+axes[1].set_ylabel('残差')
+axes[1].set_title('残差分析')
+axes[1].grid(alpha=0.3)
+
+plt.tight_layout()
+plt.show()
+```
+
+## 12.3 案例总结与最佳实践
+
+关键发现
+
+```{r}
+# 案例总结 - R语言
+cat("=== 糖尿病进展预测案例总结 ===\n")
+cat("1. 数据特征:\n")
+cat("   - 数据集包含", nrow(diabetes_data), "个样本，", ncol(diabetes_data)-1, "个特征\n")
+cat("   - 目标变量: 疾病进展指标\n")
+cat("   - 最重要的特征: bmi, s5(稳定血糖), bp(血压)\n\n")
+
+cat("2. 模型性能比较:\n")
+print(results_r[order(RMSE)])
+
+cat("\n3. 最佳实践:\n")
+cat("   - 树模型在医疗数据上表现优异\n")
+cat("   - 特征标准化对模型性能至关重要\n")
+cat("   - 超参数调优可以显著提升模型性能\n")
+cat("   - 模型解释性在医疗领域尤为重要\n")
+```
+
+```{python}
+# 案例总结 - Python
+print("=== 糖尿病进展预测案例总结 ===")
+print("1. 数据特征:")
+print(f"   - 数据集包含 {diabetes_data.shape[0]} 个样本，{diabetes_data.shape[1]-1} 个特征")
+print("   - 目标变量: 疾病进展指标")
+print("   - 最重要的特征: bmi, s5, bp\n")
+
+print("2. 模型性能比较:")
+print(results_python[['Model', 'RMSE', 'R2']].sort_values('RMSE').to_string(index=False))
+
+print("\n3. 最佳实践:")
+print("   - 集成学习方法在回归问题上表现稳定")
+print("   - 数据预处理对模型性能影响显著")
+print("   - 交叉验证提供更可靠的性能估计")
+print("   - 特征重要性分析增强模型可解释性")
+```
+
+技术要点回顾
+
+**数据预处理**： - 特征标准化：确保不同尺度的特征具有可比性 - 缺失值处理：根据数据特性选择合适的填充策略 - 特征工程：创建有意义的衍生特征
+
+**模型选择**： - 线性模型：可解释性强，计算效率高 - 树模型：自动处理非线性关系，对异常值稳健 - 集成方法：通过模型组合提升预测性能
+
+**模型评估**： - 使用多个评估指标（RMSE, MAE, R²） - 交叉验证提供稳健的性能估计 - 测试集用于最终模型评估
+
+**模型优化**： - 超参数调优：网格搜索、随机搜索 - 特征选择：基于重要性或递归消除 - 集成策略：Bagging, Boosting, Stacking
+
+业务应用建议
+
+1.  **医疗诊断**：使用训练好的模型对患者疾病进展进行预测
+2.  **治疗方案制定**：识别影响疾病进展的关键因素，指导治疗策略
+3.  **患者管理**：理解生理指标对疾病的影响，支持患者管理
+4.  **风险评估**：监测疾病进展风险，预警健康问题
+
+通过本回归案例，我们展示了从数据探索到模型部署的完整预测建模流程，为读者在实际工作中应用机器学习方法提供了完整的参考框架。

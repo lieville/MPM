@@ -1,0 +1,235 @@
+---
+title: "基准测试"
+author: "李老师"
+editor: visual
+---
+
+## 11.1 mlr3中的Benchmark分析
+
+mlr3提供了强大的Benchmark功能，可以系统性地比较多个学习器在多个任务上的性能。
+
+```{r}
+library(mlr3)
+library(mlr3verse)
+library(mlr3pipelines)
+library(mlr3tuning)
+library(data.table)
+library(ggplot2)
+library(corrplot)
+library(gridExtra)
+library(patchwork)
+library(paradox)
+# 查看mlr包支持的学习算法
+mlr_learners
+```
+
+加载数据，建立任务
+
+```{r}
+# 创建多个任务（不同特征子集）
+data("Ionosphere", package = "mlbench")
+Ionosphere_data <- as.data.table(Ionosphere)
+Ionosphere_data=Ionosphere_data[, -c(1, 2)]
+str(Ionosphere_data )
+cat("\n缺失值检查:\n")
+missing_counts <- colSums(is.na(Ionosphere_data))
+print(missing_counts)
+
+data("Sonar", package = "mlbench")
+sonar_data <- as.data.table(Sonar)
+cat("\n缺失值检查:\n")
+missing_sonar <- colSums(is.na(sonar_data)) 
+print(missing_sonar)
+str(sonar_data)
+
+task_Ionosphere <- as_task_classif(Ionosphere_data, target = "Class", id = "Ionosphere")
+
+task_sonar <- as_task_classif(sonar_data, target = "Class", id = "sonar")
+
+tasks = list(task_Ionosphere, task_sonar)
+```
+
+```{r}
+# 定义学习器
+learners_extended <- list(
+  lrn("classif.ranger", id = "random_forest", predict_type = "prob"),
+  lrn("classif.xgboost", id = "xgboost", predict_type = "prob"),
+  lrn("classif.svm", id = "svm", predict_type = "prob"),
+  lrn("classif.kknn", id = "knn", predict_type = "prob"),
+  lrn("classif.naive_bayes", id = "naive_bayes", predict_type = "prob"),
+  lrn("classif.rpart", id = "decision_tree", predict_type = "prob")
+)
+
+# 设置不同的重采样策略
+resamplings <- list(
+  cv5 = rsmp("cv", folds = 5),
+  cv10 = rsmp("cv", folds = 10),
+  holdout = rsmp("holdout", ratio = 0.7),
+  bootstrap = rsmp("bootstrap", repeats = 5)
+)
+
+# 创建Benchmark设计
+design_extended <- benchmark_grid(
+  tasks = tasks,
+  learners = learners_extended,
+  resamplings = resamplings[1]  # 使用5折交叉验证以节省时间
+)
+
+# 执行Benchmark
+cat("开始扩展Benchmark分析...\n")
+bmr_extended <- benchmark(design_extended, store_models = TRUE)
+
+# 性能汇总
+cat("\n=== Benchmark性能汇总 ===\n")
+measures_all <- msrs(c("classif.acc", "classif.auc", "classif.bacc", "classif.ce"))
+bmr_results <- bmr_extended$aggregate(measures_all)
+
+# 格式化结果
+results_detailed <- bmr_results[, .(
+  Task = task_id,
+  Model = learner_id,
+  Resampling = resampling_id,
+  Accuracy = classif.acc,
+  AUC = classif.auc,
+  Balanced_Accuracy = classif.bacc,
+  LogLoss = classif.ce
+)]
+
+print(results_detailed[order(Task, -Accuracy)])
+
+# 按任务分组统计
+cat("\n=== 按任务分组的性能统计 ===\n")
+task_stats <- results_detailed[, .(
+  Mean_Accuracy = mean(Accuracy),
+  Std_Accuracy = sd(Accuracy),
+  Best_Model = .SD[which.max(Accuracy)]$Model,
+  Best_Accuracy = max(Accuracy)
+), by = Task]
+
+print(task_stats)
+```
+
+Benchmark结果可视化
+
+```{r}
+# Benchmark结果可视化
+
+# 1. 按任务和模型的准确率热图
+accuracy_matrix <- dcast(results_detailed, Model ~ Task, value.var = "Accuracy")
+print("准确率矩阵:")
+print(accuracy_matrix)
+
+# 可视化热图
+heatmap_data <- as.matrix(accuracy_matrix[, -1])
+rownames(heatmap_data) <- accuracy_matrix$Model
+
+library(reshape2)
+heatmap_df <- melt(accuracy_matrix, id.vars = "Model", 
+                   variable.name = "Task", value.name = "Accuracy")
+
+p1 <- ggplot(heatmap_df, aes(x = Task, y = Model, fill = Accuracy)) +
+  geom_tile(color = "white") +
+  geom_text(aes(label = round(Accuracy, 3)), color = "black", size = 3) +
+  scale_fill_gradient2(low = "red", mid = "white", high = "blue", midpoint = 0.9) +
+  labs(title = "模型在不同任务上的准确率热图", 
+       x = "任务", y = "模型") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+# 2. 模型性能比较箱线图
+p2 <- ggplot(results_detailed, aes(x = reorder(Model, Accuracy), y = Accuracy, fill = Model)) +
+  geom_boxplot(alpha = 0.7) +
+  geom_jitter(width = 0.2, alpha = 0.5) +
+  labs(title = "模型性能分布", x = "模型", y = "准确率") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1),
+        legend.position = "none") +
+  coord_flip()
+
+# 3. 任务性能比较
+p3 <- ggplot(results_detailed, aes(x = Task, y = Accuracy, fill = Task)) +
+  geom_boxplot(alpha = 0.7) +
+  labs(title = "不同任务的性能比较", x = "任务", y = "准确率") +
+  theme_minimal() +
+  theme(legend.position = "none")
+
+# 组合图形
+library(patchwork)
+(p1) / (p2 | p3)
+```
+
+统计显著性检验
+
+```{r}
+# 统计显著性检验
+
+# 提取所有resample结果的预测
+predictions_all <- bmr_extended$score()
+
+# 查看提取的结果结构
+str(predictions_all, max.level = 1)
+
+# 提取具体的预测对象
+predictions_list <- predictions_all$prediction
+
+# Friedman检验 - 比较多个模型的性能
+if (requireNamespace("scmamp", quietly = TRUE)) {
+  library(scmamp)
+  
+  # 准备数据用于Friedman检验
+  accuracy_matrix <- dcast(results_detailed, Task ~ Model, value.var = "Accuracy")
+  accuracy_data <- as.matrix(accuracy_matrix[, -1])
+  
+  cat("\n=== Friedman检验 ===\n")
+  friedman_test <- friedmanTest(accuracy_data)
+  print(friedman_test)
+  
+  if (friedman_test$p.value < 0.05) {
+    cat("模型间存在显著差异，进行事后检验...\n")
+    
+    # Nemenyi事后检验
+    nemenyi_test <- nemenyiTest(accuracy_data)
+    print(nemenyi_test)
+    
+    # 可视化CD图
+    plotCD(accuracy_data, alpha = 0.05)
+  } else {
+    cat("模型间无显著差异\n")
+  }
+} else {
+  cat("scmamp包未安装，跳过统计检验\n")
+}
+
+# 简单的成对t检验
+cat("\n=== 最佳模型 vs 其他模型的成对t检验 ===\n")
+best_model <- results_detailed[which.max(Accuracy)]$Model
+best_accuracies <- results_detailed[Model == best_model]$Accuracy
+
+for (model in unique(results_detailed$Model)) {
+  if (model != best_model) {
+    model_accuracies <- results_detailed[Model == model]$Accuracy
+    t_test <- t.test(best_accuracies, model_accuracies, paired = TRUE)
+    cat(sprintf("%s vs %s: p-value = %.4f\n", best_model, model, t_test$p.value))
+  }
+}
+```
+
+## 11.2 Benchmark分析总结
+
+mlr3 Benchmark优势
+
+1.  **统一的接口**：`benchmark()`函数提供统一的Benchmark接口
+2.  **灵活的设计**：支持多个任务、学习器、重采样策略的组合
+3.  **内置存储**：可以存储模型和预测结果用于后续分析
+4.  **丰富的结果**：自动计算多个评估指标
+5.  **统计检验**：内置Friedman检验等统计方法
+
+最佳实践建议
+
+1.  **系统化比较**：在项目初期进行全面的Benchmark分析
+2.  **多维度评估**：考虑准确率、训练时间、可解释性等多个维度
+3.  **统计验证**：使用统计检验验证性能差异的显著性
+4.  **业务导向**：根据具体业务需求选择最适合的模型
+5.  **可重复性**：设置随机种子确保结果可重复
+
+这样的Benchmark分析为模型选择提供了科学依据，确保选择的模型不仅在测试集上表现好，而且具有统计显著性。
