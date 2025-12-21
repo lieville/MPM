@@ -1,0 +1,316 @@
+---
+title: "3 模型诊断"
+format: html
+editor: visual
+---
+
+## 本章导读
+
+回归诊断是统计学中的重要环节，它关注的是回归模型是否满足基本假设、模型拟合是否合理以及是否存在异常情况。一个良好的回归模型不仅需要拟合数据，更重要的是要满足统计推断的基本前提条件。本章将系统介绍回归诊断的理论框架、方法与技术，重点探讨残差分析在模型检验中的应用，以及如何处理常见的模型违背问题，如异方差性、异常值和强影响点等。通过本章学习，读者将掌握评估和改进回归模型有效性的系统性方法，为实际数据分析奠定坚实基础。
+
+## 3.1 诊断概述
+
+### 3.1.1 目的与意义
+
+回归诊断的主要目的在于验证线性回归模型的基本假设是否成立，识别可能存在的问题，并提出相应的修正策略。其重要意义体现在：
+
+1.  **保障统计推断的有效性**：当模型假设（如正态性、同方差性、独立性）不成立时，基于最小二乘估计的统计推断（假设检验、置信区间）可能失效。
+2.  **提升模型预测精度**：通过诊断识别异常值、强影响点等，可以改善模型的预测性能。
+3.  **深入理解数据结构**：诊断过程有助于发现数据中的特殊模式、结构变化或测量误差。
+4.  **模型改进与选择**：为模型修正（如变换变量、加权回归等）提供依据。
+
+### 3.1.2 基本假设回顾
+
+经典线性回归模型的基本假设包括：
+
+**线性性假设**：因变量$Y$与自变量$X_1, X_2, \ldots, X_p$之间存在线性关系： $$
+Y = \beta_0 + \beta_1 X_1 + \beta_2 X_2 + \cdots + \beta_p X_p + \varepsilon
+$$
+
+**独立性假设**：随机误差项$\varepsilon_i$相互独立： $$
+\text{Cov}(\varepsilon_i, \varepsilon_j) = 0, \quad i \neq j
+$$
+
+**同方差性假设**：误差项的方差恒定： $$
+\text{Var}(\varepsilon_i) = \sigma^2, \quad i = 1, 2, \ldots, n
+$$
+
+**正态性假设**：误差项服从正态分布： $$
+\varepsilon_i \sim N(0, \sigma^2)
+$$
+
+**无多重共线性**：自变量之间不存在完全线性相关关系。
+
+### 3.1.3 诊断内容框架
+
+完整的回归诊断框架包含以下层次：
+
+1.  **残差分析**：检查残差的分布、随机性和方差齐性
+2.  **影响分析**：识别异常值和强影响点
+3.  **模型设定检验**：验证函数形式、变量选择等
+4.  **多重共线性诊断**：检查自变量间的相关性
+5.  **修正策略**：针对诊断问题提出解决方案
+
+## 3.2 残差及其标准化形式
+
+### 3.2.1 普通残差
+
+对于线性回归模型： $$
+\mathbf{y} = \mathbf{X}\pmb{\beta} + \pmb{\varepsilon}
+$$
+
+普通残差（Ordinary Residuals）定义为观测值与拟合值之差： $$
+\mathbf{e} = \mathbf{y} - \hat{\mathbf{y}} = \mathbf{y} - \mathbf{X}\hat{\pmb{\beta}}
+$$
+
+其中$\hat{\pmb{\beta}} = (\mathbf{X}^T\mathbf{X})^{-1}\mathbf{X}^T\mathbf{y}$是最小二乘估计量。
+
+残差向量$\mathbf{e}$的性质： 1. $\mathbb{E}(\mathbf{e}) = \mathbf{0}$ 2. $\text{Var}(\mathbf{e}) = \sigma^2(\mathbf{I} - \mathbf{H})$ 3. $\sum_{i=1}^n e_i = 0$（当模型包含截距项时） 4. $\mathbf{X}^T\mathbf{e} = \mathbf{0}$（正交性）
+
+其中$\mathbf{H} = \mathbf{X}(\mathbf{X}^T\mathbf{X})^{-1}\mathbf{X}^T$是帽子矩阵（Hat Matrix）。
+
+### 3.2.2 标准化残差
+
+标准化残差（Standardized Residuals）通过将普通残差除以其标准差估计值得到： $$
+r_i = \frac{e_i}{\hat{\sigma}\sqrt{1 - h_{ii}}}
+$$
+
+其中： - $\hat{\sigma} = \sqrt{\frac{1}{n-p-1}\sum_{i=1}^n e_i^2}$是误差标准差的无偏估计 - $h_{ii}$是帽子矩阵$\mathbf{H}$的第$i$个对角元素（杠杆值）
+
+推导过程： $$
+\text{Var}(e_i) = \text{Var}(y_i - \hat{y}_i) = \sigma^2(1 - h_{ii})
+$$
+
+由于$\mathbb{E}(e_i) = 0$，标准化后近似有$r_i \sim N(0, 1)$。
+
+### 3.2.3 学生化残差
+
+学生化残差（Studentized Residuals）或称删除残差（Deleted Residuals）定义为： $$
+t_i = \frac{e_i}{\hat{\sigma}_{(i)}\sqrt{1 - h_{ii}}}
+$$
+
+其中$\hat{\sigma}_{(i)}$是删除第$i$个观测后重新拟合模型得到的$\sigma$的估计值。
+
+计算方法： $$
+\hat{\sigma}_{(i)}^2 = \frac{(n-p-1)\hat{\sigma}^2 - e_i^2/(1-h_{ii})}{n-p-2}
+$$
+
+学生化残差更精确的性质：$t_i \sim t_{n-p-2}$，可用于假设检验。
+
+理论推导： 设$e_{(i)}$为删除第$i$个观测后的残差，可以证明： $$
+e_i = \frac{e_{(i)}}{1 - h_{ii}}
+$$ 且 $$
+\text{Var}(e_{(i)}) = \sigma_{(i)}^2[1 - \mathbf{x}_i^T(\mathbf{X}_{(i)}^T\mathbf{X}_{(i)})^{-1}\mathbf{x}_i]
+$$
+
+## 3.3 图形诊断法
+
+### 3.3.1 残差图分析
+
+**残差 vs 拟合值图**（Residuals vs Fitted Plot） - 目的：检查线性性、同方差性 - 理想情况：残差随机分布在0附近，无明显模式 - 异常模式： 1. 漏斗形：异方差 2. 曲线形：非线性关系 3. 离群点：异常值
+
+**正态Q-Q图**（Normal Quantile-Quantile Plot） - 目的：检验误差正态性 - 构造：将排序后的标准化残差与理论正态分位数对比 - 判断：点应近似落在对角线上 - 常见偏离： 1. S形曲线：重尾或轻尾分布 2. C形曲线：偏态分布
+
+**尺度-位置图**（Scale-Location Plot） - 目的：检验同方差性 - 纵轴：$\sqrt{|标准化残差|}$ - 横轴：拟合值 - 判断：水平趋势表示方差恒定，倾斜趋势表示异方差
+
+**残差 vs 杠杆图**（Residuals vs Leverage Plot） - 目的：识别强影响点 - 纵轴：学生化残差 - 横轴：杠杆值$h_{ii}$ - 添加Cook距离的等高线
+
+### 3.3.2 常用诊断图形
+
+**偏残差图**（Partial Residual Plot） 显示每个自变量与因变量的偏关系： $$
+e^{(j)}_i = e_i + \hat{\beta}_j x_{ij}
+$$ 用于检验每个自变量的函数形式。
+
+**添加变量图**（Added-Variable Plot） 展示在控制其他变量后，某个自变量与因变量的关系。
+
+**Cook距离图** 显示每个观测对回归系数估计的影响大小： $$
+D_i = \frac{r_i^2}{p+1} \cdot \frac{h_{ii}}{1-h_{ii}}
+$$ 经验准则：$D_i > 1$或$D_i > 4/(n-p-1)$需关注。
+
+## 3.4 异常值与强影响点
+
+### 3.4.1 识别方法
+
+**异常值**（Outlier）：指$y$方向上的离群观测，残差绝对值异常大。
+
+**统计检验方法**： 1. **标准化残差法**：$|r_i| > 2$或$|r_i| > 3$ 2. **学生化残差法**：$|t_i| > t_{n-p-2}(1-\alpha/2n)$（Bonferroni校正） 3. **外学生化残差**： $$
+   t_i^* = \frac{e_i}{\hat{\sigma}\sqrt{1-h_{ii}}} \cdot \sqrt{\frac{n-p-2}{n-p-1-t_i^2}}
+   $$ 服从$t_{n-p-2}$分布
+
+**强影响点**（Influential Point）：对回归系数估计有较大影响的观测。
+
+**识别指标**： 1. **杠杆值**（Leverage）： $$
+   h_{ii} = \mathbf{x}_i^T(\mathbf{X}^T\mathbf{X})^{-1}\mathbf{x}_i
+   $$ 性质：$0 \leq h_{ii} \leq 1$，$\sum h_{ii} = p+1$ 经验法则：$h_{ii} > 2(p+1)/n$为高杠杆点
+
+2.  **DFFITS**： $$
+    \text{DFFITS}_i = \frac{\hat{y}_i - \hat{y}_{(i)}}{\hat{\sigma}_{(i)}\sqrt{h_{ii}}}
+    $$ 反映第$i$个观测对自身拟合值的影响 临界值：$2\sqrt{(p+1)/n}$
+
+3.  **DFBETAS**： $$
+    \text{DFBETAS}_{j(i)} = \frac{\hat{\beta}_j - \hat{\beta}_{j(i)}}{\hat{\sigma}_{(i)}\sqrt{c_{jj}}}
+    $$ 其中$c_{jj}$是$(\mathbf{X}^T\mathbf{X})^{-1}$的第$j$个对角元素 临界值：$2/\sqrt{n}$
+
+### 3.4.2 影响评估
+
+**Cook距离**：综合度量 $$
+D_i = \frac{(\hat{\pmb{\beta}} - \hat{\pmb{\beta}}_{(i)})^T(\mathbf{X}^T\mathbf{X})(\hat{\pmb{\beta}} - \hat{\pmb{\beta}}_{(i)})}{(p+1)\hat{\sigma}^2}
+$$
+
+等价形式： $$
+D_i = \frac{r_i^2}{p+1} \cdot \frac{h_{ii}}{1-h_{ii}}
+$$
+
+解释：衡量删除第$i$个观测后所有拟合值变化的平均程度。
+
+**协方差比**： $$
+\text{COVRATIO}_i = \frac{\det[\hat{\sigma}_{(i)}^2(\mathbf{X}_{(i)}^T\mathbf{X}_{(i)})^{-1}]}{\det[\hat{\sigma}^2(\mathbf{X}^T\mathbf{X})^{-1}]}
+$$
+
+近似：$\text{COVRATIO}_i \approx 1 + \frac{(p+1)h_{ii} - r_i^2}{n-p-1}$ 准则：$|\text{COVRATIO}_i - 1| > 3(p+1)/n$
+
+### 3.4.3 处理策略
+
+**诊断后的决策流程**：
+
+1.  **核实数据**：
+    -   检查数据录入错误
+    -   确认测量准确性
+    -   了解数据收集背景
+2.  **分析影响**：
+    -   区分异常值和强影响点
+    -   评估对结论的影响程度
+    -   进行敏感性分析
+3.  **处理方法**：
+    -   **保留**：若为合理变异且影响不大
+    -   **删除**：若确定为错误数据且无法修正
+    -   **变换**：使用Box-Cox变换、对数变换等
+    -   **稳健方法**：使用M估计、LMS、LTS等
+    -   **增加变量**：考虑遗漏的重要变量
+    -   **分段建模**：识别不同的数据生成机制
+4.  **报告原则**：
+    -   透明报告异常值情况
+    -   比较包含与不包含异常值的结果
+    -   说明处理依据和潜在影响
+
+## 3.5 异方差的检验
+
+### 3.5.1 图形检验法
+
+**残差 vs 拟合值图**的异方差识别： 1. **递增型异方差**：残差散点呈漏斗形（开口向右或向左） 2. **递减型异方差**：残差散点呈倒漏斗形 3. **复杂型异方差**：残差变异与拟合值有函数关系
+
+**等级相关检验的图形辅助**： 绘制$|e_i|$与$\hat{y}_i$的散点图，观察趋势。
+
+**偏残差图**的特殊应用： 当怀疑异方差与特定自变量相关时，绘制$|e_i|$与该自变量的散点图。
+
+### 3.5.2 统计检验法
+
+**Breusch-Pagan检验**（BP检验）： 1. 估计原模型：$y_i = \mathbf{x}_i^T\pmb{\beta} + \varepsilon_i$ 2. 计算残差平方：$u_i = e_i^2$ 3. 辅助回归：$u_i = \alpha_0 + \mathbf{z}_i^T\pmb{\alpha} + v_i$ 其中$\mathbf{z}_i$通常包含$\mathbf{x}_i$的函数 4. 检验统计量： $$
+   \text{BP} = \frac{1}{2}\mathbf{f}^T\mathbf{Z}(\mathbf{Z}^T\mathbf{Z})^{-1}\mathbf{Z}^T\mathbf{f} \sim \chi^2_q
+   $$ 其中$f_i = (e_i^2/\hat{\sigma}^2) - 1$，$q$为$\mathbf{Z}$的列数
+
+**White检验**（一般异方差检验）： 1. 辅助回归：$e_i^2 = \alpha_0 + \sum_{j=1}^p \alpha_j x_{ij} + \sum_{j=1}^p \sum_{k\geq j}^p \alpha_{jk} x_{ij}x_{ik} + v_i$ 2. 检验统计量：$nR^2 \sim \chi^2_{q}$，其中$q = p(p+3)/2$ 3. 特点：不预设异方差形式，但自由度较大
+
+**Goldfeld-Quandt检验**： 适用于方差与单一变量单调相关的情况。 1. 按可疑变量排序，去除中间$c$个观测（通常$c \approx n/4$） 2. 分别对前后两组回归，得残差平方和$SSR_1, SSR_2$ 3. 检验统计量： $$
+   F = \frac{SSR_2/(n_2 - p - 1)}{SSR_1/(n_1 - p - 1)} \sim F_{n_2-p-1, n_1-p-1}
+   $$
+
+**Park检验**： 假设$\sigma_i^2 = \sigma^2 \exp(\mathbf{z}_i^T\pmb{\gamma})$， 检验$\ln(e_i^2) = \ln(\sigma^2) + \mathbf{z}_i^T\pmb{\gamma} + \ln(v_i)$中的$\pmb{\gamma} = \mathbf{0}$
+
+**Glejser检验**： 用$|e_i|$对自变量进行各种函数形式的回归，检验显著性。
+
+## 3.6 异方差的修正
+
+### 3.6.1 稳健标准误法
+
+**White异方差一致协方差矩阵估计**： $$
+\hat{\text{Var}}_{HC0}(\hat{\pmb{\beta}}) = (\mathbf{X}^T\mathbf{X})^{-1}\left(\sum_{i=1}^n e_i^2\mathbf{x}_i\mathbf{x}_i^T\right)(\mathbf{X}^T\mathbf{X})^{-1}
+$$
+
+**改进版本**： 1. **HC1**（小样本修正）： $$
+   \hat{\text{Var}}_{HC1}(\hat{\pmb{\beta}}) = \frac{n}{n-p-1}\hat{\text{Var}}_{HC0}(\hat{\pmb{\beta}})
+   $$
+
+2.  **HC2**： $$
+    \hat{\text{Var}}_{HC2}(\hat{\pmb{\beta}}) = (\mathbf{X}^T\mathbf{X})^{-1}\left(\sum_{i=1}^n \frac{e_i^2}{1-h_{ii}}\mathbf{x}_i\mathbf{x}_i^T\right)(\mathbf{X}^T\mathbf{X})^{-1}
+    $$
+
+3.  **HC3**： $$
+    \hat{\text{Var}}_{HC3}(\hat{\pmb{\beta}}) = (\mathbf{X}^T\mathbf{X})^{-1}\left(\sum_{i=1}^n \frac{e_i^2}{(1-h_{ii})^2}\mathbf{x}_i\mathbf{x}_i^T\right)(\mathbf{X}^T\mathbf{X})^{-1}
+    $$
+
+**使用建议**：HC3在小样本中表现更好，HC0在大样本中足够。
+
+### 3.6.2 模型变换法
+
+**方差稳定化变换**：
+
+1\. 若$\text{Var}(\varepsilon_i) \propto \mathbb{E}(y_i)^k$：
+
+-   \- $k=1$：考虑$\sqrt{y}$变换
+
+-   \- $k=2$：考虑$\ln(y)$变换
+
+-   \- $k=3$：考虑$1/y$变换
+
+2.  **Box-Cox变换**： $$
+    y^{(\lambda)} = 
+    \begin{cases}
+    \frac{y^\lambda - 1}{\lambda}, & \lambda \neq 0 \\
+    \ln(y), & \lambda = 0
+    \end{cases}
+    $$ 通过最大似然估计$\lambda$。
+
+**加权最小二乘法**的模型变换视角： 设$\text{Var}(\varepsilon_i) = \sigma^2/\omega_i$，则变换模型为： $$
+\sqrt{\omega_i}y_i = \sqrt{\omega_i}\mathbf{x}_i^T\pmb{\beta} + \sqrt{\omega_i}\varepsilon_i
+$$
+
+### 3.6.3 加权最小二乘法
+
+**理论框架**： 假设$\text{Var}(\varepsilon_i) = \sigma_i^2 = \sigma^2/\omega_i$， 加权最小二乘估计为： $$
+\hat{\pmb{\beta}}_{WLS} = (\mathbf{X}^T\mathbf{W}\mathbf{X})^{-1}\mathbf{X}^T\mathbf{W}\mathbf{y}
+$$ 其中$\mathbf{W} = \text{diag}(\omega_1, \ldots, \omega_n)$。
+
+**方差-协方差矩阵**： $$
+\text{Var}(\hat{\pmb{\beta}}_{WLS}) = \sigma^2(\mathbf{X}^T\mathbf{W}\mathbf{X})^{-1}
+$$
+
+**权重确定方法**：
+
+1.  **基于方差的权重**：
+    -   若已知$\sigma_i^2$，取$\omega_i = 1/\sigma_i^2$
+    -   若$\sigma_i^2 = \sigma^2 g(\mathbf{x}_i)$，需估计$g(\cdot)$
+2.  **两步估计法**：
+    a.  用OLS估计模型，得残差$\hat{e}_i$
+    b.  用$|\hat{e}_i|$或$\hat{e}_i^2$对$\mathbf{x}_i$回归，得方差函数估计$\hat{g}(\mathbf{x}_i)$
+    c.  取权重$\hat{\omega}_i = 1/\hat{g}(\mathbf{x}_i)$
+    d.  用WLS重新估计
+3.  **迭代重新加权最小二乘**（IRLS）：
+    -   初始化：$\omega_i^{(0)} = 1$
+    -   迭代：$t=1,2,\ldots$
+        1.  $\hat{\pmb{\beta}}^{(t)} = (\mathbf{X}^T\mathbf{W}^{(t-1)}\mathbf{X})^{-1}\mathbf{X}^T\mathbf{W}^{(t-1)}\mathbf{y}$
+        2.  计算$e_i^{(t)} = y_i - \mathbf{x}_i^T\hat{\pmb{\beta}}^{(t)}$
+        3.  更新权重：$\omega_i^{(t)} = 1/f(e_i^{(t)}, \mathbf{x}_i)$
+    -   直至收敛
+
+**可行广义最小二乘**（FGLS）： 更一般的框架，处理异方差和自相关问题。
+
+## 3.7 案例分析
+
+## 本章小结
+
+本章系统介绍了回归诊断与残差分析的理论框架和方法体系。主要要点如下：
+
+1.  **诊断基础**：回顾了经典线性回归的基本假设，构建了完整的诊断框架，强调了诊断在保障统计推断有效性方面的重要性。
+
+2.  **残差分析**：详细阐述了普通残差、标准化残差和学生化残差的定义、性质及计算方法，这些是诊断分析的基础工具。
+
+3.  **图形诊断**：介绍了残差图、Q-Q图、尺度-位置图等可视化方法，这些图形能直观揭示模型的潜在问题。
+
+4.  **异常值识别**：区分了异常值和强影响点，系统介绍了杠杆值、Cook距离、DFFITS、DFBETAS等多种识别指标及其临界值。
+
+5.  **异方差检验**：从图形法和统计检验法两个角度，详细说明了Breusch-Pagan检验、White检验、Goldfeld-Quandt检验等方法的原理和应用。
+
+6.  **异方差修正**：重点介绍了稳健标准误法和加权最小二乘法，包括White异方差一致估计、HC系列改进，以及WLS的权重确定方法和迭代算法。
+
+回归诊断是一个系统性工程，需要综合运用多种工具和方法。在实际应用中，应遵循"诊断-修正-再诊断"的迭代过程，确保最终模型既满足统计假设，又具有良好的解释和预测能力。同时，对异常值的处理需谨慎，应结合专业背景知识进行决策。

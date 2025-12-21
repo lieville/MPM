@@ -5,3 +5,8 @@
 
 /.quarto/
 **/*.quarto_ipynb
+
+# Quarto generated files
+chapters/*_files/
+*_files/
+*.png

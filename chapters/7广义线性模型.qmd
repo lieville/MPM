@@ -1,0 +1,1975 @@
+---
+title: "7 广义线性模型"
+author: "李老师"
+date: "2025年12月"
+format: html
+editor: visual
+---
+
+```{r echo=FALSE,include=FALSE,results='hide'}
+# 在 R 中直接指定 Anaconda 路径
+library(reticulate)
+# 查看已安装的 conda 环境
+conda_list()
+
+# 查看 conda 可执行文件路径
+conda_binary()
+
+# 查看 conda 版本
+conda_version()
+# 指定 Python 可执行文件路径
+use_python("C:/Data/Anaconda/python.exe")  
+
+# 使用 Conda 环境
+use_condaenv("base")  # 使用基础环境
+# 方法2：指定 Anaconda 路径
+# use_condaenv("C:/Data/Anaconda")
+
+# 验证
+print(py_config())
+```
+
+## 本章导读
+
+在前面章节中，我们系统学习了经典线性回归模型，它在处理连续型因变量与自变量之间的线性关系方面表现出色。然而，科学研究和实际应用中遇到的变量关系远不止于此。想象一下这些常见场景：医生需要预测患者是否患有某种疾病（是/否）、市场营销人员要预测客户会选择哪个产品类别（A/B/C/D）、保险公司要估计客户一年内的事故次数（0,1,2,...），或者社会科学家想了解教育水平对收入的影响（但教育水平是"初中"、"高中"、"大学"这样的类别）。
+
+这些问题的共同特点是：**因变量或自变量不符合经典线性回归的基本假设**。面对这些挑战，传统线性回归模型显得力不从心，主要表现在：
+
+1.  **假设限制过强**：要求因变量连续、误差项正态分布、方差齐性
+2.  **预测范围不合理**：二分类概率预测可能超出\[0,1\]区间
+3.  **模型解释困难**：计数数据的负值预测没有实际意义
+
+本章将系统介绍**广义线性模型**这一强大的统计框架，它巧妙地将线性回归的基本思想推广到更广泛的变量类型。我们将从虚拟变量这一基本技术出发，逐步构建完整的GLM理论体系，重点学习逻辑斯谛回归、泊松回归等应用广泛的具体模型，并通过实际案例展示如何运用这些方法解决现实问题。
+
+## 7.1 虚拟变量回归
+
+### 7.1.1 分类变量的回归表达
+
+在实际研究中，许多重要变量本质上是分类的而非连续的。例如，在研究收入决定因素时，个体的教育水平、性别、职业类型、地区等都是分类变量。这些变量虽然不能用连续的数值直接度量，但对因变量的影响却至关重要。
+
+**虚拟变量的基本思想**是将一个具有$k$个类别的分类变量转换为$k-1$个二进制变量（0/1），使得分类信息能够纳入回归分析框架。这种转换不是简单的数值化，而是有明确的统计意义：每个虚拟变量的系数代表相应类别与参照组之间的差异。
+
+虚拟变量的定义与创建
+
+设分类变量$C$有$k$个互斥且完备的类别：$c_1, c_2, \ldots, c_k$。我们选择其中一个类别作为**参照组**（通常选择有实际意义的对照组或样本量最大的组），然后创建$k-1$个虚拟变量$D_1, D_2, \ldots, D_{k-1}$，其中：
+
+$$
+D_j = 
+\begin{cases}
+1 & \text{如果观测属于类别}c_j \\
+0 & \text{否则}
+\end{cases}
+\quad (j=1,2,\ldots,k-1)
+$$
+
+**实例分析：教育水平变量的处理**
+
+假设我们研究教育水平对个人年收入的影响，教育水平分为三个类别：1.初中及以下，2.高中，3.大学及以上。我们选择"初中及以下"作为参照组，创建两个虚拟变量：
+
+| 个体 | 教育水平   | 原编码 | $D_1$（高中） | $D_2$（大学及以上） |
+|------|------------|--------|---------------|---------------------|
+| 1    | 初中及以下 | 1      | 0             | 0                   |
+| 2    | 高中       | 2      | 1             | 0                   |
+| 3    | 大学及以上 | 3      | 0             | 1                   |
+| 4    | 高中       | 2      | 1             | 0                   |
+| 5    | 初中及以下 | 1      | 0             | 0                   |
+
+在回归模型中，我们不再使用原始的分类编码（1,2,3），而是使用这两个虚拟变量。这样做的优势在于：避免了将教育水平视为连续变量或等间距有序变量的错误假设。
+
+参照组选择原则
+
+参照组的选择不是任意的，需要考虑以下因素：
+
+1.  **理论意义**：在实验设计中，通常选择对照组作为参照；在观察性研究中，选择最常见的类别或具有特殊意义的类别
+2.  **样本量充足**：参照组应有足够多的观测，以确保参数估计的稳定性
+3.  **解释便利**：选择能使结果解释最直观、最有意义的组别
+
+在我们的教育水平例子中，选择"初中及以下"作为参照组是合理的，因为它代表了教育程度的最低水平，可以直观地衡量高中和大学教育相对于基础教育带来的收入提升。
+
+虚拟变量陷阱及其避免
+
+**虚拟变量陷阱**是指当错误地创建了$k$个虚拟变量（而不是$k-1$个）时，会导致完全多重共线性问题。具体来说，$k$个虚拟变量之和恒等于1（每个观测必定属于且仅属于一个类别），这与模型中的常数项（截距）完全共线。
+
+数学上，如果模型包含截距项$\beta_0$和$k$个虚拟变量$D_1, D_2, \ldots, D_k$，则存在恒等关系：
+
+$$
+D_1 + D_2 + \cdots + D_k = 1
+$$
+
+这意味着设计矩阵$\mathbf{X}$不满秩，无法求逆，参数估计不唯一。避免陷阱的方法很简单：**对于**$k$个类别的分类变量，只创建$k-1$个虚拟变量。
+
+有序分类变量的处理
+
+有些分类变量存在自然顺序，如教育水平（小学\<初中\<高中\<大学）、满意度（很不满意\<不满意\<一般\<满意\<很满意）。对于这类变量，有两种处理方式：
+
+1.  **仍使用虚拟变量方法**：放弃顺序信息，但能捕捉非线性关系
+2.  **视为连续变量并引入多项式项**：保留顺序信息，但假设等间距
+3.  **使用有序回归模型**：第六章后续将介绍有序逻辑斯谛回归
+
+在实际应用中，如果类别数较少（如少于5个），且顺序关系明确，可以考虑使用虚拟变量方法，因为它更加灵活，不假设各类别的影响是等间距的。
+
+### 7.1.2 虚拟变量在回归中的应用
+
+将分类变量转换为虚拟变量后，我们可以将其纳入回归模型进行分析。虚拟变量的系数具有明确的解释意义：代表相应类别与参照组在因变量上的平均差异（控制其他变量后）。
+
+单因素虚拟变量模型
+
+考虑最简单的虚拟变量回归模型，只包含一个分类自变量：
+
+$$
+Y_i = \beta_0 + \beta_1 D_{1i} + \beta_2 D_{2i} + \varepsilon_i
+$$
+
+其中$D_1$和$D_2$的定义如前所述（以类别3为参照）。参数解释如下：
+
+-   $\beta_0$：参照组（类别3）的均值
+-   $\beta_1$：类别1与参照组的均值差
+-   $\beta_2$：类别2与参照组的均值差
+
+**假设检验**：检验$\beta_1=0$等价于检验类别1与参照组无显著差异；检验$\beta_2=0$同理。
+
+多因素虚拟变量模型
+
+实际研究中通常包含多个分类变量。假设我们有两个分类变量：教育水平（3类）和地区（4类）。教育水平创建2个虚拟变量$E_1, E_2$（以初中为参照），地区创建3个虚拟变量$R_1, R_2, R_3$（以东部为参照）。完整模型为：
+
+$$
+\begin{aligned}
+Y_i = & \beta_0 + \beta_1 E_{1i} + \beta_2 E_{2i} + \gamma_1 R_{1i} + \gamma_2 R_{2i} + \gamma_3 R_{3i} \\
+      & + \text{（可能的交互项）} + \varepsilon_i
+\end{aligned}
+$$
+
+**实例分析：收入决定因素研究**
+
+我们使用一个模拟数据集研究教育水平和地区对年收入（单位：万元）的影响。估计结果如下：
+
+| 变量 | 系数估计 | 标准误 | t值   | p值     |
+|------|----------|--------|-------|---------|
+| 截距 | 8.5      | 0.3    | 28.33 | \<0.001 |
+| 高中 | 2.1      | 0.4    | 5.25  | \<0.001 |
+| 大学 | 5.3      | 0.4    | 13.25 | \<0.001 |
+| 中部 | -0.8     | 0.4    | -2.00 | 0.046   |
+| 西部 | -1.5     | 0.4    | -3.75 | \<0.001 |
+| 北部 | 0.3      | 0.4    | 0.75  | 0.453   |
+
+**结果解释**： 1. 参照组（初中教育、东部地区）的平均年收入为8.5万元 2. 高中教育者比初中教育者平均年收入高2.1万元（控制地区后） 3. 大学教育者比初中教育者平均年收入高5.3万元 4. 中部地区比东部地区平均年收入低0.8万元（控制教育水平后） 5. 西部地区比东部地区低1.5万元 7. 北部地区与东部地区无显著差异
+
+虚拟变量与连续变量的交互
+
+虚拟变量不仅可以作为主效应，还可以与连续变量产生交互效应，表示不同组别的斜率不同。考虑教育水平与工作经验的交互：
+
+$$
+Y_i = \beta_0 + \beta_1 D_i + \beta_2 X_i + \beta_3 (D_i \times X_i) + \varepsilon_i
+$$
+
+其中$D_i$为是否大学学历（1=是，0=否），$X_i$为工作经验（年）。模型分解：
+
+-   非大学组：$Y_i = \beta_0 + \beta_2 X_i + \varepsilon_i$
+-   大学组：$Y_i = (\beta_0 + \beta_1) + (\beta_2 + \beta_3)X_i + \varepsilon_i$
+
+**实例分析：教育水平与工作经验对收入的交互影响**
+
+我们对上述模型进行估计，得到：
+
+| 变量      | 系数估计 | 标准误 | t值   | p值     |
+|-----------|----------|--------|-------|---------|
+| 截距      | 7.0      | 0.5    | 12.00 | \<0.001 |
+| 大学      | 4.0      | 0.7    | 5.71  | \<0.001 |
+| 经验      | 0.5      | 0.05   | 10.00 | \<0.001 |
+| 大学×经验 | 0.2      | 0.07   | 2.86  | 0.004   |
+
+**结果解释**： 1. 非大学毕业生：起薪7.0万元，工作经验每增加1年，收入增加0.5万元 2. 大学毕业生：起薪10.0万元（7.0+4.0），工作经验每增加1年，收入增加0.7万元（0.5+0.2） 3. 交互项显著为正，表明教育回报随工作经验增加而增加，或者说高等教育者的经验回报率更高
+
+多项分类变量的交互
+
+当两个分类变量都通过虚拟变量表示时，它们的交互需要创建交叉虚拟变量。假设教育水平（3类）和性别（2类）可能有交互，我们需要引入教育水平虚拟变量与性别虚拟变量的乘积项。
+
+考虑完整的交互模型：
+
+$$
+\begin{aligned}
+Y_i = & \beta_0 + \beta_1 E_{1i} + \beta_2 E_{2i} + \gamma G_i \\
+      & + \delta_1 (E_{1i} \times G_i) + \delta_2 (E_{2i} \times G_i) + \varepsilon_i
+\end{aligned}
+$$
+
+其中$G_i=1$表示男性，$0$表示女性。
+
+这种设定允许不同性别在不同教育水平上有不同的收入回报。检验所有交互项$\delta_1=\delta_2=0$可以判断性别和教育水平是否存在交互效应。
+
+### 7.1.3 模型解释与比较
+
+组间差异的检验方法
+
+对于包含虚拟变量的回归模型，有多种方法检验组间差异：
+
+1.  **单个虚拟变量的t检验**：检验特定组与参照组的差异是否显著
+2.  **联合F检验**：检验所有虚拟变量（对应一个分类变量）的系数是否同时为0
+3.  **线性组合检验**：检验两个非参照组之间的差异，如检验$\beta_1=\beta_2$（需要计算标准误）
+
+**实例：检验不同教育水平的收入差异**
+
+对于模型$Y_i = \beta_0 + \beta_1 E_{1i} + \beta_2 E_{2i} + \varepsilon_i$： - 检验$\beta_1=0$：高中 vs 初中 - 检验$\beta_2=0$：大学 vs 初中 - 检验$\beta_1=\beta_2$：高中 vs 大学（需要进行线性组合检验）
+
+线性组合检验的统计量为： $$
+t = \frac{\hat{\beta}_1 - \hat{\beta}_2}{\sqrt{\text{Var}(\hat{\beta}_1) + \text{Var}(\hat{\beta}_2) - 2\text{Cov}(\hat{\beta}_1,\hat{\beta}_2)}}
+$$
+
+模型设定检验
+
+引入虚拟变量后，需要检查模型设定是否合理：
+
+1.  **残差分析**：检查残差是否满足同方差、独立性等假设
+2.  **异常值检测**：检查是否有观测对虚拟变量系数影响过大
+3.  **多重共线性诊断**：虽然虚拟变量本身不导致完全共线，但与其他变量可能产生高度相关
+
+虚拟变量的优势与局限
+
+**优势**： 1. 灵活性高：不假设类别间等间距 2. 解释直观：系数直接表示组间差异 3. 适用性广：可用于名义尺度和顺序尺度变量
+
+**局限**： 1. 参数较多：$k$个类别需要$k-1$个参数，可能损失自由度 2. 参照组选择影响解释：不同参照组，系数不同 3. 多重比较问题：需要进行多次检验，可能增加第一类错误
+
+实际应用建议
+
+在实际研究中应用虚拟变量时，建议遵循以下步骤：
+
+1.  **数据探索**：查看分类变量的分布，决定是否合并稀有类别
+2.  **参照组选择**：基于理论意义和样本量选择参照组
+3.  **模型设定**：先引入主效应，再考虑交互效应
+4.  **模型诊断**：检查虚拟变量引入后的模型表现
+5.  **结果解释**：结合统计显著性和实际意义解释虚拟变量系数
+
+虚拟变量是连接分类变量与回归分析的重要桥梁，也是理解广义线性模型的基础。在后续章节中，我们将看到虚拟变量如何自然地融入广义线性模型的框架，成为处理分类自变量的标准方法。
+
+## 7.2 广义线性模型框架
+
+### 7.2.1 GLM的基本思想与组成部分
+
+广义线性模型由三个核心组成部分构成，它们共同决定了模型的数学形式和统计特性。理解这三个要素是掌握GLM的关键。
+
+1.  线性预测器
+
+线性预测器是GLM的核心部分，它将自变量通过线性组合的形式表达：
+
+$$
+\eta_i = \beta_0 + \beta_1 X_{i1} + \beta_2 X_{i2} + \cdots + \beta_p X_{ip} = \mathbf{x}_i^T \pmb{\beta}
+$$
+
+其中： - $\eta_i$是第$i$个观测的线性预测值 - $\mathbf{x}_i = (1, X_{i1}, \ldots, X_{ip})^T$是设计向量（包含截距项） - $\pmb{\beta} = (\beta_0, \beta_1, \ldots, \beta_p)^T$是待估参数向量
+
+线性预测器保留了经典线性回归的线性结构，这是GLM与完全非线性模型的重要区别。通过线性预测器，我们可以方便地引入虚拟变量、交互项、多项式项等，扩展模型的表达能力。
+
+2.  连接函数
+
+连接函数$g(\cdot)$建立了线性预测器$\eta_i$与响应变量均值$\mu_i = \mathbb{E}(Y_i)$之间的桥梁：
+
+$$
+g(\mu_i) = \eta_i
+$$
+
+等价地： $$
+\mu_i = g^{-1}(\eta_i) = g^{-1}(\mathbf{x}_i^T \pmb{\beta})
+$$
+
+连接函数的选择取决于响应变量的特性： - 对于连续正态数据：恒等连接$g(\mu)=\mu$ - 对于二分类数据：Logit连接$g(\mu)=\log(\mu/(1-\mu))$或Probit连接 - 对于计数数据：对数连接$g(\mu)=\log(\mu)$
+
+连接函数的作用是确保预测值落在合理的范围内。例如，对于二分类数据，使用Logit连接可以确保预测概率在0到1之间。
+
+3.  响应分布
+
+响应变量$Y_i$的分布来自指数分布族，其概率密度/质量函数可以写成如下规范形式：
+
+$$
+f(y_i; \theta_i, \phi) = \exp\left\{ \frac{y_i\theta_i - b(\theta_i)}{a(\phi)} + c(y_i, \phi) \right\}
+$$
+
+其中： - $\theta_i$是自然参数（与均值$\mu_i$相关） - $\phi$是离散参数（或称尺度参数） - $a(\phi)$、$b(\theta_i)$、$c(y_i, \phi)$是特定函数
+
+指数分布族包含了大多数常见的统计分布，如正态分布、二项分布、泊松分布、Gamma分布等。通过选择不同的$b(\theta)$函数，可以得到不同的分布。
+
+### 7.2.2 指数分布族的数学性质
+
+均值与方差函数
+
+对于指数分布族，均值$\mu_i$和方差$\text{Var}(Y_i)$有简洁的表达式：
+
+1.  **均值**： $$
+    \mu_i = \mathbb{E}(Y_i) = b'(\theta_i)
+    $$ 其中$b'(\theta_i)$是$b(\theta_i)$关于$\theta_i$的一阶导数。
+
+2.  **方差**： $$
+    \text{Var}(Y_i) = b''(\theta_i) a(\phi) = V(\mu_i) a(\phi)
+    $$ 其中$b''(\theta_i)$是$b(\theta_i)$的二阶导数，$V(\mu_i)$称为方差函数。
+
+方差函数$V(\mu_i)$描述了方差如何依赖于均值。不同分布有不同的方差函数： - 正态分布：$V(\mu)=1$（常数方差） - 泊松分布：$V(\mu)=\mu$（方差等于均值） - 二项分布：$V(\mu)=\mu(1-\mu)$（方差在$\mu=0.5$时最大） - Gamma分布：$V(\mu)=\mu^2$（变异系数恒定）
+
+常见分布的特例
+
+| 分布 | 自然参数$\theta$ | $b(\theta)$ | 均值$\mu=b'(\theta)$ | 方差函数$V(\mu)$ | 连接函数$g(\mu)$ |
+|------------|------------|------------|------------|------------|------------|
+| 正态 | $\theta=\mu$ | $\theta^2/2$ | $\theta$ | 1 | $\mu$（恒等） |
+| 泊松 | $\theta=\log\mu$ | $e^\theta$ | $e^\theta$ | $\mu$ | $\log\mu$ |
+| 二项 | $\theta=\log[\mu/(n-\mu)]$ | $n\log(1+e^\theta)$ | $n\frac{e^\theta}{1+e^\theta}$ | $\mu(1-\mu/n)$ | $\log[\mu/(n-\mu)]$ |
+| Gamma | $\theta=-1/\mu$ | $-\log(-\theta)$ | $-1/\theta$ | $\mu^2$ | $1/\mu$（倒数）或$\log\mu$ |
+| 逆高斯 | $\theta=-1/(2\mu^2)$ | $-\sqrt{-2\theta}$ | $1/\sqrt{-2\theta}$ | $\mu^3$ | $1/\mu^2$ |
+
+自然参数与典则连接
+
+如果连接函数$g(\mu)$使得$g(\mu)=\theta$，则称该连接函数为**典则连接函数**（canonical link）。典则连接具有优良的数学性质：
+
+1.  似然方程是$\pmb{\beta}$的线性函数
+2.  信息矩阵（Fisher信息）简化为$\mathbf{X}^T\mathbf{W}\mathbf{X}$形式
+3.  迭代加权最小二乘算法更稳定
+
+常见分布的典则连接： - 正态分布：恒等连接 - 泊松分布：对数连接 - 二项分布：Logit连接 - Gamma分布：倒数连接
+
+虽然典则连接有理论优势，但在实际应用中，有时选择非典则连接可能更合适。例如，对于二项数据，有时使用Probit连接（非典则）可能比Logit连接（典则）拟合更好。
+
+### 7.2.3 估计与推断方法
+
+最大似然估计原理
+
+对于独立观测$(y_i, \mathbf{x}_i), i=1,\ldots,n$，似然函数为：
+
+$$
+L(\pmb{\beta}) = \prod_{i=1}^n f(y_i; \theta_i, \phi) = \prod_{i=1}^n \exp\left\{ \frac{y_i\theta_i - b(\theta_i)}{a(\phi)} + c(y_i, \phi) \right\}
+$$
+
+其中$\theta_i$通过连接函数与线性预测器关联：设$g(\mu_i)=\eta_i=\mathbf{x}_i^T\pmb{\beta}$，且$\mu_i=b'(\theta_i)$，则$\theta_i$是$\eta_i$的函数。
+
+对数似然函数为：
+
+$$
+\ell(\pmb{\beta}) = \sum_{i=1}^n \left[ \frac{y_i\theta_i - b(\theta_i)}{a(\phi)} + c(y_i, \phi) \right]
+$$
+
+最大似然估计通过求解得分方程获得：
+
+$$
+\frac{\partial \ell}{\partial \beta_j} = \sum_{i=1}^n \frac{y_i - \mu_i}{a(\phi) V(\mu_i)} \frac{\partial \mu_i}{\partial \eta_i} x_{ij} = 0, \quad j=0,\ldots,p
+$$
+
+其中利用了链式法则：$\frac{\partial \mu_i}{\partial \beta_j} = \frac{\partial \mu_i}{\partial \eta_i} \frac{\partial \eta_i}{\partial \beta_j} = \frac{\partial \mu_i}{\partial \eta_i} x_{ij}$。
+
+迭代加权最小二乘算法
+
+GLM参数的MLE通常没有解析解，需要数值方法求解。最常用的是**迭代加权最小二乘**算法：
+
+1.  **初始化**：给出初始估计$\hat{\pmb{\beta}}^{(0)}$，计算初始拟合值$\hat{\mu}_i^{(0)}$
+
+2.  **计算工作响应和权重**：
+
+    -   工作响应：$z_i^{(t)} = \eta_i^{(t)} + (y_i - \mu_i^{(t)}) \left( \frac{\partial \eta_i}{\partial \mu_i} \right)^{(t)}$
+    -   权重：$w_i^{(t)} = \left[ \left( \frac{\partial \mu_i}{\partial \eta_i} \right)^2 V(\mu_i) \right]^{-1}_{(t)}$
+
+3.  **加权最小二乘**：求解 $$
+    \hat{\pmb{\beta}}^{(t+1)} = (\mathbf{X}^T \mathbf{W}^{(t)} \mathbf{X})^{-1} \mathbf{X}^T \mathbf{W}^{(t)} \mathbf{z}^{(t)}
+    $$ 其中$\mathbf{W}^{(t)} = \text{diag}(w_1^{(t)}, \ldots, w_n^{(t)})$
+
+4.  **迭代**：重复步骤2-3直到收敛
+
+该算法的直观解释是：在每一步，我们求解一个加权最小二乘问题，其中权重根据当前拟合值不断调整。
+
+参数推断
+
+1.  **渐近分布**：在大样本下，MLE满足 $$
+    \hat{\pmb{\beta}} \sim N(\pmb{\beta}, \mathcal{I}^{-1})
+    $$ 其中$\mathcal{I}$是Fisher信息矩阵。
+
+2.  **Wald检验**：对于单个参数$\beta_j$，检验$H_0: \beta_j=0$，使用统计量 $$
+    z = \frac{\hat{\beta}_j}{\text{SE}(\hat{\beta}_j)} \sim N(0,1)
+    $$ 在有限样本中，可能使用$t$分布更合适。
+
+3.  **似然比检验**：对于嵌套模型$M_0 \subset M_1$，检验$H_0$：$M_0$足够，使用统计量 $$
+    \Lambda = -2[\ell(\hat{\pmb{\beta}}_0) - \ell(\hat{\pmb{\beta}}_1)] \sim \chi^2_{df}
+    $$ 其中$df = p_1 - p_0$是参数个数之差。
+
+4.  **置信区间**：基于渐近正态性，$\beta_j$的$100(1-\alpha)\%$置信区间为 $$
+    \hat{\beta}_j \pm z_{1-\alpha/2} \cdot \text{SE}(\hat{\beta}_j)
+    $$
+
+离散参数估计
+
+对于需要估计离散参数$\phi$的分布（如正态分布、Gamma分布），$\phi$通常通过矩估计或残差方法估计：
+
+1.  Pearson估计： $$
+    \hat{\phi}_P = \frac{1}{n-p-1} \sum_{i=1}^n \frac{(y_i - \hat{\mu}_i)^2}{V(\hat{\mu}_i)}
+    $$
+
+2.  偏差估计： $$
+    \hat{\phi}_D = \frac{D}{n-p-1}
+    $$ 其中$D$是模型的偏差（deviance）
+
+### 7.2.4 模型评估与比较
+
+偏差与残差
+
+1.  **偏差**：衡量模型拟合优度，定义为 $$
+    D = 2[\ell_{\text{sat}} - \ell(\hat{\pmb{\beta}})]
+    $$ 其中$\ell_{\text{sat}}$是饱和模型（参数个数等于观测数）的对数似然。
+
+2.  **Pearson残差**： $$
+    r_i^P = \frac{y_i - \hat{\mu}_i}{\sqrt{V(\hat{\mu}_i)}}
+    $$
+
+3.  **偏差残差**： $$
+    r_i^D = \text{sign}(y_i - \hat{\mu}_i) \sqrt{d_i}
+    $$ 其中$d_i$是第$i$个观测对总偏差的贡献。
+
+4.  **标准化残差**：考虑杠杆值的影响 $$
+    r_i = \frac{r_i^P}{\sqrt{1 - h_{ii}}}
+    $$ 其中$h_{ii}$是帽子矩阵$\mathbf{H} = \mathbf{W}^{1/2}\mathbf{X}(\mathbf{X}^T\mathbf{W}\mathbf{X})^{-1}\mathbf{X}^T\mathbf{W}^{1/2}$的对角元素。
+
+模型选择准则
+
+1.  **AIC（赤池信息准则）**： $$
+    \text{AIC} = -2\ell(\hat{\pmb{\beta}}) + 2(p+1)
+    $$ 平衡模型拟合与复杂度，越小越好。
+
+2.  **BIC（贝叶斯信息准则）**： $$
+    \text{BIC} = -2\ell(\hat{\pmb{\beta}}) + (p+1)\log n
+    $$ 对模型复杂度惩罚更重，倾向于选择更简单的模型。
+
+3.  **交叉验证**：特别是$k$折交叉验证，直接评估模型的预测性能。
+
+过离散与欠离散诊断
+
+对于泊松和二项分布等离散分布，需要检查方差-均值关系是否符合理论假设：
+
+1.  **过离散**：观测方差大于理论方差，常见于计数数据
+    -   检验：Pearson统计量$\chi^2_P = \sum (y_i - \hat{\mu}_i)^2 / V(\hat{\mu}_i)$
+    -   处理：改用负二项分布、拟似然等
+2.  **欠离散**：观测方差小于理论方差，较少见
+    -   处理：可能使用调整后的离散参数
+
+### 7.2.5 GLM的统一视角
+
+GLM的统一框架使得我们可以用相似的思路处理不同类型的数据：
+
+| 响应类型 | 分布  | 连接函数     | 应用领域           |
+|----------|-------|--------------|--------------------|
+| 连续正态 | 正态  | 恒等         | 自然科学、工程     |
+| 二分类   | 二项  | Logit/Probit | 医学、社会科学     |
+| 多分类   | 多项  | 多项Logit    | 市场营销、选择行为 |
+| 计数     | 泊松  | 对数         | 流行病学、保险     |
+| 正连续   | Gamma | 对数/倒数    | 金融、可靠性工程   |
+
+通过GLM框架，我们不仅获得了处理各种数据类型的方法，更重要的是建立了统一的理论视角。这种统一性体现在： - 估计方法的统一（最大似然、IWLS） - 推断方法的统一（Wald检验、LRT） - 诊断方法的统一（残差分析、模型比较）
+
+在后续章节中，我们将看到这一框架如何具体应用于不同数据类型，并学习如何选择合适的分布和连接函数解决实际问题。
+
+## 7.3 分类数据的建模：逻辑斯谛回归及其拓展
+
+### 7.3.1 二分类数据与逻辑斯谛回归
+
+模型设定与数学形式
+
+对于二分类响应变量$Y_i \in \{0,1\}$，设$p_i = P(Y_i=1|\mathbf{x}_i)$。逻辑斯谛回归模型假设：
+
+$$
+\log\left(\frac{p_i}{1-p_i}\right) = \mathbf{x}_i^T \pmb{\beta} = \beta_0 + \beta_1 X_{i1} + \cdots + \beta_p X_{ip}
+$$
+
+等价的概率形式为：
+
+$$
+p_i = \frac{1}{1 + \exp\left(-\mathbf{x}_i^T \pmb{\beta}\right)} = \frac{\exp(\mathbf{x}_i^T \pmb{\beta})}{1 + \exp(\mathbf{x}_i^T \pmb{\beta})}
+$$
+
+这一函数形式称为逻辑斯谛函数或Sigmoid函数，它将实数域$(-\infty, \infty)$映射到$(0,1)$区间。
+
+从GLM视角看，逻辑回归是连接函数为Logit、响应分布为伯努利（或二项）分布的GLM特例。
+
+参数估计与推断
+
+对于$n$个独立观测，似然函数为：
+
+$$
+L(\pmb{\beta}) = \prod_{i=1}^n p_i^{y_i} (1-p_i)^{1-y_i}
+$$
+
+对数似然函数为：
+
+$$
+\ell(\pmb{\beta}) = \sum_{i=1}^n \left[ y_i \log p_i + (1-y_i) \log(1-p_i) \right]
+$$
+
+得分函数（对数似然的一阶导数）为：
+
+$$
+\frac{\partial \ell}{\partial \pmb{\beta}} = \sum_{i=1}^n (y_i - p_i) \mathbf{x}_i = \mathbf{0}
+$$
+
+信息矩阵（负的二阶导数期望）为：
+
+$$
+\mathcal{I}(\pmb{\beta}) = \sum_{i=1}^n p_i(1-p_i) \mathbf{x}_i \mathbf{x}_i^T = \mathbf{X}^T \mathbf{W} \mathbf{X}
+$$
+
+其中$\mathbf{W} = \text{diag}[p_i(1-p_i)]$。
+
+MLE的渐近协方差矩阵为$\mathcal{I}^{-1}(\hat{\pmb{\beta}})$，可用于构建置信区间和假设检验。
+
+优势比解释
+
+逻辑回归系数的解释基于**优势比**（Odds Ratio）。优势定义为事件概率与非事件概率之比：
+
+$$
+\text{Odds}_i = \frac{p_i}{1-p_i} = \exp(\mathbf{x}_i^T \pmb{\beta})
+$$
+
+对于连续自变量$X_j$，保持其他变量不变，$X_j$增加1单位，优势的变化为：
+
+$$
+\frac{\text{Odds}(X_j+1)}{\text{Odds}(X_j)} = \exp(\beta_j)
+$$
+
+$\exp(\beta_j)$称为优势比，解释为： - OR \> 1：$X_j$增加会提高事件发生概率 - OR = 1：$X_j$对事件无影响 - OR \< 1：$X_j$增加会降低事件发生概率
+
+对于虚拟变量，$\exp(\beta_j)$表示相应组别相对于参照组的优势比。
+
+**实例：疾病风险因素研究**
+
+研究吸烟和年龄对肺癌风险的影响，得到以下逻辑回归结果：
+
+| 变量 | 系数$\beta$ | 标准误 | 优势比$\exp(\beta)$ | 95% CI         |
+|------|-------------|--------|---------------------|----------------|
+| 截距 | -4.0        | 0.5    | 0.018               | (0.007, 0.048) |
+| 吸烟 | 1.2         | 0.3    | 3.32                | (1.85, 5.96)   |
+| 年龄 | 0.05        | 0.01   | 1.05                | (1.03, 1.07)   |
+
+解释： 1. 吸烟者患肺癌的优势是不吸烟者的3.32倍（控制年龄后） 2. 年龄每增加1岁，患肺癌优势增加5%（控制吸烟后） 3. 对于不吸烟的40岁个体，患肺癌概率约为$1/(1+\exp(4.0-0.05\times40)) \approx 0.018$
+
+模型评估
+
+1.  **整体模型检验**：
+    -   似然比检验：比较当前模型与仅含截距的模型
+    -   Score检验：基于得分函数的检验
+    -   Wald检验：基于参数估计的检验
+2.  **拟合优度检验**：
+    -   Hosmer-Lemeshow检验：将观测按预测概率分组，比较观察频数与期望频数
+    -   Pearson $\chi^2$检验：基于残差的检验
+3.  **预测性能评估**：
+    -   混淆矩阵与分类准确率
+    -   灵敏度与特异度
+    -   ROC曲线与AUC值
+
+**ROC曲线**：接收者操作特征曲线展示了在不同分类阈值下真阳性率（灵敏度）与假阳性率（1-特异度）的权衡。曲线下面积（AUC）衡量模型区分能力： - AUC=0.5：无区分能力（随机猜测） - 0.7≤AUC\<0.8：一般区分能力 - 0.8≤AUC\<0.9：良好区分能力 - AUC≥0.9：优秀区分能力
+
+预测概率与分类
+
+逻辑回归输出的是概率预测$\hat{p}_i$，要转化为分类预测需要选择阈值$c$： $$
+\hat{Y}_i = 
+\begin{cases}
+1 & \text{如果} \hat{p}_i \geq c \\
+0 & \text{如果} \hat{p}_i < c
+\end{cases}
+$$
+
+阈值选择需平衡灵敏度和特异度，可根据实际问题的代价敏感度选择： - 疾病筛查：可能选择较低阈值（高灵敏度） - 确认诊断：可能选择较高阈值（高特异度）
+
+### 7.3.2 多分类与有序数据的逻辑回归
+
+多项逻辑回归
+
+当响应变量$Y_i$有$J>2$个无序类别时，使用多项逻辑回归。设参照类别为$J$，模型为：
+
+$$
+\log\left[\frac{P(Y_i=j|\mathbf{x}_i)}{P(Y_i=J|\mathbf{x}_i)}\right] = \mathbf{x}_i^T \pmb{\beta}_j, \quad j=1,\ldots,J-1
+$$
+
+等价地： $$
+P(Y_i=j|\mathbf{x}_i) = \frac{\exp(\mathbf{x}_i^T \pmb{\beta}_j)}{1 + \sum_{k=1}^{J-1} \exp(\mathbf{x}_i^T \pmb{\beta}_k)}, \quad j=1,\ldots,J-1
+$$
+
+且$P(Y_i=J|\mathbf{x}_i) = 1 - \sum_{j=1}^{J-1} P(Y_i=j|\mathbf{x}_i)$。
+
+**模型特点**： 1. 每种类别（除参照外）有自己的一组参数$\pmb{\beta}_j$ 2. 需要进行$J-1$个二分类逻辑回归的联合估计 3. 参数解释：$\exp(\beta_{jk})$表示$X_k$增加1单位，类别$j$相对于参照类别的相对风险比
+
+**实例：产品选择模型**
+
+研究价格、品牌和消费者收入对产品选择的影响（三种品牌：A、B、C，以C为参照）：
+
+| 变量   | 品牌A vs C | 品牌B vs C |
+|--------|------------|------------|
+|        | 系数       | OR         |
+| 截距   | 1.5        | \-         |
+| 价格   | -0.2       | 0.82       |
+| 高收入 | 0.8        | 2.23       |
+
+解释： 1. 价格每增加1单位，选择品牌A（vs C）的优势比乘以0.82（下降18%） 2. 高收入者选择品牌A（vs C）的优势是低收入者的2.23倍
+
+有序逻辑回归
+
+当响应类别有自然顺序时（如满意度：低、中、高），使用有序逻辑回归。最常用的是**比例优势模型**：
+
+$$
+\log\left[\frac{P(Y_i \leq j|\mathbf{x}_i)}{P(Y_i > j|\mathbf{x}_i)}\right] = \alpha_j - \mathbf{x}_i^T \pmb{\beta}, \quad j=1,\ldots,J-1
+$$
+
+其中$\alpha_j$是切点参数（满足$\alpha_1 < \alpha_2 < \cdots < \alpha_{J-1}$），$\pmb{\beta}$是斜率参数（注意符号为负）。
+
+**关键假设**：比例优势假设，即所有类别共享相同的斜率参数$\pmb{\beta}$。这意味着自变量对每个累积优势比的影响相同，只是截距不同。
+
+**概率计算**： $$
+P(Y_i \leq j|\mathbf{x}_i) = \frac{1}{1 + \exp[-( \alpha_j - \mathbf{x}_i^T \pmb{\beta})]}
+$$ $$
+P(Y_i = j|\mathbf{x}_i) = P(Y_i \leq j|\mathbf{x}_i) - P(Y_i \leq j-1|\mathbf{x}_i)
+$$
+
+**参数解释**： - $\alpha_j$：切点参数，没有直接的实际意义 - $\beta_k$：$X_k$增加1单位，$Y$属于更高类别的优势乘以$\exp(\beta_k)$（注意模型中的负号）
+
+**实例：顾客满意度研究**
+
+研究服务质量、价格合理度对满意度的影响（满意度：1=不满意，2=一般，3=满意）：
+
+| 变量              | 系数$\beta$ | 标准误 | 优势比$\exp(\beta)$ |
+|-------------------|-------------|--------|---------------------|
+| 服务质量          | 0.8         | 0.2    | 2.23                |
+| 价格合理          | 0.5         | 0.2    | 1.65                |
+| 切点1($\alpha_1$) | -1.5        | 0.3    | \-                  |
+| 切点2($\alpha_2$) | 1.0         | 0.3    | \-                  |
+
+解释：服务质量每提高1单位，满意度达到更高等级（满意vs一般及以下，或一般及以上vs不满意）的优势是原来的2.23倍。
+
+### 7.3.3 Probit模型：另一种选择
+
+Probit模型设定
+
+Probit模型使用标准正态分布的逆函数作为连接函数：
+
+$$
+\Phi^{-1}(p_i) = \mathbf{x}_i^T \pmb{\beta}
+$$
+
+等价地： $$
+p_i = \Phi(\mathbf{x}_i^T \pmb{\beta}) = \int_{-\infty}^{\mathbf{x}_i^T \pmb{\beta}} \frac{1}{\sqrt{2\pi}} e^{-z^2/2} dz
+$$
+
+其中$\Phi(\cdot)$是标准正态累积分布函数。
+
+Logit与Probit比较
+
+1.  **函数形状**：Logit和Probit都是S型曲线，但Probit在尾部更接近正态分布
+
+    -   Logit：$f(x) = e^x/(1+e^x)$
+    -   Probit：$f(x) = \Phi(x)$
+
+2.  **参数标度**：Probit系数的尺度大约是Logit系数的1.6倍 $$
+    \beta_{\text{probit}} \approx 0.625 \beta_{\text{logit}}
+    $$
+
+3.  **理论依据**：
+
+    -   Logit：基于优势比概念，有明确的解释
+    -   Probit：基于潜在变量模型，假设存在连续潜变量$Y_i^*$，当$Y_i^*>0$时$Y_i=1$
+
+4.  **实际应用**：
+
+    -   经济学、金融学常用Probit
+    -   生物统计学、流行病学常用Logit
+    -   实践中两种模型通常给出相似的结果
+
+边际效应
+
+在二分类模型中，自变量$X_j$对概率$p_i$的边际效应（在其他变量取均值时）为：
+
+对于Logit模型： $$
+\frac{\partial p_i}{\partial X_{ij}} = p_i(1-p_i)\beta_j
+$$
+
+对于Probit模型： $$
+\frac{\partial p_i}{\partial X_{ij}} = \phi(\mathbf{x}_i^T \pmb{\beta})\beta_j
+$$
+
+其中$\phi(\cdot)$是标准正态密度函数。
+
+边际效应不是常数，依赖于$\mathbf{x}_i$的取值。通常报告： 1. **平均边际效应**：在所有观测处计算边际效应后取平均 2. **边际效应在均值处**：在$\bar{\mathbf{x}}$处计算的边际效应
+
+**实例：比较Logit和Probit模型**
+
+使用相同数据拟合两种模型，结果如下：
+
+| 变量  | Logit系数 | Probit系数 | Logit边际效应 | Probit边际效应 |
+|-------|-----------|------------|---------------|----------------|
+| 截距  | -1.5      | -0.9       | \-            | \-             |
+| $X_1$ | 0.8       | 0.5        | 0.20          | 0.19           |
+| $X_2$ | 0.3       | 0.18       | 0.075         | 0.068          |
+
+虽然系数不同，但边际效应非常接近，预测概率也相似（平均差异\<0.01）。
+
+模型选择建议
+
+在实际应用中： 1. 如果关心优势比解释，选择Logit 2. 如果基于潜在变量理论，选择Probit 3. 如果关注边际效应，两种模型都可以 4. 可以用AIC/BIC或交叉验证进行比较 5. 通常选择更简单或更符合领域惯例的模型
+
+## 7.4 计数数据的建模：泊松回归
+
+### 7.4.1 计数数据特性与泊松分布
+
+计数数据是非负整数值数据，常见于以下领域： - 公共卫生：疾病发病人数、就诊次数 - 保险：索赔次数、事故次数 - 社会学：家庭子女数、社交活动参与次数 - 生态学：物种个体数、观测到的动物数量
+
+泊松分布
+
+泊松分布是描述单位时间或空间内随机事件发生次数的概率分布。如果$Y \sim \text{Poisson}(\lambda)$，则：
+
+$$
+P(Y=y) = \frac{e^{-\lambda} \lambda^y}{y!}, \quad y=0,1,2,\ldots
+$$
+
+性质： 1. $\mathbb{E}(Y) = \text{Var}(Y) = \lambda$（等离散性） 2. 事件发生率$\lambda > 0$ 3. 事件在不相交区间上独立发生
+
+泊松回归模型
+
+泊松回归假设$Y_i|\mathbf{x}_i \sim \text{Poisson}(\lambda_i)$，且：
+
+$$
+\log(\lambda_i) = \mathbf{x}_i^T \pmb{\beta}
+$$
+
+等价地： $$
+\lambda_i = \exp(\mathbf{x}_i^T \pmb{\beta})
+$$
+
+从GLM视角：响应分布为泊松，连接函数为对数连接（典则连接）。
+
+似然函数： $$
+L(\pmb{\beta}) = \prod_{i=1}^n \frac{e^{-\lambda_i} \lambda_i^{y_i}}{y_i!}
+$$
+
+对数似然： $$
+\ell(\pmb{\beta}) = \sum_{i=1}^n \left[ y_i \log \lambda_i - \lambda_i - \log(y_i!) \right]
+$$
+
+参数解释
+
+由于$\lambda_i = \exp(\mathbf{x}_i^T \pmb{\beta})$，参数解释基于**发生率比**：
+
+对于连续自变量$X_j$： $$
+\frac{\lambda_i(X_j+1)}{\lambda_i(X_j)} = \exp(\beta_j)
+$$
+
+$\exp(\beta_j)$称为发生率比，表示$X_j$增加1单位，$\lambda_i$的期望倍数变化。
+
+对于虚拟变量，$\exp(\beta_j)$表示相应组别相对于参照组的发生率比。
+
+**实例：保险索赔次数分析**
+
+研究驾驶年龄和车辆类型对保险索赔次数的影响：
+
+| 变量 | 系数$\beta$ | 标准误 | 发生率比$\exp(\beta)$ | 95% CI       |
+|------|-------------|--------|-----------------------|--------------|
+| 截距 | -1.2        | 0.2    | 0.30                  | (0.20, 0.45) |
+| 驾龄 | -0.05       | 0.01   | 0.95                  | (0.93, 0.97) |
+| SUV  | 0.4         | 0.15   | 1.49                  | (1.11, 2.00) |
+| 跑车 | 0.8         | 0.2    | 2.23                  | (1.51, 3.29) |
+
+解释（以轿车为参照）： 1. 驾龄每增加1年，索赔发生率下降5% 2. SUV驾驶者的索赔发生率是轿车驾驶者的1.49倍 3. 跑车驾驶者的索赔发生率是轿车驾驶者的2.23倍
+
+### 7.4.2 过度离散与负二项回归
+
+过度离散问题
+
+泊松分布的等离散假设（$\mathbb{E}(Y)=\text{Var}(Y)$）在实际数据中常不成立。**过度离散**指观测方差大于理论方差（$\text{Var}(Y) > \mathbb{E}(Y)$），原因可能包括： 1. 未被观测的异质性 2. 事件发生的相关性 3. 零值过多
+
+过度离散的诊断： 1. Pearson统计量：$\chi^2_P = \sum (y_i - \hat{\lambda}_i)^2 / \hat{\lambda}_i$，近似$\chi^2_{n-p-1}$ 2. 离散参数：$\hat{\phi} = \chi^2_P / (n-p-1)$，若$\hat{\phi} \gg 1$表明过度离散
+
+负二项回归
+
+负二项分布可以处理过度离散问题。负二项回归假设$Y_i|\mathbf{x}_i \sim \text{NB}(\mu_i, \alpha)$，其中：
+
+$$
+\mathbb{E}(Y_i) = \mu_i, \quad \text{Var}(Y_i) = \mu_i + \alpha \mu_i^2
+$$
+
+连接函数仍为对数连接： $$
+\log(\mu_i) = \mathbf{x}_i^T \pmb{\beta}
+$$
+
+$\alpha > 0$是离散参数： - $\alpha = 0$：退化为泊松分布 - $\alpha > 0$：存在过度离散，$\alpha$越大，离散程度越高
+
+负二项分布有多种参数化形式，常用的是NB2形式（方差为$\mu + \alpha\mu^2$）。
+
+**实例：比较泊松与负二项回归**
+
+对同一数据拟合两种模型：
+
+| 变量     | 泊松系数(SE) | 负二项系数(SE) |
+|----------|--------------|----------------|
+| 截距     | -1.2 (0.2)   | -1.1 (0.3)     |
+| $X_1$    | 0.3 (0.05)   | 0.28 (0.08)    |
+| $X_2$    | 0.5 (0.1)    | 0.45 (0.15)    |
+| $\alpha$ | \-           | 0.8 (0.2)      |
+| AIC      | 850          | 720            |
+
+负二项模型的AIC更小，且离散参数$\alpha=0.8$显著大于0，表明存在过度离散，负二项回归更合适。
+
+零膨胀模型
+
+当数据中零值比例异常高时，可能需要零膨胀模型。零膨胀泊松模型假设：
+
+$$
+P(Y_i=0|\mathbf{x}_i) = \pi_i + (1-\pi_i)e^{-\lambda_i}
+$$ $$
+P(Y_i=y|\mathbf{x}_i) = (1-\pi_i)\frac{e^{-\lambda_i} \lambda_i^y}{y!}, \quad y>0
+$$
+
+其中$\pi_i$是额外零的概率，通常也通过连接函数建模： $$
+\text{logit}(\pi_i) = \mathbf{z}_i^T \pmb{\gamma}
+$$ $$
+\log(\lambda_i) = \mathbf{x}_i^T \pmb{\beta}
+$$
+
+零膨胀模型可以看作是两部分混合：一部分总是产生0（结构性零），另一部分产生泊松计数（可能为0）。
+
+### 7.4.3 计数回归的应用扩展
+
+偏移项的使用
+
+在计数回归中，经常需要控制暴露量（如观测时间、地区人口数）。设$t_i$为第$i$个观测的暴露量，模型为：
+
+$$
+\log(\lambda_i) = \mathbf{x}_i^T \pmb{\beta} + \log(t_i)
+$$
+
+等价地： $$
+\lambda_i = t_i \exp(\mathbf{x}_i^T \pmb{\beta})
+$$
+
+这里$\log(t_i)$称为偏移项，其系数固定为1。
+
+**实例：疾病发病率研究**
+
+研究不同地区空气污染对呼吸疾病发病率的影响，$Y_i$为病例数，$t_i$为地区人口数（单位：万人）：
+
+| 变量 | 系数$\beta$ | 发生率比 | 解释                         |
+|------|-------------|----------|------------------------------|
+| 截距 | -5.0        | 0.0067   | 基准发病率                   |
+| 污染 | 0.2         | 1.22     | 污染增加1单位，发病率增加22% |
+
+计数数据的其他模型
+
+1.  **截断泊松回归**：当数据有最小值限制时（如$Y \geq 1$）
+2.  **审查泊松回归**：当计数有上限时（如$Y \leq C$）
+3.  **泊松-逆高斯回归**：处理极端过度离散
+4.  **广义泊松回归**：更灵活的离散参数形式
+
+实践建议
+
+应用计数回归时： 1. 首先检查数据的描述统计，特别是零值比例和方差-均值比 2. 从泊松回归开始，检查是否存在过度离散 3. 如果存在过度离散，考虑负二项回归或其他离散模型 4. 如果零值过多，考虑零膨胀模型 5. 使用AIC/BIC进行模型比较 7. 进行残差诊断和影响点分析
+
+计数回归是GLM框架的重要应用，在公共卫生、保险精算、社会科学等领域有广泛用途。理解泊松回归及其扩展模型，能够帮助我们更好地分析和解释计数数据。
+
+## 7.5 广义线性模型进阶
+
+### 7.5.1 其他常见GLM简介
+
+Gamma回归
+
+Gamma分布适用于正连续数据，特别是当数据呈现右偏分布且方差与均值的平方成正比时。Gamma分布的概率密度函数为：
+
+$$
+f(y; \mu, \phi) = \frac{1}{\Gamma(\phi)} \left( \frac{\phi y}{\mu} \right)^\phi \exp\left( -\frac{\phi y}{\mu} \right) \frac{1}{y}, \quad y>0
+$$
+
+其中$\mu>0$为均值，$\phi>0$为形状参数。
+
+Gamma分布的性质： - $\mathbb{E}(Y) = \mu$ - $\text{Var}(Y) = \frac{\mu^2}{\phi}$，故变异系数$CV = \frac{\sqrt{\text{Var}(Y)}}{\mu} = \frac{1}{\sqrt{\phi}}$为常数 - 形状参数$\phi$控制分布形状：$\phi=1$时为指数分布，$\phi$越大越接近正态
+
+Gamma回归通常使用对数连接： $$
+\log(\mu_i) = \mathbf{x}_i^T \pmb{\beta}
+$$
+
+或倒数连接（典则连接）： $$
+\frac{1}{\mu_i} = \mathbf{x}_i^T \pmb{\beta}
+$$
+
+**应用场景**： - 保险理赔额（正偏、异方差） - 生存时间（右偏分布） - 收入数据（通常右偏）
+
+**实例：保险理赔额分析**
+
+研究驾驶者年龄和车型对平均理赔额的影响：
+
+| 变量 | 系数$\beta$ | $\exp(\beta)$ | 解释                        |
+|------|-------------|---------------|-----------------------------|
+| 截距 | 7.0         | 1097.6        | 基准理赔额                  |
+| 年龄 | -0.02       | 0.98          | 年龄每增加1岁，理赔额下降2% |
+| SUV  | 0.3         | 1.35          | SUV理赔额是轿车的1.35倍     |
+
+逆高斯回归
+
+逆高斯分布适用于正连续、高度右偏的数据，其方差与均值的立方成正比：
+
+$$
+\text{Var}(Y) = \frac{\mu^3}{\lambda}
+$$
+
+其中$\lambda>0$是离散参数。
+
+逆高斯回归通常使用对数连接或平方根倒数连接。
+
+互补双对数模型
+
+对于二分类数据，除了Logit和Probit连接外，还可使用互补双对数连接：
+
+$$
+\log[-\log(1-p_i)] = \mathbf{x}_i^T \pmb{\beta}
+$$
+
+等价地： $$
+p_i = 1 - \exp[-\exp(\mathbf{x}_i^T \pmb{\beta})]
+$$
+
+该模型假设事件概率分布不对称，适用于罕见事件或常见事件。
+
+对数线性模型
+
+对数线性模型主要用于列联表分析，是泊松回归的特例。对于$I \times J$列联表，模型为：
+
+$$
+\log(\mu_{ij}) = \lambda + \lambda_i^A + \lambda_j^B + \lambda_{ij}^{AB}
+$$
+
+其中$\mu_{ij}$为期望频数，$\lambda_{ij}^{AB}$为交互项。
+
+对数线性模型可以检验变量间的独立性、条件独立性等。
+
+### 7.5.2 模型诊断、验证与选择
+
+残差分析
+
+GLM的残差分析比线性回归更复杂，因为残差分布通常不是正态的。
+
+1.  **Pearson残差**： $$
+    r_i^P = \frac{y_i - \hat{\mu}_i}{\sqrt{V(\hat{\mu}_i)}}
+    $$ 近似正态（大样本下）。
+
+2.  **偏差残差**： $$
+    r_i^D = \text{sign}(y_i - \hat{\mu}_i) \sqrt{d_i}
+    $$ 其中$d_i$是第$i$个观测对总偏差的贡献。
+
+3.  **Anscombe残差**：通过方差稳定变换获得，更接近正态分布。
+
+残差图分析： - 残差 vs 拟合值：检查方差假设、非线性 - 残差 vs 自变量：检查函数形式 - 正态Q-Q图：检查残差分布 - 残差 vs 序号：检查独立性
+
+影响诊断
+
+类似于线性回归，可以计算GLM的杠杆值和Cook距离：
+
+1.  **杠杆值**：帽子矩阵$\mathbf{H} = \mathbf{W}^{1/2}\mathbf{X}(\mathbf{X}^T\mathbf{W}\mathbf{X})^{-1}\mathbf{X}^T\mathbf{W}^{1/2}$的对角元素$h_{ii}$
+    -   高杠杆点：$h_{ii} > 2(p+1)/n$
+2.  **Cook距离**：衡量删除第$i$个观测对参数估计的影响 $$
+    D_i = \frac{(\hat{\pmb{\beta}} - \hat{\pmb{\beta}}_{(i)})^T (\mathbf{X}^T\mathbf{W}\mathbf{X}) (\hat{\pmb{\beta}} - \hat{\pmb{\beta}}_{(i)})}{(p+1)\hat{\phi}}
+    $$ 其中$\hat{\pmb{\beta}}_{(i)}$是删除第$i$个观测后的估计。
+
+连接函数检验
+
+连接函数的选择可以通过以下方法检验：
+
+1.  **添加连接函数检验项**：如添加$\hat{\eta}_i^2$到模型中，检验其显著性
+2.  **比较不同连接函数的模型**：使用AIC/BIC
+3.  **残差分析**：检查系统性模式
+
+过度离散与欠离散诊断
+
+对于泊松和二项分布等离散分布，需要检查方差-均值关系。
+
+Pearson离散统计量： $$
+\chi^2_P = \sum_{i=1}^n \frac{(y_i - \hat{\mu}_i)^2}{V(\hat{\mu}_i)}
+$$
+
+离散参数估计： $$
+\hat{\phi} = \frac{\chi^2_P}{n-p-1}
+$$
+
+-   $\hat{\phi} \approx 1$：方差假设合适
+-   $\hat{\phi} > 1$：过度离散
+-   $\hat{\phi} < 1$：欠离散
+
+模型选择准则
+
+1.  **信息准则**：
+    -   AIC：$\text{AIC} = -2\ell + 2(p+1)$
+    -   BIC：$\text{BIC} = -2\ell + (p+1)\log n$
+    -   QAIC：用于过度离散情况的调整AIC
+2.  **交叉验证**：
+    -   留一法交叉验证
+    -   $k$折交叉验证
+    -   预测误差作为评估标准
+3.  **正则化方法**：
+    -   Lasso GLM：在似然函数中加入$L_1$惩罚项
+    -   Ridge GLM：加入$L_2$惩罚项
+    -   Elastic Net：结合$L_1$和$L_2$惩罚
+
+### 7.5.3 高级主题概览
+
+拟似然估计
+
+当响应分布不完全是指数分布族，或方差函数$V(\mu)$已知但分布形式未知时，可使用拟似然方法。
+
+拟似然函数定义为满足以下关系的函数$Q(\mu; y)$： $$
+\frac{\partial Q}{\partial \mu} = \frac{y - \mu}{a(\phi)V(\mu)}
+$$
+
+即使不知道完整的分布，只要指定均值函数$\mu(\pmb{\beta})$和方差函数$V(\mu)$，就可以通过拟似然方程估计参数。
+
+拟似然的优势： 1. 对分布假设更稳健 2. 可以处理过度离散 3. 估计和推断方法类似
+
+混合效应GLM
+
+混合效应GLM在线性预测器中加入随机效应，适用于层次结构数据、重复测量数据等。
+
+模型形式： $$
+g(\mu_{ij}) = \mathbf{x}_{ij}^T \pmb{\beta} + \mathbf{z}_{ij}^T \mathbf{u}_i
+$$ 其中： - $\mathbf{u}_i \sim N(\mathbf{0}, \mathbf{G})$：随机效应 - $\pmb{\beta}$：固定效应 - $i=1,\ldots,m$：组索引（如个体、学校） - $j=1,\ldots,n_i$：组内观测索引
+
+估计方法： 1. 拉普拉斯近似 2. 高斯-埃尔米特积分 3. MCMC方法（贝叶斯框架）
+
+广义可加模型
+
+广义可加模型在线性预测器中包含非参数平滑项： $$
+g(\mu_i) = \beta_0 + \sum_{j=1}^p f_j(X_{ij})
+$$ 其中$f_j(\cdot)$是平滑函数，通常用样条基函数表示。
+
+GAM的优势： 1. 自动检测非线性关系 2. 避免预先指定函数形式 3. 可视化结果直观
+
+贝叶斯GLM
+
+贝叶斯方法为GLM提供完整的概率框架：
+
+1.  指定先验分布：$\pi(\pmb{\beta}), \pi(\phi)$
+2.  计算后验分布：$\pi(\pmb{\beta}, \phi|\mathbf{y}) \propto L(\pmb{\beta}, \phi) \pi(\pmb{\beta}) \pi(\phi)$
+3.  后验推断：后验均值、中位数、可信区间
+
+贝叶斯GLM的优势： 1. 提供参数的不确定性完整描述 2. 可以纳入先验信息 3. 自然处理层次模型
+
+计算通常通过MCMC方法（如Gibbs抽样、Metropolis-Hastings算法）实现。
+
+生存分析的GLM视角
+
+许多生存分析模型可以纳入GLM框架：
+
+1.  **比例风险模型**：Cox模型可以看作部分GLM
+2.  **参数生存模型**：指数、Weibull、对数正态等分布属于指数族
+3.  **加速失效时间模型**：连接函数为对数连接
+
+纵向数据的GLM
+
+对于纵向数据（重复测量），GLM扩展包括： 1. **边际模型**：使用GEE（广义估计方程）估计 2. **随机效应模型**：混合效应GLM 3. **过渡模型**：包含响应变量滞后项
+
+## 7.6 案例分析
+
+本章将通过两个完整的数据分析案例，展示如何在实际研究中应用广义线性模型。第一个案例使用R语言分析二分类数据（逻辑斯谛回归），第二个案例使用Python分析计数数据（泊松回归）。每个案例都包含数据探索、模型建立、诊断检验和结果解释的完整流程。
+
+### 7.7.1 R案例：信用卡违约预测分析（逻辑斯谛回归）
+
+案例背景与数据
+
+本案例使用ISLR包中的`Default`数据集，分析信用卡持有者的违约情况。数据集包含10,000个观测，变量包括： - `default`：是否违约（二分类，Yes/No） - `student`：是否学生（二分类，Yes/No） - `balance`：信用卡余额（连续） - `income`：年收入（连续）
+
+```{r}
+#| echo: true
+#| warning: false
+#| message: false
+
+# 加载必要的包
+library(ISLR)      # 包含Default数据集
+library(tidyverse) # 数据整理和可视化
+library(broom)     # 模型结果整理
+library(car)       # 模型诊断
+library(pROC)      # ROC曲线
+library(knitr)     # 表格输出
+
+# 加载数据
+data(Default)
+head(Default)
+```
+
+数据探索与可视化
+
+```{r}
+#| echo: true
+#| fig.height: 6
+#| fig.width: 10
+
+# 数据概况
+str(Default)
+summary(Default)
+
+# 违约率的描述统计
+default_summary <- Default %>%
+  group_by(default) %>%
+  summarise(
+    count = n(),
+    proportion = n() / nrow(Default),
+    avg_balance = mean(balance),
+    avg_income = mean(income)
+  )
+kable(default_summary, caption = "违约情况描述统计")
+
+# 学生与非学生违约率比较
+student_summary <- Default %>%
+  group_by(student, default) %>%
+  summarise(count = n(), .groups = 'drop') %>%
+  group_by(student) %>%
+  mutate(
+    total = sum(count),
+    proportion = count / total
+  )
+kable(student_summary, caption = "学生身份与违约情况")
+
+# 数据可视化
+# 1. 违约与非违约的余额分布
+p1 <- ggplot(Default, aes(x = balance, fill = default)) +
+  geom_density(alpha = 0.5) +
+  labs(title = "信用卡余额分布（按违约情况）",
+       x = "信用卡余额", y = "密度") +
+  theme_minimal()
+
+# 2. 违约与非违约的收入分布
+p2 <- ggplot(Default, aes(x = income, fill = default)) +
+  geom_density(alpha = 0.5) +
+  labs(title = "年收入分布（按违约情况）",
+       x = "年收入", y = "密度") +
+  theme_minimal()
+
+# 3. 学生身份、余额与违约的关系
+p3 <- ggplot(Default, aes(x = balance, y = as.numeric(default == "Yes"), 
+                          color = student)) +
+  geom_point(alpha = 0.3) +
+  geom_smooth(method = "glm", method.args = list(family = "binomial"), 
+              se = FALSE) +
+  labs(title = "余额与违约概率（按学生身份）",
+       x = "信用卡余额", y = "违约概率") +
+  theme_minimal()
+
+# 4. 箱线图：余额和收入按违约情况
+p4 <- ggplot(Default, aes(x = default, y = balance)) +
+  geom_boxplot(fill = "lightblue") +
+  labs(title = "余额按违约情况分布",
+       x = "是否违约", y = "信用卡余额") +
+  theme_minimal()
+
+# 显示所有图形
+library(patchwork)
+(p1 + p2) / (p3 + p4)
+```
+
+模型建立与估计
+
+```{r}
+#| echo: true
+#| warning: false
+#| message: false
+
+# 模型1：仅包含余额
+model1 <- glm(default ~ balance, data = Default, family = binomial)
+summary_model1 <- tidy(model1, conf.int = TRUE, exponentiate = TRUE)
+kable(summary_model1, caption = "模型1：仅包含余额的逻辑回归结果")
+
+# 模型2：包含余额和学生身份
+model2 <- glm(default ~ balance + student, data = Default, family = binomial)
+summary_model2 <- tidy(model2, conf.int = TRUE, exponentiate = TRUE)
+kable(summary_model2, caption = "模型2：包含余额和学生身份的逻辑回归结果")
+
+# 模型3：包含余额、学生身份和交互项
+model3 <- glm(default ~ balance * student, data = Default, family = binomial)
+summary_model3 <- tidy(model3, conf.int = TRUE, exponentiate = TRUE)
+kable(summary_model3, caption = "模型3：包含交互项的逻辑回归结果")
+
+# 模型4：包含余额、学生身份和收入
+model4 <- glm(default ~ balance + student + income, data = Default, family = binomial)
+summary_model4 <- tidy(model4, conf.int = TRUE, exponentiate = TRUE)
+kable(summary_model4, caption = "模型4：包含所有变量的逻辑回归结果")
+```
+
+模型比较与选择
+
+```{r}
+#| echo: true
+#| warning: false
+#| message: false
+
+# 模型比较
+model_comparison <- data.frame(
+  Model = c("仅余额", "余额+学生", "余额×学生交互", "全变量"),
+  AIC = c(AIC(model1), AIC(model2), AIC(model3), AIC(model4)),
+  BIC = c(BIC(model1), BIC(model2), BIC(model3), BIC(model4)),
+  Deviance = c(deviance(model1), deviance(model2), 
+               deviance(model3), deviance(model4)),
+  Null_Deviance = c(model1$null.deviance, model2$null.deviance,
+                    model3$null.deviance, model4$null.deviance),
+  R2_McFadden = c(1 - deviance(model1)/model1$null.deviance,
+                  1 - deviance(model2)/model2$null.deviance,
+                  1 - deviance(model3)/model3$null.deviance,
+                  1 - deviance(model4)/model4$null.deviance)
+)
+kable(model_comparison, digits = 3, 
+      caption = "模型比较（AIC、BIC、偏差和伪R²）")
+
+# 似然比检验
+cat("\n似然比检验：模型2 vs 模型1（加入学生身份是否显著改善拟合）\n")
+lr_test_21 <- anova(model1, model2, test = "Chisq")
+print(lr_test_21)
+
+cat("\n似然比检验：模型3 vs 模型2（加入交互项是否显著改善拟合）\n")
+lr_test_32 <- anova(model2, model3, test = "Chisq")
+print(lr_test_32)
+
+cat("\n似然比检验：模型4 vs 模型2（加入收入是否显著改善拟合）\n")
+lr_test_42 <- anova(model2, model4, test = "Chisq")
+print(lr_test_42)
+```
+
+模型诊断
+
+```{r}
+#| echo: true
+#| fig.height: 8
+#| fig.width: 10
+#| warning: false
+#| message: false
+
+# 选择最佳模型（基于AIC）
+best_model <- model2
+
+# 1. 残差分析
+par(mfrow = c(2, 3))
+
+# Pearson残差 vs 拟合值
+fitted_values <- predict(best_model, type = "response")
+pearson_resid <- residuals(best_model, type = "pearson")
+plot(fitted_values, pearson_resid,
+     xlab = "拟合概率", ylab = "Pearson残差",
+     main = "Pearson残差 vs 拟合概率")
+abline(h = 0, col = "red", lty = 2)
+
+# 偏差残差 vs 拟合值
+deviance_resid <- residuals(best_model, type = "deviance")
+plot(fitted_values, deviance_resid,
+     xlab = "拟合概率", ylab = "偏差残差",
+     main = "偏差残差 vs 拟合概率")
+abline(h = 0, col = "red", lty = 2)
+
+# 杠杆值分析
+hat_values <- hatvalues(best_model)
+plot(hat_values, type = "h",
+     xlab = "观测序号", ylab = "杠杆值",
+     main = "杠杆值")
+abline(h = 2*mean(hat_values), col = "red", lty = 2) # 2倍平均杠杆值
+
+# Cook距离
+cook_dist <- cooks.distance(best_model)
+plot(cook_dist, type = "h",
+     xlab = "观测序号", ylab = "Cook距离",
+     main = "Cook距离")
+abline(h = 4/(nrow(Default) - length(coef(best_model))), 
+       col = "red", lty = 2) # 常用阈值
+
+# Q-Q图：标准化Pearson残差
+std_pearson_resid <- rstandard(best_model)
+qqnorm(std_pearson_resid, main = "Q-Q图：标准化Pearson残差")
+qqline(std_pearson_resid, col = "red")
+
+# 偏残差图（余额）
+termplot(best_model, terms = "balance", partial.resid = TRUE,
+         se = TRUE, col.res = "blue", col.term = "red",
+         main = "余额的偏残差图")
+par(mfrow = c(1, 1))
+
+# 2. 影响点识别
+influential_points <- which(cook_dist > 4/(nrow(Default) - length(coef(best_model))))
+cat("识别到", length(influential_points), "个潜在影响点\n")
+
+# 3. 多重共线性检查
+if (length(coef(best_model)) > 1) {
+  vif_values <- vif(best_model)
+  cat("\n方差膨胀因子(VIF)：\n")
+  print(vif_values)
+}
+```
+
+模型评估与预测
+
+```{r}
+#| echo: true
+#| fig.height: 5
+#| fig.width: 10
+#| warning: false
+#| message: false
+
+# 1. ROC曲线和AUC
+roc_obj <- roc(Default$default, fitted_values, levels = c("No", "Yes"))
+auc_value <- auc(roc_obj)
+
+# 绘制ROC曲线
+plot(roc_obj, main = paste("ROC曲线 (AUC =", round(auc_value, 3), ")"),
+     print.auc = TRUE, legacy.axes = TRUE)
+
+# 2. 分类性能评估
+# 选择最优阈值（基于Youden指数）
+optimal_threshold <- coords(roc_obj, "best", ret = "threshold")$threshold
+
+# 创建混淆矩阵
+predicted_class <- ifelse(fitted_values > optimal_threshold, "Yes", "No")
+confusion_matrix <- table(Predicted = predicted_class, Actual = Default$default)
+
+# 计算分类指标
+accuracy <- sum(diag(confusion_matrix)) / sum(confusion_matrix)
+sensitivity <- confusion_matrix[2, 2] / sum(confusion_matrix[, 2])
+specificity <- confusion_matrix[1, 1] / sum(confusion_matrix[, 1])
+precision <- confusion_matrix[2, 2] / sum(confusion_matrix[2, ])
+
+cat("最优阈值（基于Youden指数）:", round(optimal_threshold, 3), "\n")
+cat("\n混淆矩阵:\n")
+print(confusion_matrix)
+cat("\n分类性能指标:\n")
+cat("准确率:", round(accuracy, 3), "\n")
+cat("灵敏度（召回率）:", round(sensitivity, 3), "\n")
+cat("特异度:", round(specificity, 3), "\n")
+cat("精确率:", round(precision, 3), "\n")
+
+# 3. 校准曲线
+calibration_data <- data.frame(
+  predicted_prob = fitted_values,
+  actual = as.numeric(Default$default == "Yes")
+)
+
+# 将预测概率分组
+calibration_data$group <- cut(calibration_data$predicted_prob,
+                              breaks = seq(0, 1, by = 0.1),
+                              include.lowest = TRUE)
+
+calibration_summary <- calibration_data %>%
+  group_by(group) %>%
+  summarise(
+    avg_predicted = mean(predicted_prob),
+    avg_actual = mean(actual),
+    n = n(),
+    .groups = 'drop'
+  )
+
+# 绘制校准曲线
+ggplot(calibration_summary, aes(x = avg_predicted, y = avg_actual)) +
+  geom_point(aes(size = n), color = "blue") +
+  geom_abline(intercept = 0, slope = 1, color = "red", linetype = "dashed") +
+  geom_smooth(method = "loess", se = FALSE, color = "darkgreen") +
+  labs(title = "校准曲线：预测概率 vs 实际比例",
+       x = "平均预测概率", y = "实际违约比例") +
+  theme_minimal()
+```
+
+结果解释与应用
+
+```{r}
+#| echo: true
+#| warning: false
+#| message: false
+
+# 1. 优势比解释
+or_summary <- tidy(best_model, conf.int = TRUE, exponentiate = TRUE)
+kable(or_summary, digits = 3, caption = "最佳模型参数估计与优势比")
+
+# 2. 边际效应计算
+library(margins)
+
+# 计算平均边际效应
+marginal_effects <- margins(best_model)
+summary_margins <- summary(marginal_effects)
+kable(summary_margins, digits = 4, caption = "平均边际效应")
+
+# 3. 预测示例
+# 创建典型观测进行预测
+typical_observations <- expand.grid(
+  balance = c(500, 1000, 1500, 2000),
+  student = c("No", "Yes")
+)
+
+# 添加预测概率
+typical_observations$predicted_prob <- predict(best_model, 
+                                               newdata = typical_observations,
+                                               type = "response")
+
+kable(typical_observations, digits = 3, 
+      caption = "典型观测的违约概率预测")
+
+# 4. 模型总结与应用建议
+cat("\n=== 模型总结与应用建议 ===\n\n")
+cat("1. 关键发现:\n")
+cat("   - 信用卡余额每增加1000单位，违约优势增加约", 
+    round((exp(coef(best_model)["balance"]*1000) - 1)*100, 1), "%\n")
+cat("   - 学生比非学生的违约优势高", 
+    round((exp(coef(best_model)["studentYes"]) - 1)*100, 1), "%\n\n")
+
+cat("2. 模型性能:\n")
+cat("   - AUC =", round(auc_value, 3), "（模型具有良好的区分能力）\n")
+cat("   - 准确率 =", round(accuracy, 3), "\n\n")
+
+cat("3. 风险管理建议:\n")
+cat("   - 重点关注高余额账户（尤其是余额超过1500的账户）\n")
+cat("   - 学生账户需要更严格的风险监控\n")
+cat("   - 建议设置余额预警阈值\n")
+
+cat("4. 模型局限性:\n")
+cat("   - 未考虑时间因素（数据是横截面）\n")
+cat("   - 可能遗漏其他重要变量（如信用历史、就业状况）\n")
+cat("   - 数据可能存在样本选择偏差\n")
+```
+
+R案例总结
+
+本案例展示了逻辑斯谛回归在信用风险评估中的完整应用流程：
+
+1.  **数据探索**：通过描述统计和可视化了解数据特征
+2.  **模型建立**：从简单模型开始，逐步加入变量和交互项
+3.  **模型选择**：使用AIC、BIC和似然比检验选择最佳模型
+4.  **模型诊断**：检查残差、影响点、共线性等问题
+5.  **模型评估**：通过ROC曲线、混淆矩阵评估预测性能
+6.  **结果解释**：计算优势比、边际效应，给出实际应用建议
+
+关键知识点应用： - 虚拟变量处理分类自变量（student） - 逻辑回归的优势比解释 - 模型诊断方法（残差分析、影响点检测） - 预测性能评估（ROC曲线、分类指标）
+
+### 7.7.2 Python案例：保险索赔次数分析（泊松回归与负二项回归）
+
+案例背景与数据
+
+本案例使用statsmodels自带的`RandHIE`数据集，分析医疗保险索赔次数。该数据集来自RAND健康保险实验，包含多个健康保险计划参与者的医疗使用情况。
+
+```{python}
+#| echo: true
+#| warning: false
+#| message: false
+
+import numpy as np
+import pandas as pd
+import statsmodels.api as sm
+import statsmodels.formula.api as smf
+import matplotlib.pyplot as plt
+import seaborn as sns
+from scipy import stats
+
+# 设置中文显示
+plt.rcParams['font.sans-serif'] = ['SimHei', 'Arial Unicode MS']
+plt.rcParams['axes.unicode_minus'] = False
+sns.set_style("whitegrid")
+
+# 创建模拟数据集
+np.random.seed(123)
+n = 1000
+
+# 生成自变量
+data = pd.DataFrame({
+    'age': np.clip(np.random.normal(45, 15, n), 18, 80),
+    'income': np.random.lognormal(10, 0.5, n),
+    'chronic': np.random.poisson(1.5, n),
+    'health': np.random.choice(['poor', 'fair', 'good', 'excellent'], 
+                               n, p=[0.1, 0.3, 0.4, 0.2]),
+    'insurance': np.random.choice(['basic', 'medium', 'premium'], 
+                                  n, p=[0.5, 0.3, 0.2]),
+})
+
+# 生成索赔次数（存在过度离散）
+lambda_base = np.exp(
+    -2.0 + 
+    0.03 * (data['age'] - 45) + 
+    0.0001 * (data['income'] - 30000) + 
+    0.4 * data['chronic'] +
+    (data['health'] == 'poor') * 0.8 +
+    (data['health'] == 'fair') * 0.3 +
+    (data['health'] == 'good') * (-0.2) +
+    (data['insurance'] == 'medium') * 0.2 +
+    (data['insurance'] == 'premium') * (-0.3)
+)
+
+# 添加过度离散
+overdispersion = 1.5
+lambda_real = lambda_base * np.random.gamma(overdispersion, 1/overdispersion, n)
+data['claims'] = np.random.poisson(lambda_real)
+
+print("数据集预览（前5行）：")
+print(data.head())
+```
+
+数据探索与初步分析
+
+```{python}
+#| echo: true
+#| fig.height: 6
+#| fig.width: 12
+
+# 1. 基本统计信息
+print("数据概况：")
+print(f"总样本数: {len(data)}")
+print(f"平均索赔次数: {data['claims'].mean():.2f}")
+print(f"索赔次数方差: {data['claims'].var():.2f}")
+print(f"方差/均值比: {data['claims'].var() / data['claims'].mean():.2f}")
+print(f"零索赔比例: {(data['claims'] == 0).sum() / len(data):.2%}")
+
+# 2. 关键变量分布
+fig, axes = plt.subplots(2, 2, figsize=(12, 8))
+
+# 索赔次数分布
+axes[0, 0].hist(data['claims'], bins=range(0, data['claims'].max()+1), 
+                edgecolor='black', alpha=0.7)
+axes[0, 0].set_xlabel('索赔次数')
+axes[0, 0].set_ylabel('频数')
+axes[0, 0].set_title('索赔次数分布')
+axes[0, 0].axvline(data['claims'].mean(), color='red', linestyle='--')
+
+# 按健康状况的平均索赔次数
+health_order = ['excellent', 'good', 'fair', 'poor']
+health_means = [data[data['health'] == h]['claims'].mean() for h in health_order]
+axes[0, 1].bar(range(4), health_means, alpha=0.7)
+axes[0, 1].set_xlabel('健康状况')
+axes[0, 1].set_ylabel('平均索赔次数')
+axes[0, 1].set_title('平均索赔次数（按健康状况）')
+axes[0, 1].set_xticks(range(4))
+axes[0, 1].set_xticklabels(['优秀', '良好', '一般', '差'], rotation=45)
+
+# 索赔次数与年龄的关系
+axes[1, 0].scatter(data['age'], data['claims'], alpha=0.5)
+axes[1, 0].set_xlabel('年龄')
+axes[1, 0].set_ylabel('索赔次数')
+axes[1, 0].set_title('索赔次数与年龄的关系')
+
+# 索赔次数与慢性病数量的关系
+chronic_means = data.groupby('chronic')['claims'].mean()
+axes[1, 1].plot(chronic_means.index, chronic_means.values, 'o-')
+axes[1, 1].set_xlabel('慢性病数量')
+axes[1, 1].set_ylabel('平均索赔次数')
+axes[1, 1].set_title('索赔次数与慢性病数量的关系')
+
+plt.tight_layout()
+plt.show()
+```
+
+模型建立：泊松回归 vs 负二项回归
+
+```{python}
+#| echo: true
+#| warning: false
+#| message: false
+
+# 准备分类变量
+data['health'] = pd.Categorical(data['health'], 
+                                categories=['excellent', 'good', 'fair', 'poor'])
+data['insurance'] = pd.Categorical(data['insurance'],
+                                   categories=['premium', 'medium', 'basic'])
+
+# 模型公式
+formula = 'claims ~ age + income + chronic + health + insurance'
+
+# 1. 泊松回归
+poisson_model = smf.glm(formula, data=data, family=sm.families.Poisson()).fit()
+
+# 2. 负二项回归
+negbin_model = smf.glm(formula, data=data, 
+                       family=sm.families.NegativeBinomial()).fit()
+
+# 模型摘要
+print("泊松回归结果摘要：")
+print(poisson_model.summary().tables[1])
+
+print("\n负二项回归结果摘要：")
+print(negbin_model.summary().tables[1])
+
+# 关键参数比较
+params_comparison = pd.DataFrame({
+    'Poisson_Coeff': poisson_model.params,
+    'Poisson_SE': poisson_model.bse,
+    'NB_Coeff': negbin_model.params,
+    'NB_SE': negbin_model.bse
+})
+
+print("\n参数估计比较：")
+print(params_comparison.round(4))
+```
+
+过度离散检验与模型选择
+
+```{python}
+#| echo: true
+#| warning: false
+#| message: false
+
+def check_overdispersion(model, data):
+    """检查泊松模型的过度离散"""
+    n = len(data)
+    p = len(model.params)
+    
+    # Pearson卡方统计量
+    pearson_chi2 = np.sum((data['claims'] - model.fittedvalues)**2 / model.fittedvalues)
+    phi_pearson = pearson_chi2 / (n - p)
+    
+    return phi_pearson
+
+# 检查过度离散
+phi_poisson = check_overdispersion(poisson_model, data)
+print(f"泊松模型的Pearson离散参数: {phi_poisson:.3f}")
+
+if phi_poisson > 1.2:
+    print("存在明显的过度离散，建议使用负二项回归")
+else:
+    print("过度离散不明显，泊松回归可能合适")
+
+# 模型选择标准
+print("\n模型选择标准比较：")
+model_selection = pd.DataFrame({
+    'Model': ['Poisson', 'Negative Binomial'],
+    'Log-Likelihood': [poisson_model.llf, negbin_model.llf],
+    'AIC': [poisson_model.aic, negbin_model.aic],
+    'BIC': [poisson_model.bic, negbin_model.bic]
+})
+print(model_selection.round(2))
+```
+
+残差分析与模型诊断
+
+```{python}
+#| echo: true
+#| fig.height: 8
+#| fig.width: 12
+
+fig, axes = plt.subplots(2, 3, figsize=(15, 10))
+
+# 1. 残差 vs 拟合值
+axes[0, 0].scatter(poisson_model.fittedvalues, 
+                   poisson_model.resid_pearson, alpha=0.5)
+axes[0, 0].axhline(y=0, color='r', linestyle='--')
+axes[0, 0].set_xlabel('拟合值')
+axes[0, 0].set_ylabel('Pearson残差')
+axes[0, 0].set_title('泊松模型：残差 vs 拟合值')
+
+axes[0, 1].scatter(negbin_model.fittedvalues, 
+                   negbin_model.resid_pearson, alpha=0.5)
+axes[0, 1].axhline(y=0, color='r', linestyle='--')
+axes[0, 1].set_xlabel('拟合值')
+axes[0, 1].set_ylabel('Pearson残差')
+axes[0, 1].set_title('负二项模型：残差 vs 拟合值')
+
+# 2. 残差分布直方图
+axes[0, 2].hist(poisson_model.resid_pearson, bins=30, alpha=0.5, 
+                density=True, label='泊松')
+axes[0, 2].hist(negbin_model.resid_pearson, bins=30, alpha=0.5, 
+                density=True, label='负二项')
+axes[0, 2].set_xlabel('Pearson残差')
+axes[0, 2].set_ylabel('密度')
+axes[0, 2].set_title('残差分布比较')
+axes[0, 2].legend()
+
+# 3. 预测 vs 实际值
+axes[1, 0].scatter(data['claims'], poisson_model.fittedvalues, alpha=0.5)
+axes[1, 0].plot([0, data['claims'].max()], [0, data['claims'].max()], 
+                'r--', label='完美预测')
+axes[1, 0].set_xlabel('实际索赔次数')
+axes[1, 0].set_ylabel('预测索赔次数')
+axes[1, 0].set_title('泊松模型：预测 vs 实际')
+axes[1, 0].legend()
+
+axes[1, 1].scatter(data['claims'], negbin_model.fittedvalues, alpha=0.5)
+axes[1, 1].plot([0, data['claims'].max()], [0, data['claims'].max()], 
+                'r--', label='完美预测')
+axes[1, 1].set_xlabel('实际索赔次数')
+axes[1, 1].set_ylabel('预测索赔次数')
+axes[1, 1].set_title('负二项模型：预测 vs 实际')
+axes[1, 1].legend()
+
+# 4. 杠杆值分析
+poisson_hat = poisson_model.get_influence().hat_matrix_diag
+negbin_hat = negbin_model.get_influence().hat_matrix_diag
+
+axes[1, 2].scatter(poisson_hat, poisson_model.resid_pearson**2, 
+                   alpha=0.5, label='泊松')
+axes[1, 2].scatter(negbin_hat, negbin_model.resid_pearson**2, 
+                   alpha=0.5, label='负二项')
+axes[1, 2].axhline(y=4, color='r', linestyle='--', label='阈值=4')
+axes[1, 2].set_xlabel('杠杆值')
+axes[1, 2].set_ylabel('Pearson残差平方')
+axes[1, 2].set_title('杠杆值 vs 残差平方')
+axes[1, 2].legend()
+
+plt.tight_layout()
+plt.show()
+
+# 影响点检测
+print("影响点检测（标准化残差 > 3或 < -3）：")
+poisson_outliers = np.sum(np.abs(poisson_model.resid_pearson) > 3)
+negbin_outliers = np.sum(np.abs(negbin_model.resid_pearson) > 3)
+print(f"泊松模型: {poisson_outliers} 个异常残差点")
+print(f"负二项模型: {negbin_outliers} 个异常残差点")
+```
+
+结果解释与应用
+
+```{python}
+#| echo: true
+#| warning: false
+#| message: false
+
+# 计算发生率比（Incidence Rate Ratio, IRR）
+def calculate_irr(model):
+    """计算发生率比及其置信区间"""
+    coeff = model.params
+    conf_int = model.conf_int()
+    
+    irr_df = pd.DataFrame({
+        'Coefficient': coeff,
+        'IRR': np.exp(coeff),
+        'IRR_CI_lower': np.exp(conf_int[0]),
+        'IRR_CI_upper': np.exp(conf_int[1]),
+        'p_value': model.pvalues
+    })
+    return irr_df
+
+# 负二项模型的IRR
+irr_results = calculate_irr(negbin_model)
+print("负二项模型的关键结果（发生率比解释）：")
+print(irr_results.round(4))
+
+# 关键发现总结
+print("\n=== 关键发现总结 ===")
+print("1. 年龄效应：")
+print(f"   年龄每增加1岁，索赔发生率乘以 {np.exp(negbin_model.params['age']):.3f}")
+
+print("\n2. 慢性病效应：")
+print(f"   慢性病每增加1种，索赔发生率乘以 {np.exp(negbin_model.params['chronic']):.3f}")
+
+print("\n3. 健康状况效应（以'优秀'为参照）：")
+health_effects = {}
+for level in ['good', 'fair', 'poor']:
+    if f'health[T.{level}]' in negbin_model.params:
+        irr = np.exp(negbin_model.params[f'health[T.{level}]'])
+        health_effects[level] = irr
+        print(f"   健康状况'{level}'的索赔发生率是'优秀'的 {irr:.2f} 倍")
+
+print("\n4. 保险类型效应（以'高级'为参照）：")
+insurance_effects = {}
+for level in ['medium', 'basic']:
+    if f'insurance[T.{level}]' in negbin_model.params:
+        irr = np.exp(negbin_model.params[f'insurance[T.{level}]'])
+        insurance_effects[level] = irr
+        print(f"   '{level}'保险的索赔发生率是'高级'保险的 {irr:.2f} 倍")
+```
+
+预测应用示例
+
+```{python}
+#| echo: true
+#| warning: false
+#| message: false
+
+# 创建典型个体进行预测
+typical_cases = pd.DataFrame({
+    'age': [30, 45, 60, 45, 45],
+    'income': [30000, 50000, 40000, 50000, 50000],
+    'chronic': [0, 1, 3, 2, 2],
+    'health': ['excellent', 'good', 'fair', 'poor', 'excellent'],
+    'insurance': ['premium', 'medium', 'basic', 'basic', 'premium']
+})
+
+# 确保分类变量类型一致
+typical_cases['health'] = pd.Categorical(typical_cases['health'],
+                                         categories=['excellent', 'good', 'fair', 'poor'])
+typical_cases['insurance'] = pd.Categorical(typical_cases['insurance'],
+                                            categories=['premium', 'medium', 'basic'])
+
+# 预测索赔次数
+typical_cases['poisson_pred'] = poisson_model.predict(typical_cases)
+typical_cases['negbin_pred'] = negbin_model.predict(typical_cases)
+
+print("典型个体的预测索赔次数：")
+print(typical_cases.round(2))
+
+# 风险评分示例
+print("\n=== 风险评分示例 ===")
+print("基于负二项模型的预测，我们可以识别高风险群体：")
+
+# 计算风险评分
+def calculate_risk_score(row):
+    """基于关键风险因素计算风险评分"""
+    score = 0
+    
+    # 年龄风险（45岁以上每10岁加1分）
+    if row['age'] > 45:
+        score += (row['age'] - 45) / 10
+    
+    # 慢性病风险（每种病加2分）
+    score += row['chronic'] * 2
+    
+    # 健康状况风险
+    health_scores = {'excellent': 0, 'good': 1, 'fair': 2, 'poor': 3}
+    score += health_scores[row['health']]
+    
+    # 保险类型风险
+    insurance_scores = {'premium': 0, 'medium': 1, 'basic': 2}
+    score += insurance_scores[row['insurance']]
+    
+    return score
+
+typical_cases['risk_score'] = typical_cases.apply(calculate_risk_score, axis=1)
+typical_cases['risk_level'] = pd.cut(typical_cases['risk_score'], 
+                                     bins=[0, 3, 6, 10], 
+                                     labels=['低风险', '中风险', '高风险'])
+
+print(typical_cases[['age', 'chronic', 'health', 'insurance', 
+                     'negbin_pred', 'risk_score', 'risk_level']])
+```
+
+模型应用建议
+
+1.  风险管理策略：
+
+-   高风险群体（风险评分\>6）：建议定期健康检查，提供健康管理计划
+-   中风险群体（风险评分3-6）：建议适度调整保费，提供预防性医疗服务
+-   低风险群体（风险评分\<3）：提供保费折扣，鼓励健康生活方式
+
+2.  保费定价建议：
+
+-   基于预测索赔次数进行风险调整定价
+-   考虑引入健康激励计划，降低高风险群体的实际风险
+-   对慢性病患者提供疾病管理支持，降低长期风险
+
+3.  模型局限性：
+
+-   模拟数据可能无法完全反映真实情况
+-   未考虑时间因素和风险变化
+-   可能存在未观测的混杂因素
+
+4.  进一步分析方向：
+
+-   引入零膨胀模型处理零值过多的情况
+-   考虑索赔金额的联合建模
+-   加入时间变量进行动态风险评估
+
+Python案例总结
+
+本案例演示了计数数据分析的完整流程，重点包括：
+
+1.  **数据探索**：识别计数数据的特征，特别是方差-均值关系
+2.  **模型建立**：分别建立泊松回归和负二项回归模型
+3.  **过度离散检验**：通过Pearson离散参数判断是否需要负二项回归
+4.  **模型诊断**：通过残差分析评估模型拟合效果
+5.  **结果解释**：使用发生率比解释变量效应
+6.  **预测应用**：基于模型进行风险评分和保费定价建议
+
+**关键知识点**： - 泊松回归假设方差等于均值，当方差明显大于均值时存在过度离散 - 负二项回归通过引入离散参数处理过度离散问题 - 发生率比(IRR)是计数回归中解释变量效应的关键指标 - 模型诊断包括残差分析、影响点检测和预测准确性评估
+
+**学习要点**： - 理解计数数据的特点和建模挑战 - 掌握过度离散的识别和处理方法 - 学会解释计数回归模型的参数和预测结果 - 了解GLM在实际风险管理中的应用
+
+通过本案例，学生应该能够： 1. 识别何时使用泊松回归，何时需要负二项回归 2. 进行基本的模型诊断和验证 3. 解释计数回归模型的结果并进行预测 4. 将统计模型应用于实际风险管理问题
+
+### 7.7.3 两个案例的比较与总结
+
+| 维度         | R案例（逻辑回归）   | Python案例（泊松/负二项回归） |
+|--------------|---------------------|-------------------------------|
+| **数据类型** | 二分类响应变量      | 计数型响应变量                |
+| **主要模型** | 逻辑斯谛回归        | 泊松回归与负二项回归          |
+| **连接函数** | Logit连接           | 对数连接                      |
+| **参数解释** | 优势比(OR)          | 发生率比(IRR)                 |
+| **关键诊断** | ROC曲线、分类指标   | 过度离散检验、残差分析        |
+| **模型选择** | AIC/BIC、似然比检验 | 过度离散诊断、信息准则        |
+| **应用领域** | 信用风险评估        | 保险精算、流行病学            |
+| **软件实现** | R: `glm()`函数      | Python: `statsmodels`         |
+
+共同的分析步骤
+
+两个案例都遵循了GLM分析的标准流程：
+
+1.  **数据理解与探索**：了解数据特征、变量分布、响应变量特性
+2.  **模型建立**：从简单模型开始，逐步增加变量，考虑交互作用
+3.  **模型诊断**：检查模型假设、识别影响点、评估拟合优度
+4.  **模型比较与选择**：使用信息准则、假设检验选择最佳模型
+5.  **结果解释与应用**：计算效应大小（优势比/发生率比）、边际效应，给出实际建议
+
+GLM应用的通用原则
+
+1.  **根据响应变量类型选择模型**：
+    -   二分类 → 逻辑回归
+    -   多分类 → 多项/有序逻辑回归
+    -   计数 → 泊松/负二项回归
+    -   正连续 → Gamma/逆高斯回归
+2.  **重视模型诊断**：
+    -   检查分布假设是否成立
+    -   识别影响点和异常值
+    -   检验模型设定的合理性
+3.  **平衡模型复杂性与解释性**：
+    -   避免过度拟合
+    -   优先选择理论支持且有实际意义的变量
+    -   考虑模型的实用性和解释性
+4.  **结果解释的谨慎性**：
+    -   统计显著性不等于实际重要性
+    -   考虑效应大小和实际意义
+    -   注意交互作用和调节效应
+
+进一步学习建议
+
+1.  **扩展模型**：
+    -   零膨胀模型（零值过多的计数数据）
+    -   混合效应GLM（层次结构数据）
+    -   广义可加模型（非线性关系）
+2.  **高级诊断技术**：
+    -   交叉验证评估预测性能
+    -   正则化方法防止过拟合
+    -   贝叶斯GLM处理不确定性
+3.  **软件技能**：
+    -   R: `glmnet`（正则化GLM）、`lme4`（混合效应模型）
+    -   Python: `sklearn`（机器学习集成）、`PyMC3`（贝叶斯建模）
+
+通过这两个综合案例，我们展示了GLM在实际数据分析中的完整应用流程。无论是二分类问题还是计数数据问题，GLM都提供了统一的框架和系统的分析方法。掌握这些方法，能够帮助研究者更好地分析复杂数据，得出可靠结论，并为决策提供科学依据。
+
+## 本章总结
+
+本章系统介绍了广义线性模型的理论框架和应用方法。我们从最基本的虚拟变量技术开始，逐步建立了GLM的统一视角，深入探讨了逻辑斯谛回归、泊松回归等核心模型，并简要介绍了其他重要的GLM和高级主题。
+
+核心概念回顾
+
+1.  **虚拟变量回归**：处理分类自变量的基本技术，通过创建二进制变量将分类信息纳入回归框架，系数解释为组间差异。
+
+2.  **GLM理论框架**：三要素结构——线性预测器、连接函数、响应分布。指数分布族提供了统一的数学基础，最大似然估计和迭代加权最小二乘是核心估计方法。
+
+3.  **逻辑斯谛回归**：处理二分类数据的标准方法，使用Logit连接函数，参数解释基于优势比。扩展到多项和有序情况，并比较了Probit模型。
+
+4.  **泊松回归**：处理计数数据的基础模型，使用对数连接函数，参数解释基于发生率比。处理过度离散的扩展包括负二项回归和零膨胀模型。
+
+5.  **模型进阶**：其他常见GLM（Gamma、逆高斯等）、模型诊断与选择方法、高级主题（拟似然、混合效应、广义可加模型等）。
+
+方法选择指南
+
+在实际研究中，选择适当的GLM模型应基于以下考虑：
+
+| 响应变量类型     | 推荐模型        | 连接函数     | 注意事项             |
+|------------------|-----------------|--------------|----------------------|
+| 连续正态         | 线性回归        | 恒等         | 检查正态性、同方差   |
+| 二分类           | 逻辑回归/Probit | Logit/Probit | 检查过离散、分离问题 |
+| 多分类（无序）   | 多项逻辑回归    | 多项Logit    | 参照组选择、IIA假设  |
+| 多分类（有序）   | 有序逻辑回归    | 累积Logit    | 比例优势假设检验     |
+| 计数             | 泊松回归        | 对数         | 检查过度离散、零膨胀 |
+| 正连续（右偏）   | Gamma回归       | 对数/倒数    | 检查方差结构         |
+| 计数（过度离散） | 负二项回归      | 对数         | 估计离散参数         |
+| 计数（零过多）   | 零膨胀模型      | 对数         | 两部分模型           |
+
+实践要点提醒
+
+1.  **数据探索先行**：分析前充分了解数据特征，特别是响应变量的分布、分类变量的频数、连续变量的分布形态。
+
+2.  **模型假设检查**：每个GLM都有特定假设（如泊松的等离散性、逻辑回归的线性Logit假设），必须进行诊断检验。
+
+3.  **模型比较验证**：使用多种准则（AIC/BIC、交叉验证）比较不同模型，避免过度依赖单一指标。
+
+4.  **结果解释谨慎**：统计显著性不等于实际重要性，结合领域知识解释结果。对于非线性模型（如Logit），注意边际效应与系数的区别。
+
+5.  **稳健性检验**：进行敏感性分析，检查异常值、不同设定对结果的影响。
+
+理论深化
+
+1.  **经典著作**：
+    -   McCullagh & Nelder (1989) *Generalized Linear Models*（理论权威）
+    -   Agresti (2013) *Categorical Data Analysis*（分类数据全面介绍）
+    -   Fahrmeir & Tutz (2001) *Multivariate Statistical Modelling Based on Generalized Linear Models*（多元GLM）
+2.  **现代扩展**：
+    -   Wood (2017) *Generalized Additive Models: An Introduction with R*（GAM详细指南）
+    -   Gelman & Hill (2006) *Data Analysis Using Regression and Multilevel/Hierarchical Models*（层次模型应用）
+    -   Fox (2015) *Applied Regression Analysis and Generalized Linear Models*（应用导向）
+
+广义线性模型是统计学中极具生命力的框架，它将线性回归的直观性与非线性模型的灵活性完美结合。掌握GLM不仅意味着掌握了一套分析工具，更意味着获得了一种统一看待各种统计模型的思维方式。随着数据科学的发展，GLM的核心思想仍在不断扩展和深化，为处理日益复杂的数据分析问题提供坚实的方法论基础。
+
+**关键词**：广义线性模型、虚拟变量、逻辑斯谛回归、泊松回归、指数分布族、连接函数、最大似然估计、优势比、发生率比、模型诊断、过度离散

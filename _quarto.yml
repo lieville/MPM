@@ -25,36 +25,36 @@ book:
   date: "2025-11-26"
 
   chapters: 
-    - introduction.qmd 
+    - intro.qmd 
     - index.qmd
     - part: I 基础-线性回归模型
       chapters:
         - chapters/part-1-introduction.qmd
-        - chapters/1 预测模型与评估.qmd
-        - chapters/2 线性回归.qmd
-        - chapters/3 模型诊断.qmd
-        - chapters/4 时间序列分析初步.qmd
+        - chapters/1预测模型与评估.qmd
+        - chapters/2线性回归.qmd
+        - chapters/3残差分析.qmd
+        - chapters/4自相关.qmd
     - part: II 扩展——线性分析方法
       chapters:
         - chapters/part-2-introduction.qmd
-        - chapters/5 降维.qmd
-        - chapters/6 正则化.qmd
-        - chapters/7 广义线性模型.qmd
-        - chapters/8 线性分类模型.qmd
-        - chapters/9 非线性回归与样条回归.qmd
+        - chapters/5降维.qmd
+        - chapters/6正则化.qmd
+        - chapters/7广义线性模型.qmd
+        - chapters/8线性分类模型.qmd
+        - chapters/9非线性回归与样条回归.qmd
     - part: III 进阶——超越线性的机器学习
       chapters:
         - chapters/part-3-introduction.qmd
-        - chapters/10 决策树与集成学习.qmd
-        - chapters/11 支持向量机.qmd
-        - chapters/12 神经网络与深度学习基础.qmd
+        - chapters/10决策树与集成学习.qmd
+        - chapters/11支持向量机.qmd
+        - chapters/12神经网络与深度学习基础.qmd
 
     - part: IV 实践——综合案例分析
       chapters:   
         - chapters/part-4-introduction.qmd     
-        - chapters/13 回归任务与基准测试.qmd
-        - chapters/14 分类任务.qmd
-        - chapters/15 案例综合分析.qmd        
+        - chapters/13回归任务与基准测试.qmd
+        - chapters/14分类任务.qmd
+        - chapters/15案例综合分析.qmd        
 
 bibliography: references.bib
 

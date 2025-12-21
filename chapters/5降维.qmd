@@ -1,0 +1,919 @@
+---
+title: "5 降维"
+format: html
+editor: source
+---
+
+## 本章导读
+
+在现代数据分析实践中，研究者常常面临自变量维度高、变量间存在复杂相关关系的挑战。当自变量个数$p$接近甚至超过样本量$n$时，传统的最小二乘估计方法不仅计算困难，更会产生严重的过拟合问题。即便在$p < n$的情况下，高度相关的自变量也会导致多重共线性问题，使得参数估计值极不稳定、难以解释。
+
+本章系统介绍回归分析中处理高维数据和多重共线性问题的两种核心策略：**变量选择**与**特征降维**。变量选择旨在从原始变量集中筛选出最重要的子集，构建简洁可解释的模型；特征降维则通过构造原始变量的线性组合，将高维数据投影到低维空间，从而消除共线性并提高模型稳定性。
+
+我们将从问题诊断出发，详细介绍多重共线性的识别方法与高维数据的挑战；接着探讨评价变量子集优劣的各种准则；然后分别讲解最优子集回归、逐步回归等经典选择方法，以及主成分回归、偏最小二乘回归两种降维技术。通过本章的学习，读者将掌握在不同数据特征和研究目标下，选择适当降维与变量选择方法的能力。
+
+## 5.1 多重共线性及其诊断
+
+### 5.1.1 多重共线性的定义与影响
+
+多重共线性是指线性回归模型中自变量之间存在（近似）线性关系的现象。 考虑线性回归模型： $$ \mathbf{y} = \beta_0 + \beta_1 x_1 + \beta_2 x_2 + \cdots + \beta_p x_p + \varepsilon $$
+
+**定义1（完全多重共线性）**： 如果存在不全为零的常数 $c_1, c_2, \dots, c_p$，使得： $$ c_1 x_1 + c_2 x_2 + \cdots + c_p x_p = 0 \quad \text{（几乎处处成立）} $$ 则称自变量间存在完全多重共线性（perfect multicollinearity）。
+
+在矩阵形式下，设设计矩阵 $\mathbf{X} = [\mathbf{1}, \mathbf{x}_1, \dots, \mathbf{x}_p] \in \mathbb{R}^{n \times (p+1)}$，完全多重共线性意味着： $$ \text{rank}(\mathbf{X}) < p+1 $$ 即 $\mathbf{X}^\top \mathbf{X}$ 是奇异的，不存在唯一的最小二乘解。
+
+**定义2（近似多重共线性）**： 如果存在不全为零的常数 $c_1, c_2, \dots, c_p$，使得： $$ c_1 x_1 + c_2 x_2 + \cdots + c_p x_p \approx 0 $$ 即自变量间存在高度但不完全的线性关系，则称为近似多重共线性。当共线性程度较高时，会产生以下问题：
+
+1.  **参数估计方差膨胀**：最小二乘估计的协方差矩阵为$\text{Var}(\hat{\pmb{\beta}}) = \sigma^2(\mathbf{X}^\top\mathbf{X})^{-1}$。当$\mathbf{X}$的列近似线性相关时，$(\mathbf{X}^\top\mathbf{X})$接近奇异，其逆矩阵对角线元素（即各参数估计的方差）会变得很大。
+
+2.  **参数估计对数据微小变化敏感**：由于$(\mathbf{X}^\top\mathbf{X})$的条件数很大，数据或模型设定的微小变化可能导致参数估计值发生剧烈波动。
+
+3.  **假设检验失效**：在高度共线性下，参数的标准误膨胀，使得t检验的统计量值偏小，可能导致本应显著的变量被误判为不显著。
+
+4.  **回归系数符号反常**：可能出现与经济理论或先验知识不符的系数符号，影响模型解释。
+
+### 5.1.2 诊断方法
+
+#### 方差膨胀因子
+
+方差膨胀因子是诊断多重共线性的常用指标。对于第$j$个自变量$x_j$，其VIF定义为：
+
+$$
+\text{VIF}_j = \frac{1}{1 - R_j^2}
+$$
+
+其中$R_j^2$是将$x_j$对其余$p-1$个自变量回归的决定系数。VIF值越大，说明该变量与其他变量的线性关系越强。经验上，VIF \> 10通常被视为存在严重多重共线性的信号。
+
+#### 条件指数与方差分解比例
+
+设计矩阵$\mathbf{X}$的条件指数定义为：
+
+$$
+\kappa_k = \sqrt{\frac{\lambda_{\max}}{\lambda_k}}, \quad k=1,\ldots,p
+$$
+
+其中$\lambda_1 \geq \lambda_2 \geq \cdots \geq \lambda_p$是$\mathbf{X}^\top\mathbf{X}$的特征值。条件指数越大，表示共线性越严重。通常，$\kappa_k > 30$被认为存在较强的多重共线性。
+
+结合方差分解比例可以识别哪些变量参与了共线性关系。定义$\pi_{jk}$为第$k$个特征向量对$\hat{\beta}_j$的方差贡献比例。当某个条件指数较大的维度上，有两个或多个变量的方差分解比例都较大（如\>0.5）时，表明这些变量之间存在共线性。
+
+#### 相关系数矩阵
+
+考察自变量两两之间的简单相关系数可以提供初步信息，但需要注意多重共线性可能涉及多个变量间的复杂关系，仅凭两两相关系数可能无法完全识别。
+
+### 5.1.3 消除多重共线性的方法
+
+面对多重共线性问题，传统处理方法包括：
+
+1.  **剔除高度相关的变量**：基于理论或统计判断，从一组高度相关的变量中保留一个代表性变量。
+2.  **增加样本量**：有时可以缓解共线性问题，但在实际研究中往往不可行。
+3.  **主成分回归**：通过正交变换消除变量间的相关性。
+4.  **岭回归**：通过引入正则化项稳定估计（将在下一章详细讨论）。
+
+当变量维度较高时，简单的变量剔除可能损失重要信息，而主成分回归等降维方法成为更系统的解决方案。
+
+## 5.2 高维数据的挑战
+
+### 5.2.1 "维数灾难"与"p \> n"问题
+
+随着数据采集技术的发展，现代统计应用经常面临自变量维度$p$远大于样本量$n$的情形，即所谓的"高维数据"。传统回归分析假设$n > p$，在这一条件下：
+
+1.  设计矩阵$\mathbf{X}$列满秩，$(\mathbf{X}^\top\mathbf{X})$可逆
+2.  最小二乘估计$\hat{\pmb{\beta}} = (\mathbf{X}^\top\mathbf{X})^{-1}\mathbf{X}^\top\mathbf{y}$存在唯一解
+3.  参数估计具有良好的统计性质（无偏性、一致性等）
+
+当$p > n$时，$\mathbf{X}$的秩最多为$n$，而$\pmb{\beta}$有$p$个分量，此时：
+
+1.  $(\mathbf{X}^\top\mathbf{X})$奇异，最小二乘估计不存在唯一解
+2.  存在无穷多组$\hat{\pmb{\beta}}$使得拟合误差为零（过拟合）
+3.  模型外推预测能力极差
+
+### 5.2.2 稀疏性假设
+
+处理高维数据的关键在于引入合理的结构假设。最常用的是**稀疏性假设**：在真实模型中，只有少数自变量对响应变量有实质影响，大多数变量的真实系数为零或接近零。
+
+形式化地，假设真实参数向量$\pmb{\beta}^*$满足：
+
+$$
+||\pmb{\beta}^*||_0 = \sum_{j=1}^p I(\beta_j^* \neq 0) \ll p
+$$
+
+其中$||\cdot||_0$表示$\ell_0$范数（非零元素个数）。在这一假设下，统计推断的目标是从$p$个候选变量中识别出少数重要变量，即进行有效的变量选择。
+
+### 5.2.3 高维统计推断的挑战
+
+在高维设定下，传统统计方法面临诸多挑战：
+
+1.  **模型可识别性问题**：当$p > n$时，不同模型可能给出相同的预测结果。
+2.  **过拟合风险**：模型可能过度拟合训练数据中的噪声。
+3.  **计算复杂性**：穷举所有可能的子集模型计算量巨大（$2^p$种可能）。
+4.  **多重检验问题**：同时检验大量变量的显著性会增大第一类错误。
+
+这些挑战催生了正则化方法、降维技术等一系列现代统计方法，本章重点介绍后者的理论框架。
+
+## 5.3 变量选择的评价准则
+
+### 5.3.1 基于拟合优度的调整：调整$R^2$
+
+对于包含$k$个自变量的子集模型，调整$R^2$定义为：
+
+$$
+R^2_{\text{adj}} = 1 - \frac{\text{SSE}/(n-k-1)}{\text{SST}/(n-1)} = 1 - \frac{n-1}{n-k-1}(1-R^2)
+$$
+
+其中SSE为残差平方和，SST为总平方和。与普通$R^2$不同，调整$R^2$引入了自变量个数的惩罚，避免因增加无关变量而虚假提高拟合优度。选择使$R^2_{\text{adj}}$最大的模型。
+
+### 5.3.2 基于信息论的准则：AIC与BIC
+
+#### Akaike信息准则
+
+AIC基于模型与真实分布之间的Kullback-Leibler距离，对于线性回归模型：
+
+$$
+\text{AIC} = n\ln\left(\frac{\text{SSE}}{n}\right) + 2(k+1)
+$$
+
+其中$k$为自变量个数，$k+1$为参数总数（含截距项）。AIC权衡了模型的拟合优度与复杂性，选择使AIC最小的模型。
+
+#### 贝叶斯信息准则
+
+BIC基于贝叶斯因子，对模型复杂度施加更强的惩罚：
+
+$$
+\text{BIC} = n\ln\left(\frac{\text{SSE}}{n}\right) + (k+1)\ln n
+$$
+
+当样本量$n$较大时，BIC倾向于选择比AIC更简洁的模型。从渐进性质看，AIC是预测最优的，而BIC是选择一致估计的。
+
+### 5.3.3 基于预测的准则：Mallows' $C_p$统计量与交叉验证
+
+#### Mallows' $C_p$统计量
+
+假设全模型（包含所有$p$个自变量）是无偏的，对于包含$k$个自变量的子集模型：
+
+$$
+C_p = \frac{\text{SSE}_k}{\hat{\sigma}^2} - n + 2(k+1)
+$$
+
+其中$\hat{\sigma}^2$是全模型的误差方差估计。$C_p$统计量度量了子集模型的预测均方误差，理想情况下，好的模型应满足$C_p \approx k+1$。
+
+#### 交叉验证
+
+交叉验证直接评估模型的预测能力，避免了对方差$\sigma^2$的估计。$k$折交叉验证的步骤如下：
+
+1.  将数据随机分为$k$个互斥子集
+2.  依次以每个子集为验证集，其余$k-1$个子集为训练集拟合模型
+3.  计算验证集上的预测误差
+4.  对$k$次验证的预测误差取平均
+
+选择使交叉验证误差最小的模型。留一法交叉验证是$k=n$的特例，对于线性回归有简便计算公式。
+
+## 5.4 经典变量选择方法
+
+### 5.4.1 最优子集回归
+
+最优子集回归的基本思想是：对于给定的自变量个数$k$，从所有可能的$\binom{p}{k}$个子集中，选择最优的模型。通常的算法流程为：
+
+1.  指定最大自变量个数$k_{\max}$
+2.  对于$k=1,2,\ldots,k_{\max}$，找出所有大小为$k$的子集
+3.  对每个子集拟合回归模型，计算评价准则（如AIC、BIC、调整$R^2$等）
+4.  选择准则最优的模型
+
+**最优子集搜索算法**： - 当$p$较小时，可穷举所有$2^p-1$个非空子集 - 当$p$较大时，使用分支定界法可高效找到给定大小下的最优子集
+
+**优点**： - 对于每个$k$，能保证找到全局最优子集 - 结果不依赖于变量进入模型的顺序
+
+**缺点**： - 计算复杂度高，$p>40$时通常不可行 - 可能过拟合，尤其当$p$较大时
+
+### 5.4.2 逐步回归法
+
+逐步回归通过迭代方式自动选择变量，是计算效率更高的启发式方法。主要分为三种策略：
+
+#### 向前选择法
+
+1.  从空模型开始
+2.  每次加入一个使模型改善最多的变量（基于F检验或信息准则）
+3.  直到没有变量能显著改善模型或达到预设的变量个数上限
+
+#### 向后剔除法
+
+1.  从包含所有变量的全模型开始
+2.  每次剔除一个最不显著的变量
+3.  直到所有变量都显著或达到预设的下限
+
+#### 双向逐步回归
+
+结合向前选择和向后剔除，在每一步中： 1. 先考虑是否剔除已选变量中不显著的 2. 再考虑是否加入未选变量中显著的
+
+**逐步回归的统计问题**：
+
+1\. **路径依赖**：最终模型依赖于起始点和变量进入/退出的顺序
+
+2\. **多重检验**：反复检验导致第一类错误膨胀
+
+3\. **局部最优**：不能保证找到全局最优子集
+
+尽管如此，由于其计算高效，逐步回归在实际应用中仍十分广泛。
+
+## 5.5 主成分回归
+
+### 5.5.1 主成分分析回顾
+
+设$\mathbf{X}$为$n \times p$的标准化设计矩阵（均值为0，方差为1）。主成分分析寻找正交变换$\mathbf{Z} = \mathbf{X}\mathbf{V}$，使得：
+
+1.  $\mathbf{Z}$的列（主成分）互不相关
+2.  第一主成分$\mathbf{z}_1$具有最大方差，第二主成分$\mathbf{z}_2$在与$\mathbf{z}_1$不相关的条件下方差最大，依此类推
+
+数学上，主成分是$\mathbf{X}^\top\mathbf{X}$的特征向量。设特征分解为：
+
+$$
+\mathbf{X}^\top\mathbf{X} = \mathbf{V}\pmb{\Lambda}\mathbf{V}^\top
+$$
+
+其中$\pmb{\Lambda} = \text{diag}(\lambda_1, \ldots, \lambda_p)$，$\lambda_1 \geq \lambda_2 \geq \cdots \geq \lambda_p \geq 0$，$\mathbf{V}$为正交矩阵。第$j$个主成分得分为$\mathbf{z}_j = \mathbf{X}\mathbf{v}_j$，方差为$\lambda_j$。
+
+### 5.5.2 主成分回归的步骤
+
+主成分回归的基本思想是：先用主成分分析对自变量降维，再用主成分作为新的自变量进行回归。
+
+**算法步骤**：
+
+1.  **标准化**：对原始自变量$\mathbf{X}$进行中心化和标准化
+2.  **主成分提取**：计算$\mathbf{X}^\top\mathbf{X}$的特征值分解，得到主成分得分矩阵$\mathbf{Z} = \mathbf{X}\mathbf{V}$
+3.  **选择主成分个数**：选择前$q$个主成分（$q < p$），通常基于：
+    -   累计方差贡献率：$\sum_{j=1}^q \lambda_j / \sum_{j=1}^p \lambda_j \geq \tau$（如$\tau=0.85$）
+    -   交叉验证预测误差最小化
+    -   特征值大于1的准则（Kaiser准则）
+4.  **主成分回归**：以$\mathbf{Z}_q$（前$q$列）为自变量，拟合回归模型： $$
+    \mathbf{y} = \mathbf{Z}_q\pmb{\alpha} + \pmb{\varepsilon}
+    $$ 得到主成分回归系数估计$\hat{\pmb{\alpha}} = (\mathbf{Z}_q^\top\mathbf{Z}_q)^{-1}\mathbf{Z}_q^\top\mathbf{y}$
+5.  **转换回原始空间**：将主成分系数转换回原始变量系数： $$
+    \hat{\pmb{\beta}}_{\text{PCR}} = \mathbf{V}_q\hat{\pmb{\alpha}}
+    $$ 其中$\mathbf{V}_q$为前$q$个特征向量组成的矩阵
+
+### 5.5.3 方法特性与优缺点
+
+**优点**： 1. **消除多重共线性**：主成分相互正交，彻底解决了共线性问题 2. **降维**：用少数综合变量代替大量原始变量，简化模型 3. **稳定性**：参数估计方差较小，预测更稳定 4. **可视化**：低维主成分空间便于数据探索和可视化
+
+**缺点**： 1. **无监督降维**：提取主成分时未考虑响应变量$\mathbf{y}$，可能保留与预测无关的主成分，剔除对预测重要的方向 2. **解释困难**：主成分是原始变量的线性组合，物理意义不明确 3. **尺度敏感性**：主成分分析对变量的尺度和测量单位敏感，需谨慎标准化
+
+**与普通最小二乘的关系**： 当$q=p$时，主成分回归等价于普通最小二乘。事实上： $$
+\hat{\pmb{\beta}}_{\text{PCR}} = \mathbf{V}_q(\mathbf{V}_q^\top\mathbf{X}^\top\mathbf{X}\mathbf{V}_q)^{-1}\mathbf{V}_q^\top\mathbf{X}^\top\mathbf{y} = \mathbf{V}_q\pmb{\Lambda}_q^{-1}\mathbf{V}_q^\top\mathbf{X}^\top\mathbf{y}
+$$ 而OLS估计为$\hat{\pmb{\beta}}_{\text{OLS}} = \mathbf{V}\pmb{\Lambda}^{-1}\mathbf{V}^\top\mathbf{X}^\top\mathbf{y}$。PCR通过舍弃小的特征值对应的方向，牺牲少量信息来换取估计的稳定性。
+
+## 5.6 偏最小二乘回归
+
+### 5.6.1 基本思想
+
+偏最小二乘回归是一种有监督的降维方法，旨在克服主成分回归的缺点。PLR的基本思想是：寻找原始自变量的线性组合（称为潜变量或成分），使其不仅尽可能多地解释自变量的变异，同时与响应变量高度相关。
+
+形式上，PLR寻找向量$\mathbf{w}_1, \mathbf{w}_2, \ldots, \mathbf{w}_q$，使得：
+
+1.  $\mathbf{z}_k = \mathbf{X}_{k-1}\mathbf{w}_k$与响应变量$\mathbf{y}$的协方差最大
+2.  潜变量$\mathbf{z}_1, \mathbf{z}_2, \ldots, \mathbf{z}_q$互不相关
+3.  $\mathbf{X} = \mathbf{Z}\mathbf{P}^\top + \mathbf{E}$（自变量分解）
+4.  $\mathbf{y} = \mathbf{Z}\pmb{\alpha} + \pmb{\varepsilon}$（响应变量回归）
+
+其中$\mathbf{X}_{k-1}$是第$k$步迭代时自变量的残差矩阵。
+
+### 5.6.2 算法流程
+
+PLR有多种等价算法，最常用的是NIPALS算法：
+
+**NIPALS算法步骤**：
+
+1.初始化：
+
+令： $$
+E_0 = X - \bar{X}, \quad f_0 = y - \bar{y}
+$$ 其中$E_0$和$f_0$是中心化后的数据。
+
+2.  对于$k=1,2,\ldots,q$：
+
+    a.  计算权重向量： $$
+        \mathbf{w}_k =\frac{\mathbf{E}_{k-1}^\top\mathbf{f}_{k-1}} { ||\mathbf{E}_{k-1}^\top\mathbf{f}_{k-1}||}
+        $$ **解释**：找到$X$中与当前$y$残差最相关的方向。
+
+    b.  计算潜变量得分： $$
+        \mathbf{z}_k = \mathbf{E}_{k-1}\mathbf{w}_k
+        $$ **解释**：$X$在权重方向上的投影，即潜变量。
+
+    c.  计算自变量载荷： $$
+        \mathbf{p}_k = \frac{\mathbf{E}_{k-1}^\top\mathbf{z}_k} {(\mathbf{z}_k^\top\mathbf{z}_k)}
+        $$ **解释**：$\mathbf{z}_k$对原始$X$变量的解释程度。
+
+    d.  计算响应变量载荷： $$
+        c_k = \frac{\mathbf{f}_{k-1}^\top\mathbf{z}_k} {(\mathbf{z}_k^\top\mathbf{z}_k)}
+        $$ **解释**：$\mathbf{z}_k$对$y$的解释程度（标量）。
+
+    e.  更新残差： $$
+        \mathbf{E}_k = \mathbf{E}_{k-1} - \mathbf{z}_k\mathbf{p}_k^\top
+        $$ $$
+        \mathbf{f}_k = \mathbf{f}_{k-1} - c_k\mathbf{z}_k
+        $$
+
+3.  收集结果：$\mathbf{W} = [\mathbf{w}_1, \ldots, \mathbf{w}_q]$，$\mathbf{P} = [\mathbf{p}_1, \ldots, \mathbf{p}_q]$，$\mathbf{c} = [c_1, \ldots, c_q]^\top$
+
+4.  原始变量系数：$\hat{\pmb{\beta}}_{\text{PLR}} = \mathbf{W}(\mathbf{P}^\top\mathbf{W})^{-1}\mathbf{c}$
+
+**矩阵形式**： 将上述过程写成紧凑形式： $$
+\mathbf{X} = \mathbf{Z}\mathbf{P}^\top + \mathbf{E}, \quad \mathbf{y} = \mathbf{Z}\mathbf{c} + \mathbf{f}
+$$ 其中$\mathbf{Z} = \mathbf{X}\mathbf{W}(\mathbf{P}^\top\mathbf{W})^{-1}$。
+
+### 5.6.3 与主成分回归的关键对比
+
+| 特性           | 主成分回归              | 偏最小二乘回归                 |
+|----------------|-------------------------|--------------------------------|
+| **降维目标**   | 最大化自变量方差        | 最大化自变量与响应变量的协方差 |
+| **监督性**     | 无监督                  | 有监督                         |
+| **成分顺序**   | 按方差大小排序          | 按与y的相关性排序              |
+| **计算复杂度** | 较低（一次特征值分解）  | 较高（迭代算法）               |
+| **预测性能**   | 当自变量与y强相关时较好 | 通常更优，尤其小样本时         |
+| **解释性**     | 成分物理意义模糊        | 成分与y相关，解释性稍好        |
+| **过拟合风险** | 较低                    | 较高，需谨慎选择成分数         |
+
+### 5.6.4 成分数选择与模型评价
+
+#### 交叉验证选择成分数
+
+PLR中成分数$q$是重要超参数，通常通过交叉验证选择： 1. 将数据分为训练集和验证集 2. 对每个候选$q$值，用训练集拟合PLR模型 3. 计算验证集上的预测误差（如均方误差） 4. 选择使预测误差最小的$q$
+
+#### 统计检验
+
+对于第$k$个成分，可以检验： $$
+H_0: \text{第}k\text{个成分对模型没有显著贡献}
+$$ 检验统计量基于交叉验证或自助法得到的预测误差减少量。
+
+#### 预测残差平方和
+
+PRESS统计量是选择成分数的常用准则： $$
+\text{PRESS}(q) = \sum_{i=1}^n (y_i - \hat{y}_{i(-i)}^{(q)})^2
+$$ 其中$\hat{y}_{i(-i)}^{(q)}$是在剔除第$i$个观测后，用$q$个成分的PLSR模型对$y_i$的预测值。
+
+### 5.6.5 理论性质与扩展
+
+#### PLR的收缩性质
+
+可以证明，PLSR系数估计是原始最小二乘估计的收缩版本： $$
+\hat{\pmb{\beta}}_{\text{PLR}} = \mathbf{W}(\mathbf{P}^\top\mathbf{W})^{-1}\mathbf{c} = \mathbf{V}_{\text{PLS}}\pmb{\Lambda}_{\text{PLS}}^{-1}\mathbf{V}_{\text{PLS}}^\top\mathbf{X}^\top\mathbf{y}
+$$ 其中$\mathbf{V}_{\text{PLS}}$和$\pmb{\Lambda}_{\text{PLS}}$来自广义特征值问题。与PCR类似，PLSR通过舍弃小的广义特征值对应的方向实现收缩。
+
+#### 多元响应PLSR
+
+当响应变量也是多维时，PLSR可自然推广为： $$
+\mathbf{X} = \mathbf{Z}\mathbf{P}^\top + \mathbf{E}, \quad \mathbf{Y} = \mathbf{Z}\mathbf{C}^\top + \mathbf{F}
+$$ 算法通过同时考虑$\mathbf{X}$和$\mathbf{Y}$的协方差结构提取潜变量。
+
+#### 非线性PLR
+
+通过引入核技巧或神经网络结构，PLR可扩展为非线性版本，用于处理更复杂的变量关系。
+
+## 5.7 案例分析
+
+### 5.7.1 R代码实现
+
+```{r}
+# 使用mtcars数据集，研究汽车性能影响因素
+
+# 加载必要包
+library(leaps)    # 最优子集回归
+library(pls)      # 主成分回归和偏最小二乘回归
+library(car)      # 方差膨胀因子计算
+library(ggplot2)  # 可视化
+library(caret)    # 交叉验证
+library(dplyr)    # 数据处理
+
+# 设置随机种子确保可重复性
+set.seed(123)
+
+# 1. 数据准备与探索性分析
+data(mtcars)
+cat("数据集维度:", dim(mtcars), "\n")
+cat("变量名:", names(mtcars), "\n\n")
+
+# 将mpg作为响应变量，其他作为自变量
+y <- mtcars$mpg
+X <- mtcars[, -1]  # 移除mpg列
+
+# 2. 多重共线性诊断
+cat("=== 多重共线性诊断 ===\n")
+
+# 计算方差膨胀因子
+model_full <- lm(mpg ~ ., data = mtcars)
+vif_values <- vif(model_full)
+cat("方差膨胀因子(VIF):\n")
+print(vif_values)
+cat("\nVIF > 10的变量:", names(vif_values)[vif_values > 10], "\n")
+
+# 计算条件指数
+X_scaled <- scale(X)
+kappa_value <- kappa(X_scaled, exact = TRUE)
+cat("条件指数:", round(kappa_value, 2), "\n")
+if(kappa_value > 30) cat("存在较强多重共线性\n\n")
+
+# 3. 变量选择方法应用
+
+# 3.1 最优子集回归
+cat("=== 最优子集回归 ===\n")
+best_subsets <- regsubsets(mpg ~ ., data = mtcars, nvmax = 10)
+subsets_summary <- summary(best_subsets)
+
+# 展示不同准则下的最优模型
+cat("不同变量个数下的最优模型:\n")
+cat("调整R²最大的模型变量数:", which.max(subsets_summary$adjr2), "\n")
+cat("Cp最小的模型变量数:", which.min(subsets_summary$cp), "\n")
+cat("BIC最小的模型变量数:", which.min(subsets_summary$bic), "\n\n")
+
+# 3.2 逐步回归
+cat("=== 逐步回归 ===\n")
+
+# 向前逐步回归
+step_forward <- step(lm(mpg ~ 1, data = mtcars), 
+                     scope = list(lower = ~1, upper = ~ .),
+                     direction = "forward", trace = 0)
+cat("向前逐步回归选择的变量:", names(coef(step_forward))[-1], "\n")
+
+# 向后逐步回归
+step_backward <- step(model_full, direction = "backward", trace = 0)
+cat("向后逐步回归选择的变量:", names(coef(step_backward))[-1], "\n\n")
+
+# 4. 降维回归方法
+
+# 4.1 主成分回归
+cat("=== 主成分回归 ===\n")
+
+# 进行主成分回归，使用留一法交叉验证
+pcr_model <- pcr(mpg ~ ., data = mtcars, scale = TRUE, validation = "LOO")
+validationplot(pcr_model, val.type = "MSEP", main = "PCR交叉验证误差")
+
+# 选择最优主成分数
+pcr_summary <- summary(pcr_model)
+pcr_rmsecv <- RMSEP(pcr_model, estimate = "CV")
+optimal_ncomp_pcr <- which.min(pcr_rmsecv$val[1,,]) - 1
+cat("最优主成分数:", optimal_ncomp_pcr, "\n")
+cat("交叉验证均方根误差:", min(pcr_rmsecv$val[1,,]), "\n\n")
+
+# 4.2 偏最小二乘回归
+cat("=== 偏最小二乘回归 ===\n")
+
+pls_model <- plsr(mpg ~ ., data = mtcars, scale = TRUE, validation = "LOO")
+validationplot(pls_model, val.type = "MSEP", main = "PLSR交叉验证误差")
+
+# 选择最优潜变量数
+pls_rmsecv <- RMSEP(pls_model, estimate = "CV")
+optimal_ncomp_pls <- which.min(pls_rmsecv$val[1,,]) - 1
+cat("最优潜变量数:", optimal_ncomp_pls, "\n")
+cat("交叉验证均方根误差:", min(pls_rmsecv$val[1,,]), "\n\n")
+
+# 5. 模型比较与评价
+
+# 5.1 数据分割（70%训练，30%测试）
+train_index <- createDataPartition(mtcars$mpg, p = 0.7, list = FALSE)
+train_data <- mtcars[train_index, ]
+test_data <- mtcars[-train_index, ]
+
+# 5.2 定义计算RMSE的函数
+calculate_rmse <- function(actual, predicted) {
+  sqrt(mean((actual - predicted)^2))
+}
+
+# 5.3 训练各个模型
+
+# 全模型
+full_model <- lm(mpg ~ ., data = train_data)
+full_pred <- predict(full_model, newdata = test_data)
+full_rmse <- calculate_rmse(test_data$mpg, full_pred)
+
+# 最优子集模型（基于BIC选择3个变量）
+subset_model <- regsubsets(mpg ~ ., data = train_data, nvmax = 3)
+subset_coef <- coef(subset_model, id = 3)
+# 在测试集上预测
+test_matrix <- model.matrix(mpg ~ ., data = test_data)[, names(subset_coef)]
+subset_pred <- test_matrix %*% subset_coef
+subset_rmse <- calculate_rmse(test_data$mpg, subset_pred)
+
+# 逐步回归模型
+step_model <- step(lm(mpg ~ 1, data = train_data), 
+                   scope = list(lower = ~1, upper = ~ .),
+                   direction = "both", trace = 0)
+step_pred <- predict(step_model, newdata = test_data)
+step_rmse <- calculate_rmse(test_data$mpg, step_pred)
+
+# 主成分回归模型
+pcr_train <- pcr(mpg ~ ., data = train_data, scale = TRUE, ncomp = optimal_ncomp_pcr)
+pcr_pred <- predict(pcr_train, newdata = test_data, ncomp = optimal_ncomp_pcr)
+pcr_rmse <- calculate_rmse(test_data$mpg, pcr_pred)
+
+# 偏最小二乘回归模型
+pls_train <- plsr(mpg ~ ., data = train_data, scale = TRUE, ncomp = optimal_ncomp_pls)
+pls_pred <- predict(pls_train, newdata = test_data, ncomp = optimal_ncomp_pls)
+pls_rmse <- calculate_rmse(test_data$mpg, pls_pred)
+
+# 5.4 结果汇总
+results <- data.frame(
+  模型 = c("全模型", "最优子集回归", "逐步回归", "主成分回归", "偏最小二乘回归"),
+  测试集RMSE = round(c(full_rmse, subset_rmse, step_rmse, pcr_rmse, pls_rmse), 3),
+  参数个数 = c(length(coef(full_model))-1, 3, length(coef(step_model))-1, 
+               optimal_ncomp_pcr, optimal_ncomp_pls)
+)
+
+cat("=== 模型比较结果 ===\n")
+print(results)
+
+# 5.5 可视化比较
+ggplot(results, aes(x = reorder(模型, 测试集RMSE), y = 测试集RMSE, fill = 模型)) +
+  geom_bar(stat = "identity") +
+  geom_text(aes(label = 测试集RMSE), vjust = -0.5) +
+  labs(x = "模型", y = "测试集RMSE", 
+       title = "不同降维与变量选择方法的预测性能比较",
+       subtitle = "mtcars数据集，响应变量：mpg") +
+  theme_minimal() +
+  theme(legend.position = "none")
+```
+# 6. 结果解释与讨论
+案例分析总结 
+1. 数据特征: mtcars数据集包含", ncol(mtcars)-1, "个自变量，", nrow(mtcars), "个观测
+2. 共线性问题: VIF分析显示", sum(vif_values > 10), "个变量存在严重共线性
+3. 最优模型: 根据测试集RMSE，", results$模型[which.min(results$测试集RMSE)], "表现最佳
+4. 方法对比:
+- 变量选择方法（最优子集、逐步回归）保留了原始变量，解释性强
+- 降维方法（PCR、PLSR）有效处理了共线性，预测更稳定
+5. 实践建议:
+- 若需解释变量影响，推荐使用变量选择方法
+- 若追求预测精度，推荐使用偏最小二乘回归
+
+
+### 5.7.2 Python代码实现
+```{r echo=FALSE,include=FALSE,results='hide'}
+# 在 R 中直接指定 Anaconda 路径
+library(reticulate)
+# 查看已安装的 conda 环境
+conda_list()
+
+# 查看 conda 可执行文件路径
+conda_binary()
+
+# 查看 conda 版本
+conda_version()
+# 指定 Python 可执行文件路径
+use_python("C:/Data/Anaconda/python.exe")  
+
+# 使用 Conda 环境
+use_condaenv("base")  # 使用基础环境
+# 方法2：指定 Anaconda 路径
+# use_condaenv("C:/Data/Anaconda")
+
+# 验证
+print(py_config())
+```
+```{python}
+# 使用sklearn的糖尿病数据集
+
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+from sklearn.datasets import load_diabetes
+from sklearn.model_selection import train_test_split, cross_val_score
+from sklearn.linear_model import LinearRegression
+from sklearn.metrics import mean_squared_error, r2_score
+from sklearn.decomposition import PCA
+from sklearn.cross_decomposition import PLSRegression
+from sklearn.preprocessing import StandardScaler
+from sklearn.feature_selection import SequentialFeatureSelector
+from statsmodels.stats.outliers_influence import variance_inflation_factor
+import statsmodels.api as sm
+from itertools import combinations
+
+# 设置随机种子和样式
+np.random.seed(42)
+plt.style.use('seaborn-v0_8-whitegrid')
+sns.set_palette("husl")
+
+# 1. 数据加载与探索
+print("=== 数据加载与探索 ===")
+diabetes = load_diabetes()
+X = pd.DataFrame(diabetes.data, columns=diabetes.feature_names)
+y = diabetes.target
+
+print(f"数据集维度: {X.shape}")
+print(f"自变量数: {X.shape[1]}, 样本数: {X.shape[0]}")
+print(f"\n自变量名称: {list(X.columns)}")
+print(f"响应变量范围: [{y.min():.1f}, {y.max():.1f}]")
+
+# 2. 多重共线性诊断
+print("\n=== 多重共线性诊断 ===")
+
+# 计算VIF
+X_with_const = sm.add_constant(X)
+vif_data = pd.DataFrame()
+vif_data["Variable"] = X_with_const.columns
+vif_data["VIF"] = [variance_inflation_factor(X_with_const.values, i) 
+                   for i in range(X_with_const.shape[1])]
+vif_data = vif_data[vif_data["Variable"] != "const"]
+
+print("方差膨胀因子(VIF):")
+print(vif_data.to_string(index=False))
+high_vif = vif_data[vif_data["VIF"] > 10]
+if len(high_vif) > 0:
+    print(f"\n存在高VIF的变量: {list(high_vif['Variable'])}")
+
+# 计算条件指数
+scaler = StandardScaler()
+X_scaled = scaler.fit_transform(X)
+singular_values = np.linalg.svd(X_scaled, compute_uv=False)
+condition_index = singular_values[0] / singular_values[-1]
+print(f"\n条件指数: {condition_index:.2f}")
+if condition_index > 30:
+    print("提示: 存在较强多重共线性")
+
+# 3. 变量选择方法
+print("\n=== 变量选择方法 ===")
+
+# 3.1 最优子集回归（简化版，考虑计算效率）
+def best_subset_regression(X, y, max_features=5):
+    """寻找最优子集（简化版本）"""
+    n_features = X.shape[1]
+    feature_names = X.columns.tolist()
+    best_score = -np.inf
+    best_subset = None
+    
+    # 考虑所有可能的子集大小
+    for k in range(1, min(max_features, n_features) + 1):
+        for combo in combinations(range(n_features), k):
+            X_subset = X.iloc[:, list(combo)]
+            model = LinearRegression()
+            scores = cross_val_score(model, X_subset, y, cv=5, scoring='r2')
+            avg_score = np.mean(scores)
+            
+            if avg_score > best_score:
+                best_score = avg_score
+                best_subset = [feature_names[i] for i in combo]
+    
+    return best_subset, best_score
+
+best_features, best_r2 = best_subset_regression(X, y, max_features=5)
+print(f"最优子集回归选择的变量: {best_features}")
+print(f"交叉验证R²: {best_r2:.3f}")
+
+# 3.2 逐步回归（使用前向选择）
+print("\n=== 逐步回归 ===")
+lr = LinearRegression()
+sfs = SequentialFeatureSelector(lr, 
+                                n_features_to_select=5,
+                                direction='forward',
+                                scoring='r2',
+                                cv=5)
+sfs.fit(X, y)
+selected_features = X.columns[sfs.get_support()].tolist()
+print(f"逐步回归选择的变量: {selected_features}")
+
+# 4. 降维回归方法
+print("\n=== 降维回归方法 ===")
+
+# 4.1 主成分回归
+print("\n1. 主成分回归(PCR)")
+pcr_scores = []
+n_components_range = range(1, X.shape[1] + 1)
+
+for n_comp in n_components_range:
+    pca = PCA(n_components=n_comp)
+    X_pca = pca.fit_transform(X_scaled)
+    
+    model = LinearRegression()
+    scores = cross_val_score(model, X_pca, y, cv=5, scoring='neg_mean_squared_error')
+    pcr_scores.append(-np.mean(scores))
+
+optimal_ncomp_pcr = n_components_range[np.argmin(pcr_scores)]
+print(f"最优主成分数: {optimal_ncomp_pcr}")
+print(f"最小交叉验证MSE: {min(pcr_scores):.3f}")
+
+# 4.2 偏最小二乘回归
+print("\n2. 偏最小二乘回归(PLSR)")
+pls_scores = []
+
+for n_comp in n_components_range:
+    pls = PLSRegression(n_components=n_comp)
+    scores = cross_val_score(pls, X_scaled, y, cv=5, scoring='neg_mean_squared_error')
+    pls_scores.append(-np.mean(scores))
+
+optimal_ncomp_pls = n_components_range[np.argmin(pls_scores)]
+print(f"最优潜变量数: {optimal_ncomp_pls}")
+print(f"最小交叉验证MSE: {min(pls_scores):.3f}")
+
+# 5. 模型比较与评价
+print("\n=== 模型比较与评价 ===")
+
+# 5.1 数据分割
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.3, random_state=42
+)
+
+# 5.2 训练各个模型并评估
+
+models_results = []
+
+# 全模型
+full_model = LinearRegression()
+full_model.fit(X_train, y_train)
+y_pred_full = full_model.predict(X_test)
+rmse_full = np.sqrt(mean_squared_error(y_test, y_pred_full))
+models_results.append({
+    'Model': 'Full Model',
+    'RMSE': rmse_full,
+    'R²': r2_score(y_test, y_pred_full),
+    'Num_Features': X.shape[1]
+})
+
+# 最优子集模型
+X_train_best = X_train[best_features]
+X_test_best = X_test[best_features]
+subset_model = LinearRegression()
+subset_model.fit(X_train_best, y_train)
+y_pred_subset = subset_model.predict(X_test_best)
+rmse_subset = np.sqrt(mean_squared_error(y_test, y_pred_subset))
+models_results.append({
+    'Model': 'Best Subset',
+    'RMSE': rmse_subset,
+    'R²': r2_score(y_test, y_pred_subset),
+    'Num_Features': len(best_features)
+})
+
+# 逐步回归模型
+X_train_step = X_train[selected_features]
+X_test_step = X_test[selected_features]
+step_model = LinearRegression()
+step_model.fit(X_train_step, y_train)
+y_pred_step = step_model.predict(X_test_step)
+rmse_step = np.sqrt(mean_squared_error(y_test, y_pred_step))
+models_results.append({
+    'Model': 'Stepwise',
+    'RMSE': rmse_step,
+    'R²': r2_score(y_test, y_pred_step),
+    'Num_Features': len(selected_features)
+})
+
+# 主成分回归
+scaler_full = StandardScaler()
+X_train_scaled = scaler_full.fit_transform(X_train)
+X_test_scaled = scaler_full.transform(X_test)
+
+pca = PCA(n_components=optimal_ncomp_pcr)
+X_train_pca = pca.fit_transform(X_train_scaled)
+X_test_pca = pca.transform(X_test_scaled)
+
+pcr_model = LinearRegression()
+pcr_model.fit(X_train_pca, y_train)
+y_pred_pcr = pcr_model.predict(X_test_pca)
+rmse_pcr = np.sqrt(mean_squared_error(y_test, y_pred_pcr))
+models_results.append({
+    'Model': 'PCR',
+    'RMSE': rmse_pcr,
+    'R²': r2_score(y_test, y_pred_pcr),
+    'Num_Features': optimal_ncomp_pcr
+})
+
+# 偏最小二乘回归
+pls = PLSRegression(n_components=optimal_ncomp_pls)
+pls.fit(X_train_scaled, y_train)
+y_pred_pls = pls.predict(X_test_scaled).flatten()
+rmse_pls = np.sqrt(mean_squared_error(y_test, y_pred_pls))
+models_results.append({
+    'Model': 'PLSR',
+    'RMSE': rmse_pls,
+    'R²': r2_score(y_test, y_pred_pls),
+    'Num_Features': optimal_ncomp_pls
+})
+
+# 5.3 结果汇总
+results_df = pd.DataFrame(models_results)
+print("\n模型性能比较:")
+print(results_df.to_string(index=False))
+
+# 5.4 可视化
+fig, axes = plt.subplots(2, 2, figsize=(14, 10))
+
+# 1. 模型RMSE比较
+axes[0, 0].bar(results_df['Model'], results_df['RMSE'], color='skyblue')
+axes[0, 0].set_title('模型RMSE比较')
+axes[0, 0].set_ylabel('RMSE')
+axes[0, 0].tick_params(axis='x', rotation=45)
+
+# 2. 模型R²比较
+axes[0, 1].bar(results_df['Model'], results_df['R²'], color='lightgreen')
+axes[0, 1].set_title('模型R²比较')
+axes[0, 1].set_ylabel('R²')
+axes[0, 1].tick_params(axis='x', rotation=45)
+
+# 3. PCR和PLSR交叉验证误差
+axes[1, 0].plot(n_components_range, pcr_scores, 'bo-', label='PCR')
+axes[1, 0].plot(n_components_range, pls_scores, 'ro-', label='PLSR')
+axes[1, 0].set_title('PCR vs PLSR 交叉验证MSE')
+axes[1, 0].set_xlabel('成分数')
+axes[1, 0].set_ylabel('MSE')
+axes[1, 0].legend()
+axes[1, 0].grid(True, alpha=0.3)
+
+# 4. 实际值 vs 预测值（最佳模型）
+best_model_idx = np.argmin(results_df['RMSE'])
+best_model_name = results_df.loc[best_model_idx, 'Model']
+
+if best_model_name == 'Full Model':
+    y_pred_best = y_pred_full
+elif best_model_name == 'Best Subset':
+    y_pred_best = y_pred_subset
+elif best_model_name == 'Stepwise':
+    y_pred_best = y_pred_step
+elif best_model_name == 'PCR':
+    y_pred_best = y_pred_pcr
+else:
+    y_pred_best = y_pred_pls
+
+axes[1, 1].scatter(y_test, y_pred_best, alpha=0.6)
+axes[1, 1].plot([y_test.min(), y_test.max()], [y_test.min(), y_test.max()], 
+                'r--', lw=2, label='理想线')
+axes[1, 1].set_xlabel('实际值')
+axes[1, 1].set_ylabel('预测值')
+axes[1, 1].set_title(f'最佳模型 ({best_model_name}) 预测表现')
+axes[1, 1].legend()
+axes[1, 1].grid(True, alpha=0.3)
+
+plt.tight_layout()
+plt.show()
+
+# 6. 结果解释与讨论
+print("\n=== 案例分析总结 ===")
+print(f"1. 数据集: 糖尿病数据集，包含{X.shape[1]}个生理指标，{X.shape[0]}个患者样本")
+print(f"2. 共线性诊断: {len(high_vif)}个变量VIF>10，条件指数为{condition_index:.1f}")
+print(f"3. 最佳预测模型: {best_model_name} (RMSE: {results_df.loc[best_model_idx, 'RMSE']:.3f})")
+print(f"4. 方法对比:")
+print(f"   - 全模型: 使用所有{X.shape[1]}个变量，容易过拟合")
+print(f"   - 变量选择方法: 分别选择{len(best_features)}和{len(selected_features)}个关键变量")
+print(f"   - 降维方法: PCR使用{optimal_ncomp_pcr}个主成分，PLSR使用{optimal_ncomp_pls}个潜变量")
+print(f"5. 实践建议:")
+print(f"   - 若关注特征解释: 推荐变量选择方法（如最优子集回归）")
+print(f"   - 若追求预测精度: 推荐偏最小二乘回归")
+print(f"   - 若存在强共线性: 主成分回归是稳健选择")
+
+# 保存结果
+print("\n提示: 完整分析结果已可视化展示")
+```
+
+### 5.7.3 案例分析说明
+
+本案例分析使用两种不同的数据集展示了第5章介绍的各种降维与变量选择方法：
+
+### R版本特点：
+
+1.  **数据集**: 使用经典的`mtcars`数据集，研究汽车性能影响因素
+2.  **方法实现**:
+    -   使用`leaps`包进行最优子集回归
+    -   使用`step()`函数进行逐步回归
+    -   使用`pls`包进行PCR和PLSR
+3.  **评估指标**: 采用留一法交叉验证和测试集RMSE
+
+### Python版本特点：
+
+1.  **数据集**: 使用`sklearn`的糖尿病数据集，更具实际医学意义
+2.  **方法实现**:
+    -   自定义函数实现最优子集搜索
+    -   使用`SequentialFeatureSelector`进行逐步回归
+    -   使用`sklearn`的PCA和PLSRegression
+3.  **可视化**: 提供更丰富的可视化图表
+
+### 运行要求：
+
+-   R版本需要安装：leaps, pls, car, ggplot2, caret, dplyr
+-   Python版本需要安装：scikit-learn, pandas, numpy, matplotlib, seaborn, statsmodels
+
+## 本章总结
+
+本章系统介绍了回归分析中处理高维数据和多重共线性问题的两类核心方法：变量选择与特征降维。这些方法在不同场景下各有优劣，为数据分析者提供了丰富的工具箱。
+
+**核心方法论比较**：
+
+1.  **变量选择方法**（最优子集回归、逐步回归）：
+    -   **优点**：保留原始变量，模型解释性强；符合稀疏性假设时理论性质良好
+    -   **缺点**：计算复杂（最优子集），结果不稳定（逐步回归）；不直接处理共线性
+    -   **适用场景**：变量数$p$适中（如\<40），强解释性需求，存在明显的关键变量子集
+2.  **主成分回归**：
+    -   **优点**：彻底消除共线性；计算稳定；提供数据降维视角
+    -   **缺点**：无监督降维可能丢失预测信息；主成分解释困难
+    -   **适用场景**：共线性严重，预测稳定性优先，变量间有明确公共因子结构
+3.  **偏最小二乘回归**：
+    -   **优点**：有监督降维通常预测更准；能处理$p > n$情形；探索变量间复杂关系
+    -   **缺点**：计算较复杂；容易过拟合；结果解释仍具挑战
+    -   **适用场景**：追求高预测精度，样本量有限，相信潜变量结构存在
+
+**实践建议**：
+
+1.  **诊断先行**：分析前务必检查多重共线性（VIF、条件指数）和数据维度（$p$与$n$的关系）
+2.  **目标导向**：
+    -   若解释性为首要目标：优先考虑变量选择方法，辅以领域知识
+    -   若预测精度为首要目标：优先考虑PLSR，用交叉验证调参
+    -   若共线性极端严重：PCR通常是稳健的基线方法
+3.  **验证必要**：无论使用何种方法，都必须用独立的测试集或交叉验证评估模型性能
+4.  **综合考量**：在实际应用中，可尝试多种方法，比较它们的预测性能、稳定性和可解释性
+
+**与后续章节的衔接**： 本章介绍的降维与变量选择方法为处理高维数据提供了经典解决方案。下一章将深入讨论另一种强大的工具族——正则化方法（岭回归、Lasso、弹性网等），这些方法通过直接在损失函数中添加惩罚项，同时实现变量选择与系数收缩，在许多现代高维问题中表现出色。两类方法各有侧重，在实际数据分析中常需结合使用。
+
+随着数据科学的发展，降维与变量选择方法仍在不断演进。深度学习中的自动编码器、注意力机制等为高维数据提供了新的处理思路，但这些内容已超出本书范围。掌握本章介绍的经典方法，不仅为解决实际问题提供了有效工具，也为学习更先进的现代方法奠定了坚实基础。
