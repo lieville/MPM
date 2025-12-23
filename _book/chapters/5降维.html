@@ -312,72 +312,19 @@ window.Quarto = {
     <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
         <nav id="TOC" role="doc-toc" class="toc-active"><h2 id="toc-title">目录</h2>
    
-  <ul>
+  <ul class="collapse">
 <li><a href="#%E6%9C%AC%E7%AB%A0%E5%AF%BC%E8%AF%BB" id="toc-本章导读" class="nav-link active" data-scroll-target="#%E6%9C%AC%E7%AB%A0%E5%AF%BC%E8%AF%BB">本章导读</a></li>
-  <li>
-<a href="#%E5%A4%9A%E9%87%8D%E5%85%B1%E7%BA%BF%E6%80%A7%E5%8F%8A%E5%85%B6%E8%AF%8A%E6%96%AD" id="toc-多重共线性及其诊断" class="nav-link" data-scroll-target="#%E5%A4%9A%E9%87%8D%E5%85%B1%E7%BA%BF%E6%80%A7%E5%8F%8A%E5%85%B6%E8%AF%8A%E6%96%AD">5.1 多重共线性及其诊断</a>
-  <ul class="collapse">
-<li><a href="#%E5%A4%9A%E9%87%8D%E5%85%B1%E7%BA%BF%E6%80%A7%E7%9A%84%E5%AE%9A%E4%B9%89%E4%B8%8E%E5%BD%B1%E5%93%8D" id="toc-多重共线性的定义与影响" class="nav-link" data-scroll-target="#%E5%A4%9A%E9%87%8D%E5%85%B1%E7%BA%BF%E6%80%A7%E7%9A%84%E5%AE%9A%E4%B9%89%E4%B8%8E%E5%BD%B1%E5%93%8D">5.1.1 多重共线性的定义与影响</a></li>
-  <li><a href="#%E8%AF%8A%E6%96%AD%E6%96%B9%E6%B3%95" id="toc-诊断方法" class="nav-link" data-scroll-target="#%E8%AF%8A%E6%96%AD%E6%96%B9%E6%B3%95">5.1.2 诊断方法</a></li>
-  <li><a href="#%E6%B6%88%E9%99%A4%E5%A4%9A%E9%87%8D%E5%85%B1%E7%BA%BF%E6%80%A7%E7%9A%84%E6%96%B9%E6%B3%95" id="toc-消除多重共线性的方法" class="nav-link" data-scroll-target="#%E6%B6%88%E9%99%A4%E5%A4%9A%E9%87%8D%E5%85%B1%E7%BA%BF%E6%80%A7%E7%9A%84%E6%96%B9%E6%B3%95">5.1.3 消除多重共线性的方法</a></li>
-  </ul>
-</li>
-  <li>
-<a href="#%E9%AB%98%E7%BB%B4%E6%95%B0%E6%8D%AE%E7%9A%84%E6%8C%91%E6%88%98" id="toc-高维数据的挑战" class="nav-link" data-scroll-target="#%E9%AB%98%E7%BB%B4%E6%95%B0%E6%8D%AE%E7%9A%84%E6%8C%91%E6%88%98">5.2 高维数据的挑战</a>
-  <ul class="collapse">
-<li><a href="#%E7%BB%B4%E6%95%B0%E7%81%BE%E9%9A%BE%E4%B8%8Ep-n%E9%97%AE%E9%A2%98" id="toc-维数灾难与p-n问题" class="nav-link" data-scroll-target="#%E7%BB%B4%E6%95%B0%E7%81%BE%E9%9A%BE%E4%B8%8Ep-n%E9%97%AE%E9%A2%98">5.2.1 “维数灾难”与”p &gt; n”问题</a></li>
-  <li><a href="#%E7%A8%80%E7%96%8F%E6%80%A7%E5%81%87%E8%AE%BE" id="toc-稀疏性假设" class="nav-link" data-scroll-target="#%E7%A8%80%E7%96%8F%E6%80%A7%E5%81%87%E8%AE%BE">5.2.2 稀疏性假设</a></li>
-  <li><a href="#%E9%AB%98%E7%BB%B4%E7%BB%9F%E8%AE%A1%E6%8E%A8%E6%96%AD%E7%9A%84%E6%8C%91%E6%88%98" id="toc-高维统计推断的挑战" class="nav-link" data-scroll-target="#%E9%AB%98%E7%BB%B4%E7%BB%9F%E8%AE%A1%E6%8E%A8%E6%96%AD%E7%9A%84%E6%8C%91%E6%88%98">5.2.3 高维统计推断的挑战</a></li>
-  </ul>
-</li>
-  <li>
-<a href="#%E5%8F%98%E9%87%8F%E9%80%89%E6%8B%A9%E7%9A%84%E8%AF%84%E4%BB%B7%E5%87%86%E5%88%99" id="toc-变量选择的评价准则" class="nav-link" data-scroll-target="#%E5%8F%98%E9%87%8F%E9%80%89%E6%8B%A9%E7%9A%84%E8%AF%84%E4%BB%B7%E5%87%86%E5%88%99">5.3 变量选择的评价准则</a>
-  <ul class="collapse">
-<li><a href="#%E5%9F%BA%E4%BA%8E%E6%8B%9F%E5%90%88%E4%BC%98%E5%BA%A6%E7%9A%84%E8%B0%83%E6%95%B4%E8%B0%83%E6%95%B4r2" id="toc-基于拟合优度的调整调整r2" class="nav-link" data-scroll-target="#%E5%9F%BA%E4%BA%8E%E6%8B%9F%E5%90%88%E4%BC%98%E5%BA%A6%E7%9A%84%E8%B0%83%E6%95%B4%E8%B0%83%E6%95%B4r2">5.3.1 基于拟合优度的调整：调整<span class="math inline">\(R^2\)</span></a></li>
-  <li><a href="#%E5%9F%BA%E4%BA%8E%E4%BF%A1%E6%81%AF%E8%AE%BA%E7%9A%84%E5%87%86%E5%88%99aic%E4%B8%8Ebic" id="toc-基于信息论的准则aic与bic" class="nav-link" data-scroll-target="#%E5%9F%BA%E4%BA%8E%E4%BF%A1%E6%81%AF%E8%AE%BA%E7%9A%84%E5%87%86%E5%88%99aic%E4%B8%8Ebic">5.3.2 基于信息论的准则：AIC与BIC</a></li>
-  <li><a href="#%E5%9F%BA%E4%BA%8E%E9%A2%84%E6%B5%8B%E7%9A%84%E5%87%86%E5%88%99mallows-c_p%E7%BB%9F%E8%AE%A1%E9%87%8F%E4%B8%8E%E4%BA%A4%E5%8F%89%E9%AA%8C%E8%AF%81" id="toc-基于预测的准则mallows-c_p统计量与交叉验证" class="nav-link" data-scroll-target="#%E5%9F%BA%E4%BA%8E%E9%A2%84%E6%B5%8B%E7%9A%84%E5%87%86%E5%88%99mallows-c_p%E7%BB%9F%E8%AE%A1%E9%87%8F%E4%B8%8E%E4%BA%A4%E5%8F%89%E9%AA%8C%E8%AF%81">5.3.3 基于预测的准则：Mallows’ <span class="math inline">\(C_p\)</span>统计量与交叉验证</a></li>
-  </ul>
-</li>
-  <li>
-<a href="#%E7%BB%8F%E5%85%B8%E5%8F%98%E9%87%8F%E9%80%89%E6%8B%A9%E6%96%B9%E6%B3%95" id="toc-经典变量选择方法" class="nav-link" data-scroll-target="#%E7%BB%8F%E5%85%B8%E5%8F%98%E9%87%8F%E9%80%89%E6%8B%A9%E6%96%B9%E6%B3%95">5.4 经典变量选择方法</a>
-  <ul class="collapse">
-<li><a href="#%E6%9C%80%E4%BC%98%E5%AD%90%E9%9B%86%E5%9B%9E%E5%BD%92" id="toc-最优子集回归" class="nav-link" data-scroll-target="#%E6%9C%80%E4%BC%98%E5%AD%90%E9%9B%86%E5%9B%9E%E5%BD%92">5.4.1 最优子集回归</a></li>
-  <li><a href="#%E9%80%90%E6%AD%A5%E5%9B%9E%E5%BD%92%E6%B3%95" id="toc-逐步回归法" class="nav-link" data-scroll-target="#%E9%80%90%E6%AD%A5%E5%9B%9E%E5%BD%92%E6%B3%95">5.4.2 逐步回归法</a></li>
-  </ul>
-</li>
-  <li>
-<a href="#%E4%B8%BB%E6%88%90%E5%88%86%E5%9B%9E%E5%BD%92" id="toc-主成分回归" class="nav-link" data-scroll-target="#%E4%B8%BB%E6%88%90%E5%88%86%E5%9B%9E%E5%BD%92">5.5 主成分回归</a>
-  <ul class="collapse">
-<li><a href="#%E4%B8%BB%E6%88%90%E5%88%86%E5%88%86%E6%9E%90%E5%9B%9E%E9%A1%BE" id="toc-主成分分析回顾" class="nav-link" data-scroll-target="#%E4%B8%BB%E6%88%90%E5%88%86%E5%88%86%E6%9E%90%E5%9B%9E%E9%A1%BE">5.5.1 主成分分析回顾</a></li>
-  <li><a href="#%E4%B8%BB%E6%88%90%E5%88%86%E5%9B%9E%E5%BD%92%E7%9A%84%E6%AD%A5%E9%AA%A4" id="toc-主成分回归的步骤" class="nav-link" data-scroll-target="#%E4%B8%BB%E6%88%90%E5%88%86%E5%9B%9E%E5%BD%92%E7%9A%84%E6%AD%A5%E9%AA%A4">5.5.2 主成分回归的步骤</a></li>
-  <li><a href="#%E6%96%B9%E6%B3%95%E7%89%B9%E6%80%A7%E4%B8%8E%E4%BC%98%E7%BC%BA%E7%82%B9" id="toc-方法特性与优缺点" class="nav-link" data-scroll-target="#%E6%96%B9%E6%B3%95%E7%89%B9%E6%80%A7%E4%B8%8E%E4%BC%98%E7%BC%BA%E7%82%B9">5.5.3 方法特性与优缺点</a></li>
-  </ul>
-</li>
-  <li>
-<a href="#%E5%81%8F%E6%9C%80%E5%B0%8F%E4%BA%8C%E4%B9%98%E5%9B%9E%E5%BD%92" id="toc-偏最小二乘回归" class="nav-link" data-scroll-target="#%E5%81%8F%E6%9C%80%E5%B0%8F%E4%BA%8C%E4%B9%98%E5%9B%9E%E5%BD%92">5.6 偏最小二乘回归</a>
-  <ul class="collapse">
-<li><a href="#%E5%9F%BA%E6%9C%AC%E6%80%9D%E6%83%B3" id="toc-基本思想" class="nav-link" data-scroll-target="#%E5%9F%BA%E6%9C%AC%E6%80%9D%E6%83%B3">5.6.1 基本思想</a></li>
-  <li><a href="#%E7%AE%97%E6%B3%95%E6%B5%81%E7%A8%8B" id="toc-算法流程" class="nav-link" data-scroll-target="#%E7%AE%97%E6%B3%95%E6%B5%81%E7%A8%8B">5.6.2 算法流程</a></li>
-  <li><a href="#%E4%B8%8E%E4%B8%BB%E6%88%90%E5%88%86%E5%9B%9E%E5%BD%92%E7%9A%84%E5%85%B3%E9%94%AE%E5%AF%B9%E6%AF%94" id="toc-与主成分回归的关键对比" class="nav-link" data-scroll-target="#%E4%B8%8E%E4%B8%BB%E6%88%90%E5%88%86%E5%9B%9E%E5%BD%92%E7%9A%84%E5%85%B3%E9%94%AE%E5%AF%B9%E6%AF%94">5.6.3 与主成分回归的关键对比</a></li>
-  <li><a href="#%E6%88%90%E5%88%86%E6%95%B0%E9%80%89%E6%8B%A9%E4%B8%8E%E6%A8%A1%E5%9E%8B%E8%AF%84%E4%BB%B7" id="toc-成分数选择与模型评价" class="nav-link" data-scroll-target="#%E6%88%90%E5%88%86%E6%95%B0%E9%80%89%E6%8B%A9%E4%B8%8E%E6%A8%A1%E5%9E%8B%E8%AF%84%E4%BB%B7">5.6.4 成分数选择与模型评价</a></li>
-  <li><a href="#%E7%90%86%E8%AE%BA%E6%80%A7%E8%B4%A8%E4%B8%8E%E6%89%A9%E5%B1%95" id="toc-理论性质与扩展" class="nav-link" data-scroll-target="#%E7%90%86%E8%AE%BA%E6%80%A7%E8%B4%A8%E4%B8%8E%E6%89%A9%E5%B1%95">5.6.5 理论性质与扩展</a></li>
-  </ul>
-</li>
-  <li>
-<a href="#%E6%A1%88%E4%BE%8B%E5%88%86%E6%9E%90" id="toc-案例分析" class="nav-link" data-scroll-target="#%E6%A1%88%E4%BE%8B%E5%88%86%E6%9E%90">5.7 案例分析</a>
-  <ul class="collapse">
-<li><a href="#r%E4%BB%A3%E7%A0%81%E5%AE%9E%E7%8E%B0" id="toc-r代码实现" class="nav-link" data-scroll-target="#r%E4%BB%A3%E7%A0%81%E5%AE%9E%E7%8E%B0">5.7.1 R代码实现</a></li>
-  </ul>
-</li>
+  <li><a href="#%E5%A4%9A%E9%87%8D%E5%85%B1%E7%BA%BF%E6%80%A7%E5%8F%8A%E5%85%B6%E8%AF%8A%E6%96%AD" id="toc-多重共线性及其诊断" class="nav-link" data-scroll-target="#%E5%A4%9A%E9%87%8D%E5%85%B1%E7%BA%BF%E6%80%A7%E5%8F%8A%E5%85%B6%E8%AF%8A%E6%96%AD">5.1 多重共线性及其诊断</a></li>
+  <li><a href="#%E9%AB%98%E7%BB%B4%E6%95%B0%E6%8D%AE%E7%9A%84%E6%8C%91%E6%88%98" id="toc-高维数据的挑战" class="nav-link" data-scroll-target="#%E9%AB%98%E7%BB%B4%E6%95%B0%E6%8D%AE%E7%9A%84%E6%8C%91%E6%88%98">5.2 高维数据的挑战</a></li>
+  <li><a href="#%E5%8F%98%E9%87%8F%E9%80%89%E6%8B%A9%E7%9A%84%E8%AF%84%E4%BB%B7%E5%87%86%E5%88%99" id="toc-变量选择的评价准则" class="nav-link" data-scroll-target="#%E5%8F%98%E9%87%8F%E9%80%89%E6%8B%A9%E7%9A%84%E8%AF%84%E4%BB%B7%E5%87%86%E5%88%99">5.3 变量选择的评价准则</a></li>
+  <li><a href="#%E7%BB%8F%E5%85%B8%E5%8F%98%E9%87%8F%E9%80%89%E6%8B%A9%E6%96%B9%E6%B3%95" id="toc-经典变量选择方法" class="nav-link" data-scroll-target="#%E7%BB%8F%E5%85%B8%E5%8F%98%E9%87%8F%E9%80%89%E6%8B%A9%E6%96%B9%E6%B3%95">5.4 经典变量选择方法</a></li>
+  <li><a href="#%E4%B8%BB%E6%88%90%E5%88%86%E5%9B%9E%E5%BD%92" id="toc-主成分回归" class="nav-link" data-scroll-target="#%E4%B8%BB%E6%88%90%E5%88%86%E5%9B%9E%E5%BD%92">5.5 主成分回归</a></li>
+  <li><a href="#%E5%81%8F%E6%9C%80%E5%B0%8F%E4%BA%8C%E4%B9%98%E5%9B%9E%E5%BD%92" id="toc-偏最小二乘回归" class="nav-link" data-scroll-target="#%E5%81%8F%E6%9C%80%E5%B0%8F%E4%BA%8C%E4%B9%98%E5%9B%9E%E5%BD%92">5.6 偏最小二乘回归</a></li>
+  <li><a href="#%E6%A1%88%E4%BE%8B%E5%88%86%E6%9E%90" id="toc-案例分析" class="nav-link" data-scroll-target="#%E6%A1%88%E4%BE%8B%E5%88%86%E6%9E%90">5.7 案例分析</a></li>
   <li>
 <a href="#%E7%BB%93%E6%9E%9C%E8%A7%A3%E9%87%8A%E4%B8%8E%E8%AE%A8%E8%AE%BA" id="toc-结果解释与讨论" class="nav-link" data-scroll-target="#%E7%BB%93%E6%9E%9C%E8%A7%A3%E9%87%8A%E4%B8%8E%E8%AE%A8%E8%AE%BA">6. 结果解释与讨论</a>
   <ul class="collapse">
-<li><a href="#python%E4%BB%A3%E7%A0%81%E5%AE%9E%E7%8E%B0" id="toc-python代码实现" class="nav-link" data-scroll-target="#python%E4%BB%A3%E7%A0%81%E5%AE%9E%E7%8E%B0">5.7.2 Python代码实现</a></li>
-  <li><a href="#%E6%A1%88%E4%BE%8B%E5%88%86%E6%9E%90%E8%AF%B4%E6%98%8E" id="toc-案例分析说明" class="nav-link" data-scroll-target="#%E6%A1%88%E4%BE%8B%E5%88%86%E6%9E%90%E8%AF%B4%E6%98%8E">5.7.3 案例分析说明</a></li>
-  <li><a href="#r%E7%89%88%E6%9C%AC%E7%89%B9%E7%82%B9" id="toc-r版本特点" class="nav-link" data-scroll-target="#r%E7%89%88%E6%9C%AC%E7%89%B9%E7%82%B9">R版本特点：</a></li>
-  <li><a href="#python%E7%89%88%E6%9C%AC%E7%89%B9%E7%82%B9" id="toc-python版本特点" class="nav-link" data-scroll-target="#python%E7%89%88%E6%9C%AC%E7%89%B9%E7%82%B9">Python版本特点：</a></li>
-  <li><a href="#%E8%BF%90%E8%A1%8C%E8%A6%81%E6%B1%82" id="toc-运行要求" class="nav-link" data-scroll-target="#%E8%BF%90%E8%A1%8C%E8%A6%81%E6%B1%82">运行要求：</a></li>
-  <li><a href="#%E6%9C%AC%E7%AB%A0%E6%80%BB%E7%BB%93" id="toc-本章总结" class="nav-link" data-scroll-target="#%E6%9C%AC%E7%AB%A0%E6%80%BB%E7%BB%93">本章总结</a></li>
+<li><a href="#%E6%9C%AC%E7%AB%A0%E6%80%BB%E7%BB%93" id="toc-本章总结" class="nav-link" data-scroll-target="#%E6%9C%AC%E7%AB%A0%E6%80%BB%E7%BB%93">本章总结</a></li>
   </ul>
 </li>
   </ul></nav>
@@ -592,7 +539,7 @@ C_p = \frac{\text{SSE}_k}{\hat{\sigma}^2} - n + 2(k+1)
 \]</span> 而OLS估计为<span class="math inline">\(\hat{\pmb{\beta}}_{\text{OLS}} = \mathbf{V}\pmb{\Lambda}^{-1}\mathbf{V}^\top\mathbf{X}^\top\mathbf{y}\)</span>。PCR通过舍弃小的特征值对应的方向，牺牲少量信息来换取估计的稳定性。</p>
 </section></section><section id="偏最小二乘回归" class="level2"><h2 class="anchored" data-anchor-id="偏最小二乘回归">5.6 偏最小二乘回归</h2>
 <section id="基本思想" class="level3"><h3 class="anchored" data-anchor-id="基本思想">5.6.1 基本思想</h3>
-<p>偏最小二乘回归是一种有监督的降维方法，旨在克服主成分回归的缺点。PLR的基本思想是：寻找原始自变量的线性组合（称为潜变量或成分），使其不仅尽可能多地解释自变量的变异，同时与响应变量高度相关。</p>
+<p>偏最小二乘回归是一种有监督的降维方法，旨在克服主成分回归的缺点。PLR的基本思想是：寻找原始自变量的线性组合（称为潜变量Latent Variable或成分），使其不仅尽可能多地解释自变量的变异，同时与响应变量高度相关。</p>
 <p>形式上，PLR寻找向量<span class="math inline">\(\mathbf{w}_1, \mathbf{w}_2, \ldots, \mathbf{w}_q\)</span>，使得：</p>
 <ol type="1">
 <li>

@@ -298,49 +298,15 @@ window.Quarto = {
         <nav id="TOC" role="doc-toc" class="toc-active">
     <h2 id="toc-title">目录</h2>
    
-  <ul>
+  <ul class="collapse">
   <li><a href="#本章导读" id="toc-本章导读" class="nav-link active" data-scroll-target="#本章导读">本章导读</a></li>
-  <li><a href="#线性支持向量分类器" id="toc-线性支持向量分类器" class="nav-link" data-scroll-target="#线性支持向量分类器">11.1 线性支持向量分类器</a>
-  <ul class="collapse">
-  <li><a href="#最大间隔分类器" id="toc-最大间隔分类器" class="nav-link" data-scroll-target="#最大间隔分类器">11.1.1 最大间隔分类器</a></li>
-  <li><a href="#优化问题-formulation" id="toc-优化问题-formulation" class="nav-link" data-scroll-target="#优化问题-formulation">11.1.2 优化问题 formulation</a></li>
-  <li><a href="#支持向量的概念" id="toc-支持向量的概念" class="nav-link" data-scroll-target="#支持向量的概念">11.1.3 支持向量的概念</a></li>
-  </ul></li>
-  <li><a href="#软间隔支持向量机" id="toc-软间隔支持向量机" class="nav-link" data-scroll-target="#软间隔支持向量机">11.2 软间隔支持向量机</a>
-  <ul class="collapse">
-  <li><a href="#线性不可分情况" id="toc-线性不可分情况" class="nav-link" data-scroll-target="#线性不可分情况">11.2.1 线性不可分情况</a></li>
-  <li><a href="#参数c的解释" id="toc-参数c的解释" class="nav-link" data-scroll-target="#参数c的解释">11.2.2 参数C的解释</a></li>
-  <li><a href="#损失函数视角" id="toc-损失函数视角" class="nav-link" data-scroll-target="#损失函数视角">11.2.3 损失函数视角</a></li>
-  </ul></li>
-  <li><a href="#对偶问题与核方法" id="toc-对偶问题与核方法" class="nav-link" data-scroll-target="#对偶问题与核方法">11.3 对偶问题与核方法</a>
-  <ul class="collapse">
-  <li><a href="#拉格朗日对偶" id="toc-拉格朗日对偶" class="nav-link" data-scroll-target="#拉格朗日对偶">11.3.1 拉格朗日对偶</a></li>
-  <li><a href="#核技巧" id="toc-核技巧" class="nav-link" data-scroll-target="#核技巧">11.3.2 核技巧</a></li>
-  <li><a href="#常用核函数" id="toc-常用核函数" class="nav-link" data-scroll-target="#常用核函数">11.3.3 常用核函数</a></li>
-  </ul></li>
-  <li><a href="#支持向量回归" id="toc-支持向量回归" class="nav-link" data-scroll-target="#支持向量回归">11.4 支持向量回归</a>
-  <ul class="collapse">
-  <li><a href="#epsilon-不敏感损失" id="toc-epsilon-不敏感损失" class="nav-link" data-scroll-target="#epsilon-不敏感损失">11.4.1 <span class="math inline">\(\epsilon\)</span>-不敏感损失</a></li>
-  <li><a href="#svr优化问题" id="toc-svr优化问题" class="nav-link" data-scroll-target="#svr优化问题">11.4.2 SVR优化问题</a></li>
-  <li><a href="#预测函数" id="toc-预测函数" class="nav-link" data-scroll-target="#预测函数">11.4.3 预测函数</a></li>
-  </ul></li>
-  <li><a href="#模型选择与评估" id="toc-模型选择与评估" class="nav-link" data-scroll-target="#模型选择与评估">11.5 模型选择与评估</a>
-  <ul class="collapse">
-  <li><a href="#超参数调优" id="toc-超参数调优" class="nav-link" data-scroll-target="#超参数调优">11.5.1 超参数调优</a></li>
-  <li><a href="#核函数选择" id="toc-核函数选择" class="nav-link" data-scroll-target="#核函数选择">11.5.2 核函数选择</a></li>
-  <li><a href="#模型评估指标" id="toc-模型评估指标" class="nav-link" data-scroll-target="#模型评估指标">11.5.3 模型评估指标</a></li>
-  </ul></li>
-  <li><a href="#svm的扩展变体" id="toc-svm的扩展变体" class="nav-link" data-scroll-target="#svm的扩展变体">11.6 SVM的扩展变体</a>
-  <ul class="collapse">
-  <li><a href="#多类svm" id="toc-多类svm" class="nav-link" data-scroll-target="#多类svm">11.6.1 多类SVM</a></li>
-  <li><a href="#概率输出" id="toc-概率输出" class="nav-link" data-scroll-target="#概率输出">11.6.2 概率输出</a></li>
-  <li><a href="#大规模svm" id="toc-大规模svm" class="nav-link" data-scroll-target="#大规模svm">11.6.3 大规模SVM</a></li>
-  </ul></li>
-  <li><a href="#svm与其他方法的比较" id="toc-svm与其他方法的比较" class="nav-link" data-scroll-target="#svm与其他方法的比较">11.7 SVM与其他方法的比较</a>
-  <ul class="collapse">
-  <li><a href="#与逻辑回归的比较" id="toc-与逻辑回归的比较" class="nav-link" data-scroll-target="#与逻辑回归的比较">11.7.1 与逻辑回归的比较</a></li>
-  <li><a href="#与神经网络的比较" id="toc-与神经网络的比较" class="nav-link" data-scroll-target="#与神经网络的比较">11.7.2 与神经网络的比较</a></li>
-  </ul></li>
+  <li><a href="#线性支持向量分类器" id="toc-线性支持向量分类器" class="nav-link" data-scroll-target="#线性支持向量分类器">11.1 线性支持向量分类器</a></li>
+  <li><a href="#软间隔支持向量机" id="toc-软间隔支持向量机" class="nav-link" data-scroll-target="#软间隔支持向量机">11.2 软间隔支持向量机</a></li>
+  <li><a href="#对偶问题与核方法" id="toc-对偶问题与核方法" class="nav-link" data-scroll-target="#对偶问题与核方法">11.3 对偶问题与核方法</a></li>
+  <li><a href="#支持向量回归" id="toc-支持向量回归" class="nav-link" data-scroll-target="#支持向量回归">11.4 支持向量回归</a></li>
+  <li><a href="#模型选择与评估" id="toc-模型选择与评估" class="nav-link" data-scroll-target="#模型选择与评估">11.5 模型选择与评估</a></li>
+  <li><a href="#svm的扩展变体" id="toc-svm的扩展变体" class="nav-link" data-scroll-target="#svm的扩展变体">11.6 SVM的扩展变体</a></li>
+  <li><a href="#svm与其他方法的比较" id="toc-svm与其他方法的比较" class="nav-link" data-scroll-target="#svm与其他方法的比较">11.7 SVM与其他方法的比较</a></li>
   <li><a href="#案例分析" id="toc-案例分析" class="nav-link" data-scroll-target="#案例分析">11.8 案例分析</a></li>
   <li><a href="#本章总结" id="toc-本章总结" class="nav-link" data-scroll-target="#本章总结">本章总结</a></li>
   </ul>

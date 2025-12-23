@@ -1,1 +1,64 @@
-Git
+# 查看当前文件的状态
+git status
+
+#查看提交历史
+git log
+
+# 查看分支
+git branch
+
+#切换到指定分支
+git checkout <branchname>
+
+#在当前目录下创建一个新的Git仓库
+git init # 初始化仓库
+
+
+
+远程仓库操作
+
+#添加远程仓库。
+git remote add origin <url>
+# 查看当前 Git 项目的远程仓库信息
+git remote -v
+#复制拉取远程仓库更新。
+git pull origin master
+#复制推送到远程仓库：使用git push命令将本地提交推送到远程仓库。
+git push origin master
+
+
+
+
+# 日常推送三部曲
+git add .    # 添加所有修改
+git commit -m "更新描述" # 提交到本地
+git push    # 推送到 GitHub
+
+
+SSH推送
+
+# 1. 检查是否已有 SSH 密钥
+ls -al ~/.ssh
+
+# 2. 如果没有，生成新的 SSH 密钥
+ssh-keygen -t ed25519 -C "your-email@example.com"
+# 按 Enter 接受默认路径和空密码
+
+# 3. 查看并复制公钥
+cat ~/.ssh/id_ed25519.pub
+
+# 4. 添加到 GitHub
+# 登录 GitHub → Settings → SSH and GPG keys → New SSH key
+# 粘贴刚才复制的公钥
+
+# 5. 测试 SSH 连接
+ssh -T git@github.com
+
+# 6 查看当前 Git 项目的远程仓库信息
+git remote -v
+
+# 7. 修改远程仓库地址为 SSH
+git remote set-url origin git@github.com:lieville/mpm.git
+
+# 8. 再次推送
+git push -u origin main

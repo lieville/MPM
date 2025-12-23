@@ -60,6 +60,8 @@ bibliography: references.bib
 
 format:
   html:
+    toc: true       # 生成目录
+    toc-depth: 2     # 目录深度
     theme: cosmo
     code-link: true
     code-line-numbers: true

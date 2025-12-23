@@ -264,7 +264,7 @@ $$ 而OLS估计为$\hat{\pmb{\beta}}_{\text{OLS}} = \mathbf{V}\pmb{\Lambda}^{-1}
 
 ### 5.6.1 基本思想
 
-偏最小二乘回归是一种有监督的降维方法，旨在克服主成分回归的缺点。PLR的基本思想是：寻找原始自变量的线性组合（称为潜变量或成分），使其不仅尽可能多地解释自变量的变异，同时与响应变量高度相关。
+偏最小二乘回归是一种有监督的降维方法，旨在克服主成分回归的缺点。PLR的基本思想是：寻找原始自变量的线性组合（称为潜变量Latent Variable或成分），使其不仅尽可能多地解释自变量的变异，同时与响应变量高度相关。
 
 形式上，PLR寻找向量$\mathbf{w}_1, \mathbf{w}_2, \ldots, \mathbf{w}_q$，使得：
 
@@ -529,20 +529,11 @@ ggplot(results, aes(x = reorder(模型, 测试集RMSE), y = 测试集RMSE, fill 
   theme_minimal() +
   theme(legend.position = "none")
 ```
-# 6. 结果解释与讨论
-案例分析总结 
-1. 数据特征: mtcars数据集包含", ncol(mtcars)-1, "个自变量，", nrow(mtcars), "个观测
-2. 共线性问题: VIF分析显示", sum(vif_values > 10), "个变量存在严重共线性
-3. 最优模型: 根据测试集RMSE，", results$模型[which.min(results$测试集RMSE)], "表现最佳
-4. 方法对比:
-- 变量选择方法（最优子集、逐步回归）保留了原始变量，解释性强
-- 降维方法（PCR、PLSR）有效处理了共线性，预测更稳定
-5. 实践建议:
-- 若需解释变量影响，推荐使用变量选择方法
-- 若追求预测精度，推荐使用偏最小二乘回归
 
+案例分析总结 1. 数据特征: mtcars数据集包含", ncol(mtcars)-1, "个自变量，", nrow(mtcars), "个观测 2. 共线性问题: VIF分析显示", sum(vif_values \> 10), "个变量存在严重共线性 3. 最优模型: 根据测试集RMSE，", results$模型[which.min(results$测试集RMSE)\], "表现最佳 4. 方法对比: - 变量选择方法（最优子集、逐步回归）保留了原始变量，解释性强 - 降维方法（PCR、PLSR）有效处理了共线性，预测更稳定 5. 实践建议: - 若需解释变量影响，推荐使用变量选择方法 - 若追求预测精度，推荐使用偏最小二乘回归
 
 ### 5.7.2 Python代码实现
+
 ```{r echo=FALSE,include=FALSE,results='hide'}
 # 在 R 中直接指定 Anaconda 路径
 library(reticulate)
@@ -565,6 +556,7 @@ use_condaenv("base")  # 使用基础环境
 # 验证
 print(py_config())
 ```
+
 ```{python}
 # 使用sklearn的糖尿病数据集
 

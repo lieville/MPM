@@ -312,61 +312,14 @@ window.Quarto = {
     <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
         <nav id="TOC" role="doc-toc" class="toc-active"><h2 id="toc-title">目录</h2>
    
-  <ul>
+  <ul class="collapse">
 <li><a href="#%E6%9C%AC%E7%AB%A0%E5%AF%BC%E8%AF%BB" id="toc-本章导读" class="nav-link active" data-scroll-target="#%E6%9C%AC%E7%AB%A0%E5%AF%BC%E8%AF%BB">本章导读</a></li>
-  <li>
-<a href="#%E9%A2%84%E6%B5%8B%E5%BB%BA%E6%A8%A1%E7%9A%84%E5%9F%BA%E6%9C%AC%E6%A6%82%E5%BF%B5" id="toc-预测建模的基本概念" class="nav-link" data-scroll-target="#%E9%A2%84%E6%B5%8B%E5%BB%BA%E6%A8%A1%E7%9A%84%E5%9F%BA%E6%9C%AC%E6%A6%82%E5%BF%B5">1.1 预测建模的基本概念</a>
-  <ul class="collapse">
-<li><a href="#%E9%A2%84%E6%B5%8B%E5%BB%BA%E6%A8%A1%E7%90%86%E8%AE%BA%E4%B8%8E%E5%AE%9E%E8%B7%B5%E7%9A%84%E7%BB%93%E5%90%88" id="toc-预测建模理论与实践的结合" class="nav-link" data-scroll-target="#%E9%A2%84%E6%B5%8B%E5%BB%BA%E6%A8%A1%E7%90%86%E8%AE%BA%E4%B8%8E%E5%AE%9E%E8%B7%B5%E7%9A%84%E7%BB%93%E5%90%88">1.1.1 预测建模：理论与实践的结合</a></li>
-  <li><a href="#%E9%A2%84%E6%B5%8B%E4%BB%BB%E5%8A%A1%E7%9A%84%E7%90%86%E8%AE%BA%E5%88%86%E7%B1%BB" id="toc-预测任务的理论分类" class="nav-link" data-scroll-target="#%E9%A2%84%E6%B5%8B%E4%BB%BB%E5%8A%A1%E7%9A%84%E7%90%86%E8%AE%BA%E5%88%86%E7%B1%BB">1.1.2 预测任务的理论分类</a></li>
-  <li><a href="#%E4%BB%8E%E7%90%86%E8%AE%BA%E5%88%B0%E5%AE%9E%E8%B7%B5%E7%9A%84%E5%BB%BA%E6%A8%A1%E6%B5%81%E7%A8%8B" id="toc-从理论到实践的建模流程" class="nav-link" data-scroll-target="#%E4%BB%8E%E7%90%86%E8%AE%BA%E5%88%B0%E5%AE%9E%E8%B7%B5%E7%9A%84%E5%BB%BA%E6%A8%A1%E6%B5%81%E7%A8%8B">1.1.3 从理论到实践的建模流程</a></li>
-  </ul>
-</li>
-  <li>
-<a href="#%E6%A8%A1%E5%9E%8B%E8%AF%84%E4%BC%B0%E6%A1%86%E6%9E%B6" id="toc-模型评估框架" class="nav-link" data-scroll-target="#%E6%A8%A1%E5%9E%8B%E8%AF%84%E4%BC%B0%E6%A1%86%E6%9E%B6">1.2 模型评估框架</a>
-  <ul class="collapse">
-<li><a href="#%E6%95%B0%E6%8D%AE%E5%88%92%E5%88%86%E7%9A%84%E7%90%86%E8%AE%BA%E4%BE%9D%E6%8D%AE%E4%B8%8E%E5%AE%9E%E8%B7%B5%E7%AD%96%E7%95%A5" id="toc-数据划分的理论依据与实践策略" class="nav-link" data-scroll-target="#%E6%95%B0%E6%8D%AE%E5%88%92%E5%88%86%E7%9A%84%E7%90%86%E8%AE%BA%E4%BE%9D%E6%8D%AE%E4%B8%8E%E5%AE%9E%E8%B7%B5%E7%AD%96%E7%95%A5">1.2.1 数据划分的理论依据与实践策略</a></li>
-  <li><a href="#%E4%BA%A4%E5%8F%89%E9%AA%8C%E8%AF%81%E7%90%86%E8%AE%BA%E4%BF%9D%E8%AF%81%E4%B8%8E%E5%AE%9E%E7%8E%B0%E7%BB%86%E8%8A%82" id="toc-交叉验证理论保证与实现细节" class="nav-link" data-scroll-target="#%E4%BA%A4%E5%8F%89%E9%AA%8C%E8%AF%81%E7%90%86%E8%AE%BA%E4%BF%9D%E8%AF%81%E4%B8%8E%E5%AE%9E%E7%8E%B0%E7%BB%86%E8%8A%82">1.2.2 交叉验证：理论保证与实现细节</a></li>
-  <li><a href="#%E6%97%B6%E9%97%B4%E5%BA%8F%E5%88%97%E7%9A%84%E7%89%B9%E6%AE%8A%E8%80%83%E8%99%91" id="toc-时间序列的特殊考虑" class="nav-link" data-scroll-target="#%E6%97%B6%E9%97%B4%E5%BA%8F%E5%88%97%E7%9A%84%E7%89%B9%E6%AE%8A%E8%80%83%E8%99%91">1.2.3 时间序列的特殊考虑</a></li>
-  </ul>
-</li>
-  <li>
-<a href="#%E8%AF%84%E4%BC%B0%E6%8C%87%E6%A0%87" id="toc-评估指标" class="nav-link" data-scroll-target="#%E8%AF%84%E4%BC%B0%E6%8C%87%E6%A0%87">1.3 评估指标</a>
-  <ul class="collapse">
-<li><a href="#%E5%88%86%E7%B1%BB%E6%8C%87%E6%A0%87%E7%9A%84%E7%BB%9F%E8%AE%A1%E8%A7%A3%E9%87%8A" id="toc-分类指标的统计解释" class="nav-link" data-scroll-target="#%E5%88%86%E7%B1%BB%E6%8C%87%E6%A0%87%E7%9A%84%E7%BB%9F%E8%AE%A1%E8%A7%A3%E9%87%8A">1.3.1 分类指标的统计解释</a></li>
-  <li><a href="#roc%E4%B8%8Eauc%E7%9A%84%E6%B7%B1%E5%88%BB%E7%90%86%E8%A7%A3" id="toc-roc与auc的深刻理解" class="nav-link" data-scroll-target="#roc%E4%B8%8Eauc%E7%9A%84%E6%B7%B1%E5%88%BB%E7%90%86%E8%A7%A3">1.3.2 ROC与AUC的深刻理解</a></li>
-  <li><a href="#%E5%9B%9E%E5%BD%92%E6%8C%87%E6%A0%87%E7%9A%84%E7%90%86%E8%AE%BA%E5%9F%BA%E7%A1%80" id="toc-回归指标的理论基础" class="nav-link" data-scroll-target="#%E5%9B%9E%E5%BD%92%E6%8C%87%E6%A0%87%E7%9A%84%E7%90%86%E8%AE%BA%E5%9F%BA%E7%A1%80">1.3.3 回归指标的理论基础</a></li>
-  <li><a href="#%E5%A4%9A%E6%8C%87%E6%A0%87%E8%AF%84%E4%BC%B0%E6%A1%86%E6%9E%B6" id="toc-多指标评估框架" class="nav-link" data-scroll-target="#%E5%A4%9A%E6%8C%87%E6%A0%87%E8%AF%84%E4%BC%B0%E6%A1%86%E6%9E%B6">1.3.4 多指标评估框架</a></li>
-  </ul>
-</li>
-  <li>
-<a href="#%E8%BF%87%E6%8B%9F%E5%90%88%E4%B8%8E%E6%A8%A1%E5%9E%8B%E5%A4%8D%E6%9D%82%E5%BA%A6" id="toc-过拟合与模型复杂度" class="nav-link" data-scroll-target="#%E8%BF%87%E6%8B%9F%E5%90%88%E4%B8%8E%E6%A8%A1%E5%9E%8B%E5%A4%8D%E6%9D%82%E5%BA%A6">1.4 过拟合与模型复杂度</a>
-  <ul class="collapse">
-<li><a href="#%E5%81%8F%E5%B7%AE-%E6%96%B9%E5%B7%AE%E5%88%86%E8%A7%A3%E7%90%86%E8%AE%BA%E4%B8%8E%E5%9B%BE%E8%A7%A3" id="toc-偏差-方差分解理论与图解" class="nav-link" data-scroll-target="#%E5%81%8F%E5%B7%AE-%E6%96%B9%E5%B7%AE%E5%88%86%E8%A7%A3%E7%90%86%E8%AE%BA%E4%B8%8E%E5%9B%BE%E8%A7%A3">1.4.1 偏差-方差分解：理论与图解</a></li>
-  <li><a href="#%E6%AD%A3%E5%88%99%E5%8C%96%E7%9A%84%E6%95%B0%E5%AD%A6%E5%8E%9F%E7%90%86" id="toc-正则化的数学原理" class="nav-link" data-scroll-target="#%E6%AD%A3%E5%88%99%E5%8C%96%E7%9A%84%E6%95%B0%E5%AD%A6%E5%8E%9F%E7%90%86">1.4.2 正则化的数学原理</a></li>
-  <li><a href="#%E5%AD%A6%E4%B9%A0%E6%9B%B2%E7%BA%BF%E7%9A%84%E8%AF%8A%E6%96%AD%E4%BB%B7%E5%80%BC" id="toc-学习曲线的诊断价值" class="nav-link" data-scroll-target="#%E5%AD%A6%E4%B9%A0%E6%9B%B2%E7%BA%BF%E7%9A%84%E8%AF%8A%E6%96%AD%E4%BB%B7%E5%80%BC">1.4.3 学习曲线的诊断价值</a></li>
-  <li><a href="#%E5%BA%94%E5%AF%B9%E8%BF%87%E6%8B%9F%E5%90%88%E7%9A%84%E7%AD%96%E7%95%A5%E4%BD%93%E7%B3%BB" id="toc-应对过拟合的策略体系" class="nav-link" data-scroll-target="#%E5%BA%94%E5%AF%B9%E8%BF%87%E6%8B%9F%E5%90%88%E7%9A%84%E7%AD%96%E7%95%A5%E4%BD%93%E7%B3%BB">1.4.4 应对过拟合的策略体系</a></li>
-  </ul>
-</li>
-  <li>
-<a href="#%E6%A8%A1%E5%9E%8B%E9%80%89%E6%8B%A9%E5%8E%9F%E5%88%99" id="toc-模型选择原则" class="nav-link" data-scroll-target="#%E6%A8%A1%E5%9E%8B%E9%80%89%E6%8B%A9%E5%8E%9F%E5%88%99">1.5 模型选择原则</a>
-  <ul class="collapse">
-<li><a href="#%E5%81%8F%E5%B7%AE-%E6%96%B9%E5%B7%AE%E6%9D%83%E8%A1%A1%E7%9A%84%E6%95%B0%E5%AD%A6%E4%BC%98%E5%8C%96" id="toc-偏差-方差权衡的数学优化" class="nav-link" data-scroll-target="#%E5%81%8F%E5%B7%AE-%E6%96%B9%E5%B7%AE%E6%9D%83%E8%A1%A1%E7%9A%84%E6%95%B0%E5%AD%A6%E4%BC%98%E5%8C%96">1.5.1 偏差-方差权衡的数学优化</a></li>
-  <li><a href="#%E4%BF%A1%E6%81%AF%E5%87%86%E5%88%99%E9%87%8F%E5%8C%96%E7%9A%84%E5%A5%A5%E5%8D%A1%E5%A7%86%E5%89%83%E5%88%80" id="toc-信息准则量化的奥卡姆剃刀" class="nav-link" data-scroll-target="#%E4%BF%A1%E6%81%AF%E5%87%86%E5%88%99%E9%87%8F%E5%8C%96%E7%9A%84%E5%A5%A5%E5%8D%A1%E5%A7%86%E5%89%83%E5%88%80">1.5.2 信息准则：量化的奥卡姆剃刀</a></li>
-  <li><a href="#%E7%BB%93%E6%9E%84%E9%A3%8E%E9%99%A9%E6%9C%80%E5%B0%8F%E5%8C%96" id="toc-结构风险最小化" class="nav-link" data-scroll-target="#%E7%BB%93%E6%9E%84%E9%A3%8E%E9%99%A9%E6%9C%80%E5%B0%8F%E5%8C%96">1.5.3 结构风险最小化</a></li>
-  <li><a href="#%E5%A4%9A%E5%87%86%E5%88%99%E5%86%B3%E7%AD%96%E7%9A%84%E5%AE%9A%E9%87%8F%E6%A1%86%E6%9E%B6" id="toc-多准则决策的定量框架" class="nav-link" data-scroll-target="#%E5%A4%9A%E5%87%86%E5%88%99%E5%86%B3%E7%AD%96%E7%9A%84%E5%AE%9A%E9%87%8F%E6%A1%86%E6%9E%B6">1.5.4 多准则决策的定量框架</a></li>
-  <li><a href="#%E9%9B%86%E6%88%90%E6%96%B9%E6%B3%95%E7%9A%84%E7%90%86%E8%AE%BA%E4%BC%98%E5%8A%BF" id="toc-集成方法的理论优势" class="nav-link" data-scroll-target="#%E9%9B%86%E6%88%90%E6%96%B9%E6%B3%95%E7%9A%84%E7%90%86%E8%AE%BA%E4%BC%98%E5%8A%BF">1.5.5 集成方法的理论优势</a></li>
-  <li><a href="#%E5%AE%9E%E8%B7%B5%E4%B8%AD%E7%9A%84%E6%A8%A1%E5%9E%8B%E9%80%89%E6%8B%A9%E6%B5%81%E7%A8%8B" id="toc-实践中的模型选择流程" class="nav-link" data-scroll-target="#%E5%AE%9E%E8%B7%B5%E4%B8%AD%E7%9A%84%E6%A8%A1%E5%9E%8B%E9%80%89%E6%8B%A9%E6%B5%81%E7%A8%8B">1.5.6 实践中的模型选择流程</a></li>
-  </ul>
-</li>
-  <li>
-<a href="#%E8%BD%AF%E4%BB%B6%E4%BD%BF%E7%94%A8" id="toc-软件使用" class="nav-link" data-scroll-target="#%E8%BD%AF%E4%BB%B6%E4%BD%BF%E7%94%A8">1.6 软件使用</a>
-  <ul class="collapse">
-<li><a href="#r%E8%AF%AD%E8%A8%80" id="toc-r语言" class="nav-link" data-scroll-target="#r%E8%AF%AD%E8%A8%80">16.1 R语言</a></li>
-  <li><a href="#python" id="toc-python" class="nav-link" data-scroll-target="#python">16.2 Python</a></li>
-  <li><a href="#%E5%B9%B3%E5%8F%B0%E6%90%AD%E5%BB%BA" id="toc-平台搭建" class="nav-link" data-scroll-target="#%E5%B9%B3%E5%8F%B0%E6%90%AD%E5%BB%BA">1.6.3 平台搭建</a></li>
-  </ul>
-</li>
+  <li><a href="#%E9%A2%84%E6%B5%8B%E5%BB%BA%E6%A8%A1%E7%9A%84%E5%9F%BA%E6%9C%AC%E6%A6%82%E5%BF%B5" id="toc-预测建模的基本概念" class="nav-link" data-scroll-target="#%E9%A2%84%E6%B5%8B%E5%BB%BA%E6%A8%A1%E7%9A%84%E5%9F%BA%E6%9C%AC%E6%A6%82%E5%BF%B5">1.1 预测建模的基本概念</a></li>
+  <li><a href="#%E6%A8%A1%E5%9E%8B%E8%AF%84%E4%BC%B0%E6%A1%86%E6%9E%B6" id="toc-模型评估框架" class="nav-link" data-scroll-target="#%E6%A8%A1%E5%9E%8B%E8%AF%84%E4%BC%B0%E6%A1%86%E6%9E%B6">1.2 模型评估框架</a></li>
+  <li><a href="#%E8%AF%84%E4%BC%B0%E6%8C%87%E6%A0%87" id="toc-评估指标" class="nav-link" data-scroll-target="#%E8%AF%84%E4%BC%B0%E6%8C%87%E6%A0%87">1.3 评估指标</a></li>
+  <li><a href="#%E8%BF%87%E6%8B%9F%E5%90%88%E4%B8%8E%E6%A8%A1%E5%9E%8B%E5%A4%8D%E6%9D%82%E5%BA%A6" id="toc-过拟合与模型复杂度" class="nav-link" data-scroll-target="#%E8%BF%87%E6%8B%9F%E5%90%88%E4%B8%8E%E6%A8%A1%E5%9E%8B%E5%A4%8D%E6%9D%82%E5%BA%A6">1.4 过拟合与模型复杂度</a></li>
+  <li><a href="#%E6%A8%A1%E5%9E%8B%E9%80%89%E6%8B%A9%E5%8E%9F%E5%88%99" id="toc-模型选择原则" class="nav-link" data-scroll-target="#%E6%A8%A1%E5%9E%8B%E9%80%89%E6%8B%A9%E5%8E%9F%E5%88%99">1.5 模型选择原则</a></li>
+  <li><a href="#%E8%BD%AF%E4%BB%B6%E4%BD%BF%E7%94%A8" id="toc-软件使用" class="nav-link" data-scroll-target="#%E8%BD%AF%E4%BB%B6%E4%BD%BF%E7%94%A8">1.6 软件使用</a></li>
   <li><a href="#%E7%BB%BC%E5%90%88%E6%A1%88%E4%BE%8B" id="toc-综合案例" class="nav-link" data-scroll-target="#%E7%BB%BC%E5%90%88%E6%A1%88%E4%BE%8B">1.7 综合案例</a></li>
   <li><a href="#%E6%9C%AC%E7%AB%A0%E6%80%BB%E7%BB%93" id="toc-本章总结" class="nav-link" data-scroll-target="#%E6%9C%AC%E7%AB%A0%E6%80%BB%E7%BB%93">本章总结</a></li>
   </ul></nav>

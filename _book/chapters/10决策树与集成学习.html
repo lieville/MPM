@@ -298,51 +298,16 @@ window.Quarto = {
         <nav id="TOC" role="doc-toc" class="toc-active">
     <h2 id="toc-title">目录</h2>
    
-  <ul>
+  <ul class="collapse">
   <li><a href="#本章导读" id="toc-本章导读" class="nav-link active" data-scroll-target="#本章导读">本章导读</a></li>
-  <li><a href="#决策树的基本框架" id="toc-决策树的基本框架" class="nav-link" data-scroll-target="#决策树的基本框架">10.1 决策树的基本框架</a>
-  <ul class="collapse">
-  <li><a href="#统一视角下的树模型" id="toc-统一视角下的树模型" class="nav-link" data-scroll-target="#统一视角下的树模型">10.1.1 统一视角下的树模型</a></li>
-  <li><a href="#特征空间的划分策略" id="toc-特征空间的划分策略" class="nav-link" data-scroll-target="#特征空间的划分策略">10.1.2 特征空间的划分策略</a></li>
-  </ul></li>
-  <li><a href="#回归树连续响应的建模" id="toc-回归树连续响应的建模" class="nav-link" data-scroll-target="#回归树连续响应的建模">10.2 回归树：连续响应的建模</a>
-  <ul class="collapse">
-  <li><a href="#回归树的预测机制" id="toc-回归树的预测机制" class="nav-link" data-scroll-target="#回归树的预测机制">10.2.1 回归树的预测机制</a></li>
-  <li><a href="#回归树的分裂准则" id="toc-回归树的分裂准则" class="nav-link" data-scroll-target="#回归树的分裂准则">10.2.2 回归树的分裂准则</a></li>
-  <li><a href="#回归树的复杂度控制" id="toc-回归树的复杂度控制" class="nav-link" data-scroll-target="#回归树的复杂度控制">10.2.3 回归树的复杂度控制</a></li>
-  </ul></li>
-  <li><a href="#分类树类别响应的建模" id="toc-分类树类别响应的建模" class="nav-link" data-scroll-target="#分类树类别响应的建模">10.3 分类树：类别响应的建模</a>
-  <ul class="collapse">
-  <li><a href="#分类树的预测机制" id="toc-分类树的预测机制" class="nav-link" data-scroll-target="#分类树的预测机制">10.3.1 分类树的预测机制</a></li>
-  <li><a href="#分类树的不纯度度量" id="toc-分类树的不纯度度量" class="nav-link" data-scroll-target="#分类树的不纯度度量">10.3.2 分类树的不纯度度量</a></li>
-  <li><a href="#分类树的分裂准则" id="toc-分类树的分裂准则" class="nav-link" data-scroll-target="#分类树的分裂准则">10.3.3 分类树的分裂准则</a></li>
-  </ul></li>
-  <li><a href="#树模型的比较与诊断" id="toc-树模型的比较与诊断" class="nav-link" data-scroll-target="#树模型的比较与诊断">10.4 树模型的比较与诊断</a>
-  <ul class="collapse">
-  <li><a href="#回归树与分类树的统一视角" id="toc-回归树与分类树的统一视角" class="nav-link" data-scroll-target="#回归树与分类树的统一视角">10.4.1 回归树与分类树的统一视角</a></li>
-  <li><a href="#树模型的优势与局限" id="toc-树模型的优势与局限" class="nav-link" data-scroll-target="#树模型的优势与局限">10.4.2 树模型的优势与局限</a></li>
-  </ul></li>
-  <li><a href="#集成学习理论基础" id="toc-集成学习理论基础" class="nav-link" data-scroll-target="#集成学习理论基础">10.5 集成学习理论基础</a>
-  <ul class="collapse">
-  <li><a href="#集成学习的统计原理" id="toc-集成学习的统计原理" class="nav-link" data-scroll-target="#集成学习的统计原理">10.5.1 集成学习的统计原理</a></li>
-  <li><a href="#集成方法的分类" id="toc-集成方法的分类" class="nav-link" data-scroll-target="#集成方法的分类">10.5.2 集成方法的分类</a></li>
-  </ul></li>
-  <li><a href="#bagging与随机森林" id="toc-bagging与随机森林" class="nav-link" data-scroll-target="#bagging与随机森林">10.6 Bagging与随机森林</a>
-  <ul class="collapse">
-  <li><a href="#bagging的回归应用" id="toc-bagging的回归应用" class="nav-link" data-scroll-target="#bagging的回归应用">10.6.1 Bagging的回归应用</a></li>
-  <li><a href="#bagging的分类应用" id="toc-bagging的分类应用" class="nav-link" data-scroll-target="#bagging的分类应用">10.6.2 Bagging的分类应用</a></li>
-  <li><a href="#随机森林的改进" id="toc-随机森林的改进" class="nav-link" data-scroll-target="#随机森林的改进">10.6.3 随机森林的改进</a></li>
-  </ul></li>
-  <li><a href="#boosting方法" id="toc-boosting方法" class="nav-link" data-scroll-target="#boosting方法">10.7 Boosting方法</a>
-  <ul class="collapse">
-  <li><a href="#回归问题的梯度提升" id="toc-回归问题的梯度提升" class="nav-link" data-scroll-target="#回归问题的梯度提升">10.7.1 回归问题的梯度提升</a></li>
-  <li><a href="#分类问题的adaboost" id="toc-分类问题的adaboost" class="nav-link" data-scroll-target="#分类问题的adaboost">10.7.2 分类问题的AdaBoost</a></li>
-  </ul></li>
-  <li><a href="#集成学习的高级应用" id="toc-集成学习的高级应用" class="nav-link" data-scroll-target="#集成学习的高级应用">10.10 集成学习的高级应用</a>
-  <ul class="collapse">
-  <li><a href="#回归与分类的性能差异" id="toc-回归与分类的性能差异" class="nav-link" data-scroll-target="#回归与分类的性能差异">10.10.1 回归与分类的性能差异</a></li>
-  <li><a href="#模型解释性工具" id="toc-模型解释性工具" class="nav-link" data-scroll-target="#模型解释性工具">10.10.2 模型解释性工具</a></li>
-  </ul></li>
+  <li><a href="#决策树的基本框架" id="toc-决策树的基本框架" class="nav-link" data-scroll-target="#决策树的基本框架">10.1 决策树的基本框架</a></li>
+  <li><a href="#回归树连续响应的建模" id="toc-回归树连续响应的建模" class="nav-link" data-scroll-target="#回归树连续响应的建模">10.2 回归树：连续响应的建模</a></li>
+  <li><a href="#分类树类别响应的建模" id="toc-分类树类别响应的建模" class="nav-link" data-scroll-target="#分类树类别响应的建模">10.3 分类树：类别响应的建模</a></li>
+  <li><a href="#树模型的比较与诊断" id="toc-树模型的比较与诊断" class="nav-link" data-scroll-target="#树模型的比较与诊断">10.4 树模型的比较与诊断</a></li>
+  <li><a href="#集成学习理论基础" id="toc-集成学习理论基础" class="nav-link" data-scroll-target="#集成学习理论基础">10.5 集成学习理论基础</a></li>
+  <li><a href="#bagging与随机森林" id="toc-bagging与随机森林" class="nav-link" data-scroll-target="#bagging与随机森林">10.6 Bagging与随机森林</a></li>
+  <li><a href="#boosting方法" id="toc-boosting方法" class="nav-link" data-scroll-target="#boosting方法">10.7 Boosting方法</a></li>
+  <li><a href="#集成学习的高级应用" id="toc-集成学习的高级应用" class="nav-link" data-scroll-target="#集成学习的高级应用">10.10 集成学习的高级应用</a></li>
   <li><a href="#案例分析" id="toc-案例分析" class="nav-link" data-scroll-target="#案例分析">10.11 案例分析</a></li>
   <li><a href="#本章总结" id="toc-本章总结" class="nav-link" data-scroll-target="#本章总结">本章总结</a></li>
   </ul>
