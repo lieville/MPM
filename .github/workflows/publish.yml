@@ -23,10 +23,11 @@ jobs:
         with:
           r-version: '4.5.2'
 
-      # 安装 R 包（包括 reticulate）
-      - name: Install R packages
+      # 安装 R 包并配置（关键修复）
+      - name: Install R packages and configure reticulate
         run: |
           Rscript -e 'install.packages(c("rmarkdown", "downlit", "xml2", "knitr", "reticulate"), repos="https://cloud.r-project.org/")'
+          Rscript -e 'library(reticulate); reticulate::use_python("/usr/bin/python3", required = TRUE)'
 
       # 安装 Python 3.14
       - name: Set up Python
@@ -37,11 +38,6 @@ jobs:
       - name: Install Python dependencies
         run: |
           pip install jupyter numpy pandas scikit-learn matplotlib seaborn
-
-      # 配置 reticulate 使用系统 Python
-      - name: Configure reticulate
-        run: |
-          Rscript -e 'reticulate::use_python("/usr/bin/python3", required = TRUE)'
 
       - name: Render and Publish
         uses: quarto-dev/quarto-actions/publish@v2
