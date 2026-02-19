@@ -17,21 +17,10 @@ jobs:
       - name: Set up Quarto
         uses: quarto-dev/quarto-actions/setup@v2
 
-      # 如果使用 Python 代码，启用以下步骤
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.14'
-          cache: 'pip'
-
-      - name: Install Python dependencies
-        run: |
-          pip install jupyter numpy pandas scikit-learn matplotlib seaborn
-
+      # 确保 _freeze 目录被提交
       - name: Render and Publish
         uses: quarto-dev/quarto-actions/publish@v2
         with:
           target: gh-pages
-          path: docs  # 指定输出目录
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
