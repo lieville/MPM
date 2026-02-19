@@ -115,7 +115,17 @@ $$\text{Cov}(\epsilon_t, \epsilon_{t-k}) \neq 0 \quad \text{对于某个} \quad 
 
     这一性质很重要，常被误解。自相关破坏的是有效性，而非无偏性。
 
--   **有效性丧失**（严重问题）： OLS估计量**不再是最优线性无偏估计量**。在自相关存在时，OLS估计量的方差不是所有线性无偏估计量中最小的。正式地，对于模型 $\mathbf{y} = \mathbf{X}\beta + \epsilon$，$\text{Var}(\epsilon) = \sigma^2\mathbf{\Omega}$，其中 $\mathbf{\Omega}$ 非单位矩阵，则： $$\text{Var}(\hat{\beta}_{OLS}) = \sigma^2 (\mathbf{X}'\mathbf{X})^{-1} \mathbf{X}'\mathbf{\Omega}\mathbf{X} (\mathbf{X}'\mathbf{X})^{-1}$$ 而GLS估计量的方差为： $$\text{Var}(\hat{\beta}_{GLS}) = \sigma^2 (\mathbf{X}'\mathbf{\Omega}^{-1}\mathbf{X})^{-1}$$ 可以证明 $\text{Var}(\hat{\beta}_{GLS}) \leq \text{Var}(\hat{\beta}_{OLS})$。
+-   **有效性丧失**（严重问题）： OLS估计量**不再是最优线性无偏估计量**。
+在自相关存在时，OLS估计量的方差不是所有线性无偏估计量中最小的。
+
+正式地，对于模型 $\mathbf{y} = \mathbf{X}\beta + \epsilon$，$\text{Var}(\epsilon) = \sigma^2\pmb{\Omega}$，
+其中 $\pmb{\Omega}$ 非单位矩阵，则：
+$$\text{Var}(\hat{\beta}_{OLS}) = \sigma^2 (\mathbf{X}'\mathbf{X})^{-1} \mathbf{X}'\pmb{\Omega}\mathbf{X} (\mathbf{X}'\mathbf{X})^{-1}$$
+
+而GLS估计量的方差为：
+$$\text{Var}(\hat{\beta}_{GLS}) = \sigma^2 (\mathbf{X}'\pmb{\Omega}^{-1}\mathbf{X})^{-1}$$
+
+可以证明 $\text{Var}(\hat{\beta}_{GLS}) \leq \text{Var}(\hat{\beta}_{OLS})$。
 
 #### 2. 对统计推断的影响（严重后果）
 
@@ -262,21 +272,27 @@ Breusch-Godfrey检验（也称为Lagrange Multiplier检验）是更通用、更�
 
 #### 问题形式化
 
-考虑线性模型： $$\mathbf{y} = \mathbf{X}\beta + \epsilon, \quad E(\epsilon) = 0, \quad \text{Var}(\epsilon) = \sigma^2\mathbf{\Omega}$$
+考虑线性模型： 
+$$
+\mathbf{y} = \mathbf{X}\beta + \epsilon, \quad E(\epsilon) = 0, \quad \text{Var}(\epsilon) = \sigma^2\Omega
+$$
 
-其中 $\mathbf{\Omega}$ 是正定对称矩阵。当 $\mathbf{\Omega} \neq \mathbf{I}$ 时，误差项违反球形扰动假设。
+其中 $\Omega$ 是正定对称矩阵。当 $\Omega \neq \mathbf{I}$ 时，误差项违反球形扰动假设。
 
 #### GLS估计量
 
-如果 $\mathbf{\Omega}$ 已知，GLS估计量为： $$\hat{\beta}_{GLS} = (\mathbf{X}'\mathbf{\Omega}^{-1}\mathbf{X})^{-1}\mathbf{X}'\mathbf{\Omega}^{-1}\mathbf{y}$$
+如果 $\Omega$ 已知，GLS估计量为： 
+$$
+\hat{\beta}_{GLS} = (\mathbf{X}'\Omega^{-1}\mathbf{X})^{-1}\mathbf{X}'\Omega^{-1}\mathbf{y}
+$$
 
-其方差为： $$\text{Var}(\hat{\beta}_{GLS}) = \sigma^2 (\mathbf{X}'\mathbf{\Omega}^{-1}\mathbf{X})^{-1}$$
+其方差为： $$\text{Var}(\hat{\beta}_{GLS}) = \sigma^2 (\mathbf{X}'\Omega^{-1}\mathbf{X})^{-1}$$
 
 #### GLS的直观理解
 
-GLS等价于对原始模型进行变换： $$\mathbf{\Omega}^{-1/2}\mathbf{y} = \mathbf{\Omega}^{-1/2}\mathbf{X}\beta + \mathbf{\Omega}^{-1/2}\epsilon$$
+GLS等价于对原始模型进行变换： $$\Omega^{-1/2}\mathbf{y} = \Omega^{-1/2}\mathbf{X}\beta + \Omega^{-1/2}\epsilon$$
 
-变换后的误差满足球形扰动假设： $$\text{Var}(\mathbf{\Omega}^{-1/2}\epsilon) = \sigma^2\mathbf{I}$$
+变换后的误差满足球形扰动假设： $$\text{Var}(\Omega^{-1/2}\epsilon) = \sigma^2\mathbf{I}$$
 
 #### 特殊情况：异方差与自相关
 
@@ -284,15 +300,18 @@ GLS框架统一了第3章的异方差问题和本章的自相关问题：
 
 | 问题类型 | $\mathbf{\Omega}$ 结构 | 变换方法 | 对应GLS |
 |-----------------|---------------------|-----------------|-----------------|
-| **异方差** | 对角矩阵：$\mathbf{\Omega} = \text{diag}(\omega_1, \dots, \omega_T)$ | 加权最小二乘法 | $W = \text{diag}(1/\sqrt{\omega_1}, \dots, 1/\sqrt{\omega_T})$ |
-| **自相关** | 非对角矩阵：$\Omega_{ij} = \rho^{|i-j|}$（AR(1)情况） | 广义差分法 | $\mathbf{P}$ 使得 $\mathbf{P}'\mathbf{P} = \mathbf{\Omega}^{-1}$ |
-| **同时存在** | 既非对角又非单位对角 | 可行GLS | 估计 $\mathbf{\Omega}$ 然后应用GLS |
+| **异方差** | 对角矩阵：$\Omega = \text{diag}(\omega_1, \dots, \omega_T)$ | 加权最小二乘法 | $W = \text{diag}(1/\sqrt{\omega_1}, \dots, 1/\sqrt{\omega_T})$ |
+| **自相关** | 非对角矩阵：$\Omega_{ij} = \rho^{|i-j|}$（AR(1)情况） | 广义差分法 | $\mathbf{P}$ 使得 $\mathbf{P}'\mathbf{P} = \Omega^{-1}$ |
+| **同时存在** | 既非对角又非单位对角 | 可行GLS | 估计 $\Omega$ 然后应用GLS |
 
 #### 可行GLS问题
 
-实践中 $\mathbf{\Omega}$ 未知，需要先估计 $\mathbf{\Omega}$，然后应用GLS，称为**可行广义最小二乘法**（Feasible GLS, FGLS）： $$\hat{\beta}_{FGLS} = (\mathbf{X}'\hat{\mathbf{\Omega}}^{-1}\mathbf{X})^{-1}\mathbf{X}'\hat{\mathbf{\Omega}}^{-1}\mathbf{y}$$
+实践中 $\Omega$ 未知，需要先估计 $\mathbf{\Omega}$，然后应用GLS，称为**可行广义最小二乘法**（Feasible GLS, FGLS）： 
+$$
+\hat{\beta}_{FGLS} = (\mathbf{X}'\hat{\Omega}^{-1}\mathbf{X})^{-1}\mathbf{X}'\hat{\Omega}^{-1}\mathbf{y}
+$$
 
-其中 $\hat{\mathbf{\Omega}}$ 是 $\mathbf{\Omega}$ 的估计量。FGLS的有限样本性质复杂，但大样本下通常优于OLS。
+其中 $\hat{\Omega}$ 是 $\Omega$ 的估计量。FGLS的有限样本性质复杂，但大样本下通常优于OLS。
 
 ### 4.3.3 方法一：广义差分法（基于GLS思想）
 
@@ -306,11 +325,20 @@ GLS框架统一了第3章的异方差问题和本章的自相关问题：
 
 对于原模型 $y_t = \beta_0 + \beta_1 x_{t1} + \cdots + \beta_k x_{tk} + \epsilon_t$，滞后一期： $$y_{t-1} = \beta_0 + \beta_1 x_{t-1,1} + \cdots + \beta_k x_{t-1,k} + \epsilon_{t-1}$$
 
-两边乘以 $\rho$ 并从原式减去： $$y_t - \rho y_{t-1} = \beta_0(1-\rho) + \beta_1(x_{t1} - \rho x_{t-1,1}) + \cdots + \beta_k(x_{tk} - \rho x_{t-1,k}) + u_t$$
+两边乘以 $\rho$ 并从原式减去： 
+$$
+y_t - \rho y_{t-1} = \beta_0(1-\rho) + \beta_1(x_{t1} - \rho x_{t-1,1}) + \cdots + \beta_k(x_{tk} - \rho x_{t-1,k}) + u_t
+$$
 
-定义变换变量： $$y_t^* = y_t - \rho y_{t-1}, \quad x_{tj}^* = x_{tj} - \rho x_{t-1,j}, \quad j=1,\dots,k$$
+定义变换变量： 
+$$
+y_t^* = y_t - \rho y_{t-1}, \quad x_{tj}^* = x_{tj} - \rho x_{t-1,j}, \quad j=1,\dots,k
+$$
 
-变换后模型： $$y_t^* = \beta_0^* + \beta_1 x_{t1}^* + \cdots + \beta_k x_{tk}^* + u_t, \quad \beta_0^* = \beta_0(1-\rho)$$
+变换后模型： 
+$$
+y_t^* = \beta_0^* + \beta_1 x_{t1}^* + \cdots + \beta_k x_{tk}^* + u_t, \quad \beta_0^* = \beta_0(1-\rho)
+$$
 
 由于 $u_t$ 满足经典假设，对变换后模型应用OLS可获得有效估计。
 

@@ -457,8 +457,12 @@ window.Quarto = {
 <p><strong>无偏性仍然成立</strong>： 在解释变量严格外生的条件下（<span class="math inline">\(E(\epsilon_t|\mathbf{X})=0\)</span>），OLS估计量 <span class="math inline">\(\hat{\beta}\)</span> 仍是无偏的： <span class="math display">\[E(\hat{\beta}) = \beta\]</span></p>
 <p>这一性质很重要，常被误解。自相关破坏的是有效性，而非无偏性。</p>
 </li>
-<li><p><strong>有效性丧失</strong>（严重问题）： OLS估计量<strong>不再是最优线性无偏估计量</strong>。在自相关存在时，OLS估计量的方差不是所有线性无偏估计量中最小的。正式地，对于模型 <span class="math inline">\(\mathbf{y} = \mathbf{X}\beta + \epsilon\)</span>，<span class="math inline">\(\text{Var}(\epsilon) = \sigma^2\mathbf{\Omega}\)</span>，其中 <span class="math inline">\(\mathbf{\Omega}\)</span> 非单位矩阵，则： <span class="math display">\[\text{Var}(\hat{\beta}_{OLS}) = \sigma^2 (\mathbf{X}'\mathbf{X})^{-1} \mathbf{X}'\mathbf{\Omega}\mathbf{X} (\mathbf{X}'\mathbf{X})^{-1}\]</span> 而GLS估计量的方差为： <span class="math display">\[\text{Var}(\hat{\beta}_{GLS}) = \sigma^2 (\mathbf{X}'\mathbf{\Omega}^{-1}\mathbf{X})^{-1}\]</span> 可以证明 <span class="math inline">\(\text{Var}(\hat{\beta}_{GLS}) \leq \text{Var}(\hat{\beta}_{OLS})\)</span>。</p></li>
-</ul></section><section id="对统计推断的影响严重后果" class="level4"><h4 class="anchored" data-anchor-id="对统计推断的影响严重后果">2. 对统计推断的影响（严重后果）</h4>
+<li><p><strong>有效性丧失</strong>（严重问题）： OLS估计量<strong>不再是最优线性无偏估计量</strong>。 在自相关存在时，OLS估计量的方差不是所有线性无偏估计量中最小的。</p></li>
+</ul>
+<p>正式地，对于模型 <span class="math inline">\(\mathbf{y} = \mathbf{X}\beta + \epsilon\)</span>，<span class="math inline">\(\text{Var}(\epsilon) = \sigma^2\pmb{\Omega}\)</span>， 其中 <span class="math inline">\(\pmb{\Omega}\)</span> 非单位矩阵，则： <span class="math display">\[\text{Var}(\hat{\beta}_{OLS}) = \sigma^2 (\mathbf{X}'\mathbf{X})^{-1} \mathbf{X}'\pmb{\Omega}\mathbf{X} (\mathbf{X}'\mathbf{X})^{-1}\]</span></p>
+<p>而GLS估计量的方差为： <span class="math display">\[\text{Var}(\hat{\beta}_{GLS}) = \sigma^2 (\mathbf{X}'\pmb{\Omega}^{-1}\mathbf{X})^{-1}\]</span></p>
+<p>可以证明 <span class="math inline">\(\text{Var}(\hat{\beta}_{GLS}) \leq \text{Var}(\hat{\beta}_{OLS})\)</span>。</p>
+</section><section id="对统计推断的影响严重后果" class="level4"><h4 class="anchored" data-anchor-id="对统计推断的影响严重后果">2. 对统计推断的影响（严重后果）</h4>
 <p>这是自相关最危险的方面，也是实践中必须处理自相关的主要原因。</p>
 <ul>
 <li>
@@ -627,14 +631,18 @@ window.Quarto = {
 </section><section id="统一框架广义最小二乘法视角" class="level3"><h3 class="anchored" data-anchor-id="统一框架广义最小二乘法视角">4.3.2 统一框架：广义最小二乘法视角</h3>
 <p>广义最小二乘法（Generalized Least Squares, GLS）为处理违反球形扰动假设的问题提供了统一框架。</p>
 <section id="问题形式化" class="level4"><h4 class="anchored" data-anchor-id="问题形式化">问题形式化</h4>
-<p>考虑线性模型： <span class="math display">\[\mathbf{y} = \mathbf{X}\beta + \epsilon, \quad E(\epsilon) = 0, \quad \text{Var}(\epsilon) = \sigma^2\mathbf{\Omega}\]</span></p>
-<p>其中 <span class="math inline">\(\mathbf{\Omega}\)</span> 是正定对称矩阵。当 <span class="math inline">\(\mathbf{\Omega} \neq \mathbf{I}\)</span> 时，误差项违反球形扰动假设。</p>
+<p>考虑线性模型： <span class="math display">\[
+\mathbf{y} = \mathbf{X}\beta + \epsilon, \quad E(\epsilon) = 0, \quad \text{Var}(\epsilon) = \sigma^2\Omega
+\]</span></p>
+<p>其中 <span class="math inline">\(\Omega\)</span> 是正定对称矩阵。当 <span class="math inline">\(\Omega \neq \mathbf{I}\)</span> 时，误差项违反球形扰动假设。</p>
 </section><section id="gls估计量" class="level4"><h4 class="anchored" data-anchor-id="gls估计量">GLS估计量</h4>
-<p>如果 <span class="math inline">\(\mathbf{\Omega}\)</span> 已知，GLS估计量为： <span class="math display">\[\hat{\beta}_{GLS} = (\mathbf{X}'\mathbf{\Omega}^{-1}\mathbf{X})^{-1}\mathbf{X}'\mathbf{\Omega}^{-1}\mathbf{y}\]</span></p>
-<p>其方差为： <span class="math display">\[\text{Var}(\hat{\beta}_{GLS}) = \sigma^2 (\mathbf{X}'\mathbf{\Omega}^{-1}\mathbf{X})^{-1}\]</span></p>
+<p>如果 <span class="math inline">\(\Omega\)</span> 已知，GLS估计量为： <span class="math display">\[
+\hat{\beta}_{GLS} = (\mathbf{X}'\Omega^{-1}\mathbf{X})^{-1}\mathbf{X}'\Omega^{-1}\mathbf{y}
+\]</span></p>
+<p>其方差为： <span class="math display">\[\text{Var}(\hat{\beta}_{GLS}) = \sigma^2 (\mathbf{X}'\Omega^{-1}\mathbf{X})^{-1}\]</span></p>
 </section><section id="gls的直观理解" class="level4"><h4 class="anchored" data-anchor-id="gls的直观理解">GLS的直观理解</h4>
-<p>GLS等价于对原始模型进行变换： <span class="math display">\[\mathbf{\Omega}^{-1/2}\mathbf{y} = \mathbf{\Omega}^{-1/2}\mathbf{X}\beta + \mathbf{\Omega}^{-1/2}\epsilon\]</span></p>
-<p>变换后的误差满足球形扰动假设： <span class="math display">\[\text{Var}(\mathbf{\Omega}^{-1/2}\epsilon) = \sigma^2\mathbf{I}\]</span></p>
+<p>GLS等价于对原始模型进行变换： <span class="math display">\[\Omega^{-1/2}\mathbf{y} = \Omega^{-1/2}\mathbf{X}\beta + \Omega^{-1/2}\epsilon\]</span></p>
+<p>变换后的误差满足球形扰动假设： <span class="math display">\[\text{Var}(\Omega^{-1/2}\epsilon) = \sigma^2\mathbf{I}\]</span></p>
 </section><section id="特殊情况异方差与自相关" class="level4"><h4 class="anchored" data-anchor-id="特殊情况异方差与自相关">特殊情况：异方差与自相关</h4>
 <p>GLS框架统一了第3章的异方差问题和本章的自相关问题：</p>
 <table class="caption-top table">
@@ -654,7 +662,7 @@ window.Quarto = {
 <tbody>
 <tr class="odd">
 <td><strong>异方差</strong></td>
-<td>对角矩阵：<span class="math inline">\(\mathbf{\Omega} = \text{diag}(\omega_1, \dots, \omega_T)\)</span>
+<td>对角矩阵：<span class="math inline">\(\Omega = \text{diag}(\omega_1, \dots, \omega_T)\)</span>
 </td>
 <td>加权最小二乘法</td>
 <td><span class="math inline">\(W = \text{diag}(1/\sqrt{\omega_1}, \dots, 1/\sqrt{\omega_T})\)</span></td>
@@ -664,28 +672,36 @@ window.Quarto = {
 <td>非对角矩阵：<span class="math inline">\(\Omega_{ij} = \rho^{|i-j|}\)</span>（AR(1)情况）</td>
 <td>广义差分法</td>
 <td>
-<span class="math inline">\(\mathbf{P}\)</span> 使得 <span class="math inline">\(\mathbf{P}'\mathbf{P} = \mathbf{\Omega}^{-1}\)</span>
+<span class="math inline">\(\mathbf{P}\)</span> 使得 <span class="math inline">\(\mathbf{P}'\mathbf{P} = \Omega^{-1}\)</span>
 </td>
 </tr>
 <tr class="odd">
 <td><strong>同时存在</strong></td>
 <td>既非对角又非单位对角</td>
 <td>可行GLS</td>
-<td>估计 <span class="math inline">\(\mathbf{\Omega}\)</span> 然后应用GLS</td>
+<td>估计 <span class="math inline">\(\Omega\)</span> 然后应用GLS</td>
 </tr>
 </tbody>
 </table></section><section id="可行gls问题" class="level4"><h4 class="anchored" data-anchor-id="可行gls问题">可行GLS问题</h4>
-<p>实践中 <span class="math inline">\(\mathbf{\Omega}\)</span> 未知，需要先估计 <span class="math inline">\(\mathbf{\Omega}\)</span>，然后应用GLS，称为<strong>可行广义最小二乘法</strong>（Feasible GLS, FGLS）： <span class="math display">\[\hat{\beta}_{FGLS} = (\mathbf{X}'\hat{\mathbf{\Omega}}^{-1}\mathbf{X})^{-1}\mathbf{X}'\hat{\mathbf{\Omega}}^{-1}\mathbf{y}\]</span></p>
-<p>其中 <span class="math inline">\(\hat{\mathbf{\Omega}}\)</span> 是 <span class="math inline">\(\mathbf{\Omega}\)</span> 的估计量。FGLS的有限样本性质复杂，但大样本下通常优于OLS。</p>
+<p>实践中 <span class="math inline">\(\Omega\)</span> 未知，需要先估计 <span class="math inline">\(\mathbf{\Omega}\)</span>，然后应用GLS，称为<strong>可行广义最小二乘法</strong>（Feasible GLS, FGLS）： <span class="math display">\[
+\hat{\beta}_{FGLS} = (\mathbf{X}'\hat{\Omega}^{-1}\mathbf{X})^{-1}\mathbf{X}'\hat{\Omega}^{-1}\mathbf{y}
+\]</span></p>
+<p>其中 <span class="math inline">\(\hat{\Omega}\)</span> 是 <span class="math inline">\(\Omega\)</span> 的估计量。FGLS的有限样本性质复杂，但大样本下通常优于OLS。</p>
 </section></section><section id="方法一广义差分法基于gls思想" class="level3"><h3 class="anchored" data-anchor-id="方法一广义差分法基于gls思想">4.3.3 方法一：广义差分法（基于GLS思想）</h3>
 <p>广义差分法针对特定形式的自相关结构进行变换，最常用的是AR(1)误差结构。</p>
 <section id="ar1误差模型" class="level4"><h4 class="anchored" data-anchor-id="ar1误差模型">AR(1)误差模型</h4>
 <p>假设误差项服从一阶自回归过程： <span class="math display">\[\epsilon_t = \rho \epsilon_{t-1} + u_t, \quad u_t \sim \text{i.i.d.}(0, \sigma_u^2), \quad |\rho| &lt; 1\]</span></p>
 </section><section id="模型变换" class="level4"><h4 class="anchored" data-anchor-id="模型变换">模型变换</h4>
 <p>对于原模型 <span class="math inline">\(y_t = \beta_0 + \beta_1 x_{t1} + \cdots + \beta_k x_{tk} + \epsilon_t\)</span>，滞后一期： <span class="math display">\[y_{t-1} = \beta_0 + \beta_1 x_{t-1,1} + \cdots + \beta_k x_{t-1,k} + \epsilon_{t-1}\]</span></p>
-<p>两边乘以 <span class="math inline">\(\rho\)</span> 并从原式减去： <span class="math display">\[y_t - \rho y_{t-1} = \beta_0(1-\rho) + \beta_1(x_{t1} - \rho x_{t-1,1}) + \cdots + \beta_k(x_{tk} - \rho x_{t-1,k}) + u_t\]</span></p>
-<p>定义变换变量： <span class="math display">\[y_t^* = y_t - \rho y_{t-1}, \quad x_{tj}^* = x_{tj} - \rho x_{t-1,j}, \quad j=1,\dots,k\]</span></p>
-<p>变换后模型： <span class="math display">\[y_t^* = \beta_0^* + \beta_1 x_{t1}^* + \cdots + \beta_k x_{tk}^* + u_t, \quad \beta_0^* = \beta_0(1-\rho)\]</span></p>
+<p>两边乘以 <span class="math inline">\(\rho\)</span> 并从原式减去： <span class="math display">\[
+y_t - \rho y_{t-1} = \beta_0(1-\rho) + \beta_1(x_{t1} - \rho x_{t-1,1}) + \cdots + \beta_k(x_{tk} - \rho x_{t-1,k}) + u_t
+\]</span></p>
+<p>定义变换变量： <span class="math display">\[
+y_t^* = y_t - \rho y_{t-1}, \quad x_{tj}^* = x_{tj} - \rho x_{t-1,j}, \quad j=1,\dots,k
+\]</span></p>
+<p>变换后模型： <span class="math display">\[
+y_t^* = \beta_0^* + \beta_1 x_{t1}^* + \cdots + \beta_k x_{tk}^* + u_t, \quad \beta_0^* = \beta_0(1-\rho)
+\]</span></p>
 <p>由于 <span class="math inline">\(u_t\)</span> 满足经典假设，对变换后模型应用OLS可获得有效估计。</p>
 </section><section id="cochrane-orcutt迭代法" class="level4"><h4 class="anchored" data-anchor-id="cochrane-orcutt迭代法">Cochrane-Orcutt迭代法</h4>
 <p>当 <span class="math inline">\(\rho\)</span> 未知时，Cochrane和Orcutt提出迭代估计方法：</p>

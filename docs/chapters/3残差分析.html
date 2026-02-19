@@ -426,7 +426,7 @@ e_i = \frac{e_{(i)}}{1 - h_{ii}}
 <h3 class="anchored" data-anchor-id="残差图分析">3.3.1 残差图分析</h3>
 <p><strong>残差 vs 拟合值图</strong>（Residuals vs Fitted Plot） - 目的：检查线性性、同方差性 - 理想情况：残差随机分布在0附近，无明显模式 - 异常模式： 1. 漏斗形：异方差 2. 曲线形：非线性关系 3. 离群点：异常值</p>
 <p><strong>正态Q-Q图</strong>（Normal Quantile-Quantile Plot） - 目的：检验误差正态性 - 构造：将排序后的标准化残差与理论正态分位数对比 - 判断：点应近似落在对角线上 - 常见偏离： 1. S形曲线：重尾或轻尾分布 2. C形曲线：偏态分布</p>
-<p><strong>尺度-位置图</strong>（Scale-Location Plot） - 目的：检验同方差性 - 纵轴：<span class="math inline">\(\sqrt{|标准化残差|}\)</span> - 横轴：拟合值 - 判断：水平趋势表示方差恒定，倾斜趋势表示异方差</p>
+<p><strong>尺度-位置图</strong>（Scale-Location Plot） - 目的：检验同方差性 - 纵轴：<span class="math inline">\(\sqrt{|\text{标准化残差}|}\)</span> - 横轴：拟合值 - 判断：水平趋势表示方差恒定，倾斜趋势表示异方差</p>
 <p><strong>残差 vs 杠杆图</strong>（Residuals vs Leverage Plot） - 目的：识别强影响点 - 纵轴：学生化残差 - 横轴：杠杆值<span class="math inline">\(h_{ii}\)</span> - 添加Cook距离的等高线</p>
 </section>
 <section id="常用诊断图形" class="level3">

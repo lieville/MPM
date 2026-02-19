@@ -1,19 +1,22 @@
 project:
   type: book
-  output-dir: docs  # GitHub Pages 推荐输出到 docs 目录
+  output-dir: docs
   execute-dir: project
-
+  
 lang: zh
 
-# 执行配置 - 简化并修复冲突
 execute:
   enabled: true
   cache: true
   freeze: auto
   warning: false
+  engine: knitr  # 统一使用 knitr，通过 reticulate 调用 Python
 
-# 移除重复的 jupyter 配置，统一放在这里
-jupyter: python3  # 使用 python3 而不是 python-conda，兼容性更好
+# 配置 Python 路径（GitHub Actions 中无效，仅本地使用）
+knitr:
+  opts_chunk: 
+    R.options:
+      reticulate.python: "c/data/anaconda/python.exe"  
 
 book:
   title: "现代预测建模：从回归到机器学习"
@@ -21,7 +24,7 @@ book:
   date: "2025-11-26"
 
   chapters: 
-    - index.qmd      # 建议 index.qmd 放最前面作为前言/封面
+    - index.qmd
     - intro.qmd
     - part: "I 基础-线性回归模型"
       chapters:
@@ -62,7 +65,6 @@ format:
     code-line-numbers: true
     number-sections: false
     css: science-textbook.css
-    # 字体配置移到 CSS 文件中，这里只保留基本设置
     mainfont: "Microsoft YaHei"
     monofont: "Consolas"
     
@@ -70,7 +72,6 @@ format:
     toc: true
     toc-depth: 2
     number-sections: false
-    reference-doc: template.docx  # 建议使用参考模板
     
   pdf:
     documentclass: ctexbook
@@ -81,6 +82,10 @@ format:
       - bottom=2.5cm
       - left=3cm
       - right=2.5cm
+      - headheight=15pt
+    mainfont: Times New Roman
+    sansfont: Arial
+    monofont: Courier New
     fontsize: 11pt
     linestretch: 1.25
     pdf-engine: xelatex

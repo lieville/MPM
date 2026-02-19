@@ -518,13 +518,12 @@ R^2 = 1 - \frac{\text{SS}_{\text{res}}}{\text{SS}_{\text{tot}}} = \frac{\text{SS
 \]</span></p>
 <p>其中<span class="math inline">\(f(\mathbf{X}) = \mathbb{E}[Y|\mathbf{X}]\)</span>是真实函数。</p>
 <p><strong>可视化理解</strong>： 考虑用多项式拟合正弦函数：</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1"></a><span class="co"># 概念性代码</span></span>
-<span id="cb1-2"><a href="#cb1-2"></a>真实函数：y <span class="op">=</span> sin(<span class="dv">2</span><span class="er">πx</span>) <span class="op">+</span> ε, ε <span class="op">~</span> N(<span class="dv">0</span>,<span class="fl">0.1</span>)</span>
-<span id="cb1-3"><a href="#cb1-3"></a>拟合模型：y <span class="op">=</span> β₀ <span class="op">+</span> β₁x <span class="op">+</span> ... <span class="op">+</span> β_dx<span class="op">^</span>d</span>
-<span id="cb1-4"><a href="#cb1-4"></a></span>
-<span id="cb1-5"><a href="#cb1-5"></a>d<span class="op">=</span><span class="dv">1</span>（线性）：高偏差，低方差 → 欠拟合</span>
-<span id="cb1-6"><a href="#cb1-6"></a>d<span class="op">=</span><span class="dv">3</span>（三次）：中偏差，中方差 → 合适</span>
-<span id="cb1-7"><a href="#cb1-7"></a>d<span class="op">=</span><span class="dv">10</span>（十次）：低偏差，高方差 → 过拟合</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<p>真实函数： <span class="math inline">\(y = \sin(2\pi x) + \varepsilon, \quad \varepsilon \sim N(0, 0.1^2)\)</span></p>
+<p>拟合模型： <span class="math inline">\(y = \beta_0 + \beta_1 x + \cdots + \beta_d x^d\)</span></p>
+<p>模型复杂度分析：</p>
+<p><span class="math inline">\(d=1\)</span>（线性）：高偏差，低方差 <span class="math inline">\(\rightarrow\)</span> 欠拟合</p>
+<p><span class="math inline">\(d=3\)</span>（三次）：中偏差，中方差 <span class="math inline">\(\rightarrow\)</span> 合适</p>
+<p><span class="math inline">\(d=10\)</span>（十次）：低偏差，高方差 <span class="math inline">\(\rightarrow\)</span> 过拟合</p>
 <p><strong>数学上的复杂度控制</strong>： 设我们用<span class="math inline">\(d\)</span>次多项式拟合<span class="math inline">\(n\)</span>个点。近似误差（偏差²）随<span class="math inline">\(d\)</span>增加而减小，但估计误差（方差）随<span class="math inline">\(d\)</span>增加而增大： <span class="math display">\[
 \text{总误差} \approx O\left(\frac{1}{d^{2\alpha}}\right) + O\left(\frac{d}{n}\right)
 \]</span> 其中<span class="math inline">\(\alpha\)</span>描述真实函数的平滑度。</p>
@@ -671,11 +670,11 @@ f_m = f_{m-1} - \eta_m\nabla_f L(f_{m-1})
 </li>
 <li>
 <p><strong>性能比较</strong>（基于交叉验证）</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1"></a><span class="co"># 概念性流程</span></span>
-<span id="cb2-2"><a href="#cb2-2"></a>模型候选集 <span class="op">=</span> [线性回归, 决策树, 随机森林, XGBoost]</span>
-<span id="cb2-3"><a href="#cb2-3"></a><span class="cf">for</span> 模型 <span class="kw">in</span> 模型候选集:</span>
-<span id="cb2-4"><a href="#cb2-4"></a>    CV分数 <span class="op">=</span> k折交叉验证(模型, 数据)</span>
-<span id="cb2-5"><a href="#cb2-5"></a>    记录(模型, CV分数的均值和方差)</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode numberSource python number-lines code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1"></a><span class="co"># 概念性流程</span></span>
+<span id="cb1-2"><a href="#cb1-2"></a>模型候选集 <span class="op">=</span> [线性回归, 决策树, 随机森林, XGBoost]</span>
+<span id="cb1-3"><a href="#cb1-3"></a><span class="cf">for</span> 模型 <span class="kw">in</span> 模型候选集:</span>
+<span id="cb1-4"><a href="#cb1-4"></a>    CV分数 <span class="op">=</span> k折交叉验证(模型, 数据)</span>
+<span id="cb1-5"><a href="#cb1-5"></a>    记录(模型, CV分数的均值和方差)</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
 </li>
 <li>
 <p><strong>最终决策</strong>（多准则综合）</p>
@@ -953,62 +952,62 @@ f_m = f_{m-1} - \eta_m\nabla_f L(f_{m-1})
 </section></section><section id="综合案例" class="level2"><h2 class="anchored" data-anchor-id="综合案例">1.7 综合案例</h2>
 <p><strong>编程演示：过拟合现象</strong></p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1"></a><span class="co"># 过拟合现象演示 - 生成数据</span></span>
-<span id="cb7-2"><a href="#cb7-2"></a><span class="co"># 生成理想的过拟合演示数据</span></span>
-<span id="cb7-3"><a href="#cb7-3"></a>generate_overfitting_demo_data <span class="ot">&lt;-</span> <span class="cf">function</span>(<span class="at">n =</span> <span class="dv">100</span>) {</span>
-<span id="cb7-4"><a href="#cb7-4"></a>  <span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
-<span id="cb7-5"><a href="#cb7-5"></a>  x <span class="ot">&lt;-</span> <span class="fu">seq</span>(<span class="dv">0</span>, <span class="dv">4</span> <span class="sc">*</span> pi, <span class="at">length.out =</span> n)</span>
-<span id="cb7-6"><a href="#cb7-6"></a>  <span class="co"># 真实关系：正弦函数 + 噪声</span></span>
-<span id="cb7-7"><a href="#cb7-7"></a>  y_true <span class="ot">&lt;-</span> <span class="fu">sin</span>(x) <span class="sc">+</span> <span class="fl">0.5</span> <span class="sc">*</span> <span class="fu">sin</span>(<span class="dv">2</span><span class="sc">*</span>x)</span>
-<span id="cb7-8"><a href="#cb7-8"></a>  y_observed <span class="ot">&lt;-</span> y_true <span class="sc">+</span> <span class="fu">rnorm</span>(n, <span class="dv">0</span>, <span class="fl">0.2</span>)</span>
-<span id="cb7-9"><a href="#cb7-9"></a>  <span class="fu">return</span>(<span class="fu">data.frame</span>(<span class="at">x =</span> x, <span class="at">y_true =</span> y_true, <span class="at">y_observed =</span> y_observed))</span>
-<span id="cb7-10"><a href="#cb7-10"></a>}</span>
-<span id="cb7-11"><a href="#cb7-11"></a></span>
-<span id="cb7-12"><a href="#cb7-12"></a><span class="co"># 生成数据</span></span>
-<span id="cb7-13"><a href="#cb7-13"></a>demo_data <span class="ot">&lt;-</span> <span class="fu">generate_overfitting_demo_data</span>(<span class="dv">100</span>)</span>
-<span id="cb7-14"><a href="#cb7-14"></a></span>
-<span id="cb7-15"><a href="#cb7-15"></a><span class="co"># 拟合不同复杂度的多项式模型</span></span>
-<span id="cb7-16"><a href="#cb7-16"></a><span class="fu">library</span>(ggplot2)</span>
-<span id="cb7-17"><a href="#cb7-17"></a>fit_polynomial_models <span class="ot">&lt;-</span> <span class="cf">function</span>(data, <span class="at">max_degree =</span> <span class="dv">6</span>) {</span>
-<span id="cb7-18"><a href="#cb7-18"></a>  models <span class="ot">&lt;-</span> <span class="fu">list</span>()</span>
-<span id="cb7-19"><a href="#cb7-19"></a>  predictions <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">x =</span> data<span class="sc">$</span>x)</span>
-<span id="cb7-20"><a href="#cb7-20"></a>  </span>
-<span id="cb7-21"><a href="#cb7-21"></a>  <span class="cf">for</span> (degree <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>max_degree) {</span>
-<span id="cb7-22"><a href="#cb7-22"></a>    model <span class="ot">&lt;-</span> <span class="fu">lm</span>(y_observed <span class="sc">~</span> <span class="fu">poly</span>(x, degree), <span class="at">data =</span> data)</span>
-<span id="cb7-23"><a href="#cb7-23"></a>    models[[<span class="fu">paste0</span>(<span class="st">"degree_"</span>, degree)]] <span class="ot">&lt;-</span> model</span>
-<span id="cb7-24"><a href="#cb7-24"></a>    predictions[[<span class="fu">paste0</span>(<span class="st">"pred_"</span>, degree)]] <span class="ot">&lt;-</span> <span class="fu">predict</span>(model, <span class="at">newdata =</span> data)</span>
-<span id="cb7-25"><a href="#cb7-25"></a>  }</span>
-<span id="cb7-26"><a href="#cb7-26"></a>  </span>
-<span id="cb7-27"><a href="#cb7-27"></a>  <span class="fu">return</span>(<span class="fu">list</span>(<span class="at">models =</span> models, <span class="at">predictions =</span> predictions))</span>
-<span id="cb7-28"><a href="#cb7-28"></a>}</span>
-<span id="cb7-29"><a href="#cb7-29"></a></span>
-<span id="cb7-30"><a href="#cb7-30"></a><span class="co"># 拟合模型</span></span>
-<span id="cb7-31"><a href="#cb7-31"></a>results <span class="ot">&lt;-</span> <span class="fu">fit_polynomial_models</span>(demo_data)</span>
-<span id="cb7-32"><a href="#cb7-32"></a></span>
-<span id="cb7-33"><a href="#cb7-33"></a><span class="co"># 可视化过拟合现象</span></span>
-<span id="cb7-34"><a href="#cb7-34"></a>plot_overfitting_demo <span class="ot">&lt;-</span> <span class="cf">function</span>(data, predictions) {</span>
-<span id="cb7-35"><a href="#cb7-35"></a>  plot_data <span class="ot">&lt;-</span> <span class="fu">cbind</span>(data, predictions)</span>
-<span id="cb7-36"><a href="#cb7-36"></a>  plot_data_long <span class="ot">&lt;-</span> reshape2<span class="sc">::</span><span class="fu">melt</span>(plot_data, <span class="at">id.vars =</span> <span class="fu">c</span>(<span class="st">"x"</span>, <span class="st">"y_true"</span>, <span class="st">"y_observed"</span>), </span>
-<span id="cb7-37"><a href="#cb7-37"></a>                                  <span class="at">variable.name =</span> <span class="st">"model"</span>, <span class="at">value.name =</span> <span class="st">"prediction"</span>)</span>
-<span id="cb7-38"><a href="#cb7-38"></a>  </span>
-<span id="cb7-39"><a href="#cb7-39"></a>  <span class="fu">ggplot</span>(plot_data_long, <span class="fu">aes</span>(<span class="at">x =</span> x)) <span class="sc">+</span></span>
-<span id="cb7-40"><a href="#cb7-40"></a>    <span class="fu">geom_point</span>(<span class="fu">aes</span>(<span class="at">y =</span> y_observed), <span class="at">alpha =</span> <span class="fl">0.6</span>, <span class="at">size =</span> <span class="dv">1</span>) <span class="sc">+</span></span>
-<span id="cb7-41"><a href="#cb7-41"></a>    <span class="fu">geom_line</span>(<span class="fu">aes</span>(<span class="at">y =</span> y_true, <span class="at">color =</span> <span class="st">"真实关系"</span>), <span class="at">size =</span> <span class="dv">1</span>) <span class="sc">+</span></span>
-<span id="cb7-42"><a href="#cb7-42"></a>    <span class="fu">geom_line</span>(<span class="fu">aes</span>(<span class="at">y =</span> prediction, <span class="at">color =</span> model), <span class="at">size =</span> <span class="fl">0.7</span>) <span class="sc">+</span></span>
-<span id="cb7-43"><a href="#cb7-43"></a>    <span class="fu">facet_wrap</span>(<span class="sc">~</span> model, <span class="at">ncol =</span> <span class="dv">3</span>) <span class="sc">+</span></span>
-<span id="cb7-44"><a href="#cb7-44"></a>    <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"过拟合现象演示：不同阶数多项式回归"</span>,</span>
-<span id="cb7-45"><a href="#cb7-45"></a>         <span class="at">x =</span> <span class="st">"X"</span>, <span class="at">y =</span> <span class="st">"Y"</span>,</span>
-<span id="cb7-46"><a href="#cb7-46"></a>         <span class="at">color =</span> <span class="st">"曲线类型"</span>) <span class="sc">+</span></span>
-<span id="cb7-47"><a href="#cb7-47"></a>    <span class="fu">theme_minimal</span>() <span class="sc">+</span></span>
-<span id="cb7-48"><a href="#cb7-48"></a>    <span class="fu">scale_color_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(<span class="st">"真实关系"</span> <span class="ot">=</span> <span class="st">"black"</span>, </span>
-<span id="cb7-49"><a href="#cb7-49"></a>                                 <span class="st">"pred_1"</span> <span class="ot">=</span> <span class="st">"red"</span>, <span class="st">"pred_2"</span> <span class="ot">=</span> <span class="st">"blue"</span>, </span>
-<span id="cb7-50"><a href="#cb7-50"></a>                                 <span class="st">"pred_3"</span> <span class="ot">=</span> <span class="st">"green"</span>, <span class="st">"pred_4"</span> <span class="ot">=</span> <span class="st">"orange"</span>,</span>
-<span id="cb7-51"><a href="#cb7-51"></a>                                 <span class="st">"pred_5"</span> <span class="ot">=</span> <span class="st">"purple"</span>, <span class="st">"pred_6"</span> <span class="ot">=</span> <span class="st">"brown"</span>)) <span class="sc">+</span></span>
-<span id="cb7-52"><a href="#cb7-52"></a>    <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">"bottom"</span>)</span>
-<span id="cb7-53"><a href="#cb7-53"></a>}</span>
-<span id="cb7-54"><a href="#cb7-54"></a></span>
-<span id="cb7-55"><a href="#cb7-55"></a><span class="co"># 显示图形</span></span>
-<span id="cb7-56"><a href="#cb7-56"></a><span class="fu">plot_overfitting_demo</span>(demo_data, results<span class="sc">$</span>predictions)</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1"></a><span class="co"># 过拟合现象演示 - 生成数据</span></span>
+<span id="cb6-2"><a href="#cb6-2"></a><span class="co"># 生成理想的过拟合演示数据</span></span>
+<span id="cb6-3"><a href="#cb6-3"></a>generate_overfitting_demo_data <span class="ot">&lt;-</span> <span class="cf">function</span>(<span class="at">n =</span> <span class="dv">100</span>) {</span>
+<span id="cb6-4"><a href="#cb6-4"></a>  <span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
+<span id="cb6-5"><a href="#cb6-5"></a>  x <span class="ot">&lt;-</span> <span class="fu">seq</span>(<span class="dv">0</span>, <span class="dv">4</span> <span class="sc">*</span> pi, <span class="at">length.out =</span> n)</span>
+<span id="cb6-6"><a href="#cb6-6"></a>  <span class="co"># 真实关系：正弦函数 + 噪声</span></span>
+<span id="cb6-7"><a href="#cb6-7"></a>  y_true <span class="ot">&lt;-</span> <span class="fu">sin</span>(x) <span class="sc">+</span> <span class="fl">0.5</span> <span class="sc">*</span> <span class="fu">sin</span>(<span class="dv">2</span><span class="sc">*</span>x)</span>
+<span id="cb6-8"><a href="#cb6-8"></a>  y_observed <span class="ot">&lt;-</span> y_true <span class="sc">+</span> <span class="fu">rnorm</span>(n, <span class="dv">0</span>, <span class="fl">0.2</span>)</span>
+<span id="cb6-9"><a href="#cb6-9"></a>  <span class="fu">return</span>(<span class="fu">data.frame</span>(<span class="at">x =</span> x, <span class="at">y_true =</span> y_true, <span class="at">y_observed =</span> y_observed))</span>
+<span id="cb6-10"><a href="#cb6-10"></a>}</span>
+<span id="cb6-11"><a href="#cb6-11"></a></span>
+<span id="cb6-12"><a href="#cb6-12"></a><span class="co"># 生成数据</span></span>
+<span id="cb6-13"><a href="#cb6-13"></a>demo_data <span class="ot">&lt;-</span> <span class="fu">generate_overfitting_demo_data</span>(<span class="dv">100</span>)</span>
+<span id="cb6-14"><a href="#cb6-14"></a></span>
+<span id="cb6-15"><a href="#cb6-15"></a><span class="co"># 拟合不同复杂度的多项式模型</span></span>
+<span id="cb6-16"><a href="#cb6-16"></a><span class="fu">library</span>(ggplot2)</span>
+<span id="cb6-17"><a href="#cb6-17"></a>fit_polynomial_models <span class="ot">&lt;-</span> <span class="cf">function</span>(data, <span class="at">max_degree =</span> <span class="dv">6</span>) {</span>
+<span id="cb6-18"><a href="#cb6-18"></a>  models <span class="ot">&lt;-</span> <span class="fu">list</span>()</span>
+<span id="cb6-19"><a href="#cb6-19"></a>  predictions <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">x =</span> data<span class="sc">$</span>x)</span>
+<span id="cb6-20"><a href="#cb6-20"></a>  </span>
+<span id="cb6-21"><a href="#cb6-21"></a>  <span class="cf">for</span> (degree <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>max_degree) {</span>
+<span id="cb6-22"><a href="#cb6-22"></a>    model <span class="ot">&lt;-</span> <span class="fu">lm</span>(y_observed <span class="sc">~</span> <span class="fu">poly</span>(x, degree), <span class="at">data =</span> data)</span>
+<span id="cb6-23"><a href="#cb6-23"></a>    models[[<span class="fu">paste0</span>(<span class="st">"degree_"</span>, degree)]] <span class="ot">&lt;-</span> model</span>
+<span id="cb6-24"><a href="#cb6-24"></a>    predictions[[<span class="fu">paste0</span>(<span class="st">"pred_"</span>, degree)]] <span class="ot">&lt;-</span> <span class="fu">predict</span>(model, <span class="at">newdata =</span> data)</span>
+<span id="cb6-25"><a href="#cb6-25"></a>  }</span>
+<span id="cb6-26"><a href="#cb6-26"></a>  </span>
+<span id="cb6-27"><a href="#cb6-27"></a>  <span class="fu">return</span>(<span class="fu">list</span>(<span class="at">models =</span> models, <span class="at">predictions =</span> predictions))</span>
+<span id="cb6-28"><a href="#cb6-28"></a>}</span>
+<span id="cb6-29"><a href="#cb6-29"></a></span>
+<span id="cb6-30"><a href="#cb6-30"></a><span class="co"># 拟合模型</span></span>
+<span id="cb6-31"><a href="#cb6-31"></a>results <span class="ot">&lt;-</span> <span class="fu">fit_polynomial_models</span>(demo_data)</span>
+<span id="cb6-32"><a href="#cb6-32"></a></span>
+<span id="cb6-33"><a href="#cb6-33"></a><span class="co"># 可视化过拟合现象</span></span>
+<span id="cb6-34"><a href="#cb6-34"></a>plot_overfitting_demo <span class="ot">&lt;-</span> <span class="cf">function</span>(data, predictions) {</span>
+<span id="cb6-35"><a href="#cb6-35"></a>  plot_data <span class="ot">&lt;-</span> <span class="fu">cbind</span>(data, predictions)</span>
+<span id="cb6-36"><a href="#cb6-36"></a>  plot_data_long <span class="ot">&lt;-</span> reshape2<span class="sc">::</span><span class="fu">melt</span>(plot_data, <span class="at">id.vars =</span> <span class="fu">c</span>(<span class="st">"x"</span>, <span class="st">"y_true"</span>, <span class="st">"y_observed"</span>), </span>
+<span id="cb6-37"><a href="#cb6-37"></a>                                  <span class="at">variable.name =</span> <span class="st">"model"</span>, <span class="at">value.name =</span> <span class="st">"prediction"</span>)</span>
+<span id="cb6-38"><a href="#cb6-38"></a>  </span>
+<span id="cb6-39"><a href="#cb6-39"></a>  <span class="fu">ggplot</span>(plot_data_long, <span class="fu">aes</span>(<span class="at">x =</span> x)) <span class="sc">+</span></span>
+<span id="cb6-40"><a href="#cb6-40"></a>    <span class="fu">geom_point</span>(<span class="fu">aes</span>(<span class="at">y =</span> y_observed), <span class="at">alpha =</span> <span class="fl">0.6</span>, <span class="at">size =</span> <span class="dv">1</span>) <span class="sc">+</span></span>
+<span id="cb6-41"><a href="#cb6-41"></a>    <span class="fu">geom_line</span>(<span class="fu">aes</span>(<span class="at">y =</span> y_true, <span class="at">color =</span> <span class="st">"真实关系"</span>), <span class="at">size =</span> <span class="dv">1</span>) <span class="sc">+</span></span>
+<span id="cb6-42"><a href="#cb6-42"></a>    <span class="fu">geom_line</span>(<span class="fu">aes</span>(<span class="at">y =</span> prediction, <span class="at">color =</span> model), <span class="at">size =</span> <span class="fl">0.7</span>) <span class="sc">+</span></span>
+<span id="cb6-43"><a href="#cb6-43"></a>    <span class="fu">facet_wrap</span>(<span class="sc">~</span> model, <span class="at">ncol =</span> <span class="dv">3</span>) <span class="sc">+</span></span>
+<span id="cb6-44"><a href="#cb6-44"></a>    <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"过拟合现象演示：不同阶数多项式回归"</span>,</span>
+<span id="cb6-45"><a href="#cb6-45"></a>         <span class="at">x =</span> <span class="st">"X"</span>, <span class="at">y =</span> <span class="st">"Y"</span>,</span>
+<span id="cb6-46"><a href="#cb6-46"></a>         <span class="at">color =</span> <span class="st">"曲线类型"</span>) <span class="sc">+</span></span>
+<span id="cb6-47"><a href="#cb6-47"></a>    <span class="fu">theme_minimal</span>() <span class="sc">+</span></span>
+<span id="cb6-48"><a href="#cb6-48"></a>    <span class="fu">scale_color_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(<span class="st">"真实关系"</span> <span class="ot">=</span> <span class="st">"black"</span>, </span>
+<span id="cb6-49"><a href="#cb6-49"></a>                                 <span class="st">"pred_1"</span> <span class="ot">=</span> <span class="st">"red"</span>, <span class="st">"pred_2"</span> <span class="ot">=</span> <span class="st">"blue"</span>, </span>
+<span id="cb6-50"><a href="#cb6-50"></a>                                 <span class="st">"pred_3"</span> <span class="ot">=</span> <span class="st">"green"</span>, <span class="st">"pred_4"</span> <span class="ot">=</span> <span class="st">"orange"</span>,</span>
+<span id="cb6-51"><a href="#cb6-51"></a>                                 <span class="st">"pred_5"</span> <span class="ot">=</span> <span class="st">"purple"</span>, <span class="st">"pred_6"</span> <span class="ot">=</span> <span class="st">"brown"</span>)) <span class="sc">+</span></span>
+<span id="cb6-52"><a href="#cb6-52"></a>    <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">"bottom"</span>)</span>
+<span id="cb6-53"><a href="#cb6-53"></a>}</span>
+<span id="cb6-54"><a href="#cb6-54"></a></span>
+<span id="cb6-55"><a href="#cb6-55"></a><span class="co"># 显示图形</span></span>
+<span id="cb6-56"><a href="#cb6-56"></a><span class="fu">plot_overfitting_demo</span>(demo_data, results<span class="sc">$</span>predictions)</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output-display">
 <div>
 <figure class="figure"><p><img src="1预测模型与评估_files/figure-html/unnamed-chunk-1-1.png" class="img-fluid figure-img" width="672"></p>
@@ -1018,37 +1017,37 @@ f_m = f_{m-1} - \eta_m\nabla_f L(f_{m-1})
 </div>
 <p><strong>编程演示：数据划分策略</strong></p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1"></a>demonstrate_data_splitting <span class="ot">&lt;-</span> <span class="cf">function</span>() {</span>
-<span id="cb8-2"><a href="#cb8-2"></a>  <span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
-<span id="cb8-3"><a href="#cb8-3"></a>  n <span class="ot">&lt;-</span> <span class="dv">1000</span></span>
-<span id="cb8-4"><a href="#cb8-4"></a>  <span class="co"># 生成回归数据</span></span>
-<span id="cb8-5"><a href="#cb8-5"></a>  x1 <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(n)</span>
-<span id="cb8-6"><a href="#cb8-6"></a>  x2 <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(n)</span>
-<span id="cb8-7"><a href="#cb8-7"></a>  y <span class="ot">&lt;-</span> <span class="dv">2</span><span class="sc">*</span>x1 <span class="sc">+</span> <span class="dv">3</span><span class="sc">*</span>x2 <span class="sc">+</span> <span class="fu">rnorm</span>(n, <span class="dv">0</span>, <span class="dv">1</span>)</span>
-<span id="cb8-8"><a href="#cb8-8"></a>  data <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">x1 =</span> x1, <span class="at">x2 =</span> x2, <span class="at">y =</span> y)</span>
-<span id="cb8-9"><a href="#cb8-9"></a>  </span>
-<span id="cb8-10"><a href="#cb8-10"></a>  <span class="co"># 简单划分（70%训练，30%测试）</span></span>
-<span id="cb8-11"><a href="#cb8-11"></a>  train_idx_simple <span class="ot">&lt;-</span> <span class="fu">sample</span>(<span class="dv">1</span><span class="sc">:</span>n, <span class="at">size =</span> <span class="fl">0.7</span> <span class="sc">*</span> n)</span>
-<span id="cb8-12"><a href="#cb8-12"></a>  test_idx_simple <span class="ot">&lt;-</span> <span class="fu">setdiff</span>(<span class="dv">1</span><span class="sc">:</span>n, train_idx_simple)</span>
-<span id="cb8-13"><a href="#cb8-13"></a>  </span>
-<span id="cb8-14"><a href="#cb8-14"></a>  <span class="fu">cat</span>(<span class="st">"简单划分结果:</span><span class="sc">\n</span><span class="st">"</span>)</span>
-<span id="cb8-15"><a href="#cb8-15"></a>  <span class="fu">cat</span>(<span class="st">"训练集大小:"</span>, <span class="fu">length</span>(train_idx_simple), <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span>
-<span id="cb8-16"><a href="#cb8-16"></a>  <span class="fu">cat</span>(<span class="st">"测试集大小:"</span>, <span class="fu">length</span>(test_idx_simple), <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span>
-<span id="cb8-17"><a href="#cb8-17"></a>  </span>
-<span id="cb8-18"><a href="#cb8-18"></a>  <span class="co"># 检查分布是否相似</span></span>
-<span id="cb8-19"><a href="#cb8-19"></a>  <span class="fu">cat</span>(<span class="st">"</span><span class="sc">\n</span><span class="st">训练集和测试集分布比较:</span><span class="sc">\n</span><span class="st">"</span>)</span>
-<span id="cb8-20"><a href="#cb8-20"></a>  <span class="fu">cat</span>(<span class="st">"训练集y均值:"</span>, <span class="fu">mean</span>(data<span class="sc">$</span>y[train_idx_simple]), <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span>
-<span id="cb8-21"><a href="#cb8-21"></a>  <span class="fu">cat</span>(<span class="st">"测试集y均值:"</span>, <span class="fu">mean</span>(data<span class="sc">$</span>y[test_idx_simple]), <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span>
-<span id="cb8-22"><a href="#cb8-22"></a>  </span>
-<span id="cb8-23"><a href="#cb8-23"></a>  <span class="fu">return</span>(<span class="fu">list</span>(</span>
-<span id="cb8-24"><a href="#cb8-24"></a>    <span class="at">data =</span> data,</span>
-<span id="cb8-25"><a href="#cb8-25"></a>    <span class="at">train_idx =</span> train_idx_simple,</span>
-<span id="cb8-26"><a href="#cb8-26"></a>    <span class="at">test_idx =</span> test_idx_simple</span>
-<span id="cb8-27"><a href="#cb8-27"></a>  ))</span>
-<span id="cb8-28"><a href="#cb8-28"></a>}</span>
-<span id="cb8-29"><a href="#cb8-29"></a></span>
-<span id="cb8-30"><a href="#cb8-30"></a><span class="co"># 运行演示</span></span>
-<span id="cb8-31"><a href="#cb8-31"></a>split_results <span class="ot">&lt;-</span> <span class="fu">demonstrate_data_splitting</span>()</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1"></a>demonstrate_data_splitting <span class="ot">&lt;-</span> <span class="cf">function</span>() {</span>
+<span id="cb7-2"><a href="#cb7-2"></a>  <span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
+<span id="cb7-3"><a href="#cb7-3"></a>  n <span class="ot">&lt;-</span> <span class="dv">1000</span></span>
+<span id="cb7-4"><a href="#cb7-4"></a>  <span class="co"># 生成回归数据</span></span>
+<span id="cb7-5"><a href="#cb7-5"></a>  x1 <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(n)</span>
+<span id="cb7-6"><a href="#cb7-6"></a>  x2 <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(n)</span>
+<span id="cb7-7"><a href="#cb7-7"></a>  y <span class="ot">&lt;-</span> <span class="dv">2</span><span class="sc">*</span>x1 <span class="sc">+</span> <span class="dv">3</span><span class="sc">*</span>x2 <span class="sc">+</span> <span class="fu">rnorm</span>(n, <span class="dv">0</span>, <span class="dv">1</span>)</span>
+<span id="cb7-8"><a href="#cb7-8"></a>  data <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">x1 =</span> x1, <span class="at">x2 =</span> x2, <span class="at">y =</span> y)</span>
+<span id="cb7-9"><a href="#cb7-9"></a>  </span>
+<span id="cb7-10"><a href="#cb7-10"></a>  <span class="co"># 简单划分（70%训练，30%测试）</span></span>
+<span id="cb7-11"><a href="#cb7-11"></a>  train_idx_simple <span class="ot">&lt;-</span> <span class="fu">sample</span>(<span class="dv">1</span><span class="sc">:</span>n, <span class="at">size =</span> <span class="fl">0.7</span> <span class="sc">*</span> n)</span>
+<span id="cb7-12"><a href="#cb7-12"></a>  test_idx_simple <span class="ot">&lt;-</span> <span class="fu">setdiff</span>(<span class="dv">1</span><span class="sc">:</span>n, train_idx_simple)</span>
+<span id="cb7-13"><a href="#cb7-13"></a>  </span>
+<span id="cb7-14"><a href="#cb7-14"></a>  <span class="fu">cat</span>(<span class="st">"简单划分结果:</span><span class="sc">\n</span><span class="st">"</span>)</span>
+<span id="cb7-15"><a href="#cb7-15"></a>  <span class="fu">cat</span>(<span class="st">"训练集大小:"</span>, <span class="fu">length</span>(train_idx_simple), <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span>
+<span id="cb7-16"><a href="#cb7-16"></a>  <span class="fu">cat</span>(<span class="st">"测试集大小:"</span>, <span class="fu">length</span>(test_idx_simple), <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span>
+<span id="cb7-17"><a href="#cb7-17"></a>  </span>
+<span id="cb7-18"><a href="#cb7-18"></a>  <span class="co"># 检查分布是否相似</span></span>
+<span id="cb7-19"><a href="#cb7-19"></a>  <span class="fu">cat</span>(<span class="st">"</span><span class="sc">\n</span><span class="st">训练集和测试集分布比较:</span><span class="sc">\n</span><span class="st">"</span>)</span>
+<span id="cb7-20"><a href="#cb7-20"></a>  <span class="fu">cat</span>(<span class="st">"训练集y均值:"</span>, <span class="fu">mean</span>(data<span class="sc">$</span>y[train_idx_simple]), <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span>
+<span id="cb7-21"><a href="#cb7-21"></a>  <span class="fu">cat</span>(<span class="st">"测试集y均值:"</span>, <span class="fu">mean</span>(data<span class="sc">$</span>y[test_idx_simple]), <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span>
+<span id="cb7-22"><a href="#cb7-22"></a>  </span>
+<span id="cb7-23"><a href="#cb7-23"></a>  <span class="fu">return</span>(<span class="fu">list</span>(</span>
+<span id="cb7-24"><a href="#cb7-24"></a>    <span class="at">data =</span> data,</span>
+<span id="cb7-25"><a href="#cb7-25"></a>    <span class="at">train_idx =</span> train_idx_simple,</span>
+<span id="cb7-26"><a href="#cb7-26"></a>    <span class="at">test_idx =</span> test_idx_simple</span>
+<span id="cb7-27"><a href="#cb7-27"></a>  ))</span>
+<span id="cb7-28"><a href="#cb7-28"></a>}</span>
+<span id="cb7-29"><a href="#cb7-29"></a></span>
+<span id="cb7-30"><a href="#cb7-30"></a><span class="co"># 运行演示</span></span>
+<span id="cb7-31"><a href="#cb7-31"></a>split_results <span class="ot">&lt;-</span> <span class="fu">demonstrate_data_splitting</span>()</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>简单划分结果:
 训练集大小: 700 
@@ -1061,75 +1060,75 @@ f_m = f_{m-1} - \eta_m\nabla_f L(f_{m-1})
 </div>
 <p>** 演示：回归评估指标**</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1"></a>demonstrate_regression_metrics <span class="ot">&lt;-</span> <span class="cf">function</span>() {</span>
-<span id="cb10-2"><a href="#cb10-2"></a>  <span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
-<span id="cb10-3"><a href="#cb10-3"></a>  n <span class="ot">&lt;-</span> <span class="dv">100</span></span>
-<span id="cb10-4"><a href="#cb10-4"></a>  <span class="co"># 生成数据</span></span>
-<span id="cb10-5"><a href="#cb10-5"></a>  x <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(n)</span>
-<span id="cb10-6"><a href="#cb10-6"></a>  y_true <span class="ot">&lt;-</span> <span class="dv">2</span><span class="sc">*</span>x <span class="sc">+</span> <span class="dv">1</span></span>
-<span id="cb10-7"><a href="#cb10-7"></a>  y_pred <span class="ot">&lt;-</span> y_true <span class="sc">+</span> <span class="fu">rnorm</span>(n, <span class="dv">0</span>, <span class="fl">0.5</span>)  <span class="co"># 预测值（带有误差）</span></span>
-<span id="cb10-8"><a href="#cb10-8"></a>  y_actual <span class="ot">&lt;-</span> y_true <span class="sc">+</span> <span class="fu">rnorm</span>(n, <span class="dv">0</span>, <span class="fl">0.3</span>)  <span class="co"># 实际观测值（带有噪声）</span></span>
-<span id="cb10-9"><a href="#cb10-9"></a>  </span>
-<span id="cb10-10"><a href="#cb10-10"></a>  <span class="co"># 计算各种评估指标</span></span>
-<span id="cb10-11"><a href="#cb10-11"></a>  calculate_regression_metrics <span class="ot">&lt;-</span> <span class="cf">function</span>(actual, predicted) {</span>
-<span id="cb10-12"><a href="#cb10-12"></a>    n <span class="ot">&lt;-</span> <span class="fu">length</span>(actual)</span>
-<span id="cb10-13"><a href="#cb10-13"></a>    residuals <span class="ot">&lt;-</span> actual <span class="sc">-</span> predicted</span>
-<span id="cb10-14"><a href="#cb10-14"></a>    </span>
-<span id="cb10-15"><a href="#cb10-15"></a>    mse <span class="ot">&lt;-</span> <span class="fu">mean</span>(residuals<span class="sc">^</span><span class="dv">2</span>)</span>
-<span id="cb10-16"><a href="#cb10-16"></a>    rmse <span class="ot">&lt;-</span> <span class="fu">sqrt</span>(mse)</span>
-<span id="cb10-17"><a href="#cb10-17"></a>    mae <span class="ot">&lt;-</span> <span class="fu">mean</span>(<span class="fu">abs</span>(residuals))</span>
-<span id="cb10-18"><a href="#cb10-18"></a>    </span>
-<span id="cb10-19"><a href="#cb10-19"></a>    <span class="co"># R-squared</span></span>
-<span id="cb10-20"><a href="#cb10-20"></a>    ss_residual <span class="ot">&lt;-</span> <span class="fu">sum</span>(residuals<span class="sc">^</span><span class="dv">2</span>)</span>
-<span id="cb10-21"><a href="#cb10-21"></a>    ss_total <span class="ot">&lt;-</span> <span class="fu">sum</span>((actual <span class="sc">-</span> <span class="fu">mean</span>(actual))<span class="sc">^</span><span class="dv">2</span>)</span>
-<span id="cb10-22"><a href="#cb10-22"></a>    r_squared <span class="ot">&lt;-</span> <span class="dv">1</span> <span class="sc">-</span> (ss_residual <span class="sc">/</span> ss_total)</span>
-<span id="cb10-23"><a href="#cb10-23"></a>    </span>
-<span id="cb10-24"><a href="#cb10-24"></a>    <span class="co"># 调整R-squared</span></span>
-<span id="cb10-25"><a href="#cb10-25"></a>    p <span class="ot">&lt;-</span> <span class="dv">1</span>  <span class="co"># 特征数</span></span>
-<span id="cb10-26"><a href="#cb10-26"></a>    r_squared_adj <span class="ot">&lt;-</span> <span class="dv">1</span> <span class="sc">-</span> (<span class="dv">1</span> <span class="sc">-</span> r_squared) <span class="sc">*</span> (n <span class="sc">-</span> <span class="dv">1</span>) <span class="sc">/</span> (n <span class="sc">-</span> p <span class="sc">-</span> <span class="dv">1</span>)</span>
-<span id="cb10-27"><a href="#cb10-27"></a>    </span>
-<span id="cb10-28"><a href="#cb10-28"></a>    <span class="fu">return</span>(<span class="fu">list</span>(</span>
-<span id="cb10-29"><a href="#cb10-29"></a>      <span class="at">MSE =</span> mse,</span>
-<span id="cb10-30"><a href="#cb10-30"></a>      <span class="at">RMSE =</span> rmse,</span>
-<span id="cb10-31"><a href="#cb10-31"></a>      <span class="at">MAE =</span> mae,</span>
-<span id="cb10-32"><a href="#cb10-32"></a>      <span class="at">R2 =</span> r_squared,</span>
-<span id="cb10-33"><a href="#cb10-33"></a>      <span class="at">R2_adj =</span> r_squared_adj</span>
-<span id="cb10-34"><a href="#cb10-34"></a>    ))</span>
-<span id="cb10-35"><a href="#cb10-35"></a>  }</span>
-<span id="cb10-36"><a href="#cb10-36"></a>  </span>
-<span id="cb10-37"><a href="#cb10-37"></a>  metrics <span class="ot">&lt;-</span> <span class="fu">calculate_regression_metrics</span>(y_actual, y_pred)</span>
-<span id="cb10-38"><a href="#cb10-38"></a>  </span>
-<span id="cb10-39"><a href="#cb10-39"></a>  <span class="fu">cat</span>(<span class="st">"回归评估指标:</span><span class="sc">\n</span><span class="st">"</span>)</span>
-<span id="cb10-40"><a href="#cb10-40"></a>  <span class="fu">cat</span>(<span class="st">"MSE (均方误差):"</span>, <span class="fu">round</span>(metrics<span class="sc">$</span>MSE, <span class="dv">4</span>), <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span>
-<span id="cb10-41"><a href="#cb10-41"></a>  <span class="fu">cat</span>(<span class="st">"RMSE (均方根误差):"</span>, <span class="fu">round</span>(metrics<span class="sc">$</span>RMSE, <span class="dv">4</span>), <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span>
-<span id="cb10-42"><a href="#cb10-42"></a>  <span class="fu">cat</span>(<span class="st">"MAE (平均绝对误差):"</span>, <span class="fu">round</span>(metrics<span class="sc">$</span>MAE, <span class="dv">4</span>), <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span>
-<span id="cb10-43"><a href="#cb10-43"></a>  <span class="fu">cat</span>(<span class="st">"R² (决定系数):"</span>, <span class="fu">round</span>(metrics<span class="sc">$</span>R2, <span class="dv">4</span>), <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span>
-<span id="cb10-44"><a href="#cb10-44"></a>  <span class="fu">cat</span>(<span class="st">"调整R²:"</span>, <span class="fu">round</span>(metrics<span class="sc">$</span>R2_adj, <span class="dv">4</span>), <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span>
-<span id="cb10-45"><a href="#cb10-45"></a>  </span>
-<span id="cb10-46"><a href="#cb10-46"></a>  <span class="co"># 可视化预测效果</span></span>
-<span id="cb10-47"><a href="#cb10-47"></a>  plot_data <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
-<span id="cb10-48"><a href="#cb10-48"></a>    <span class="at">Actual =</span> y_actual,</span>
-<span id="cb10-49"><a href="#cb10-49"></a>    <span class="at">Predicted =</span> y_pred,</span>
-<span id="cb10-50"><a href="#cb10-50"></a>    <span class="at">Perfect =</span> y_actual  <span class="co"># 完美预测线</span></span>
-<span id="cb10-51"><a href="#cb10-51"></a>  )</span>
-<span id="cb10-52"><a href="#cb10-52"></a>  </span>
-<span id="cb10-53"><a href="#cb10-53"></a>  <span class="fu">library</span>(ggplot2)</span>
-<span id="cb10-54"><a href="#cb10-54"></a>  p <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(plot_data, <span class="fu">aes</span>(<span class="at">x =</span> Actual, <span class="at">y =</span> Predicted)) <span class="sc">+</span></span>
-<span id="cb10-55"><a href="#cb10-55"></a>    <span class="fu">geom_point</span>(<span class="at">alpha =</span> <span class="fl">0.6</span>) <span class="sc">+</span></span>
-<span id="cb10-56"><a href="#cb10-56"></a>    <span class="fu">geom_abline</span>(<span class="at">slope =</span> <span class="dv">1</span>, <span class="at">intercept =</span> <span class="dv">0</span>, <span class="at">color =</span> <span class="st">"red"</span>, <span class="at">linetype =</span> <span class="st">"dashed"</span>) <span class="sc">+</span></span>
-<span id="cb10-57"><a href="#cb10-57"></a>    <span class="fu">geom_smooth</span>(<span class="at">method =</span> <span class="st">"lm"</span>, <span class="at">se =</span> <span class="cn">FALSE</span>, <span class="at">color =</span> <span class="st">"blue"</span>) <span class="sc">+</span></span>
-<span id="cb10-58"><a href="#cb10-58"></a>    <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"预测值 vs 实际值"</span>,</span>
-<span id="cb10-59"><a href="#cb10-59"></a>         <span class="at">subtitle =</span> <span class="fu">paste</span>(<span class="st">"R² ="</span>, <span class="fu">round</span>(metrics<span class="sc">$</span>R2, <span class="dv">4</span>)),</span>
-<span id="cb10-60"><a href="#cb10-60"></a>         <span class="at">x =</span> <span class="st">"实际值"</span>, <span class="at">y =</span> <span class="st">"预测值"</span>) <span class="sc">+</span></span>
-<span id="cb10-61"><a href="#cb10-61"></a>    <span class="fu">theme_minimal</span>()</span>
-<span id="cb10-62"><a href="#cb10-62"></a>  </span>
-<span id="cb10-63"><a href="#cb10-63"></a>  <span class="fu">print</span>(p)</span>
-<span id="cb10-64"><a href="#cb10-64"></a>  </span>
-<span id="cb10-65"><a href="#cb10-65"></a>  <span class="fu">return</span>(metrics)</span>
-<span id="cb10-66"><a href="#cb10-66"></a>}</span>
-<span id="cb10-67"><a href="#cb10-67"></a></span>
-<span id="cb10-68"><a href="#cb10-68"></a><span class="co"># 运行回归指标演示</span></span>
-<span id="cb10-69"><a href="#cb10-69"></a>regression_metrics <span class="ot">&lt;-</span> <span class="fu">demonstrate_regression_metrics</span>()</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1"></a>demonstrate_regression_metrics <span class="ot">&lt;-</span> <span class="cf">function</span>() {</span>
+<span id="cb9-2"><a href="#cb9-2"></a>  <span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
+<span id="cb9-3"><a href="#cb9-3"></a>  n <span class="ot">&lt;-</span> <span class="dv">100</span></span>
+<span id="cb9-4"><a href="#cb9-4"></a>  <span class="co"># 生成数据</span></span>
+<span id="cb9-5"><a href="#cb9-5"></a>  x <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(n)</span>
+<span id="cb9-6"><a href="#cb9-6"></a>  y_true <span class="ot">&lt;-</span> <span class="dv">2</span><span class="sc">*</span>x <span class="sc">+</span> <span class="dv">1</span></span>
+<span id="cb9-7"><a href="#cb9-7"></a>  y_pred <span class="ot">&lt;-</span> y_true <span class="sc">+</span> <span class="fu">rnorm</span>(n, <span class="dv">0</span>, <span class="fl">0.5</span>)  <span class="co"># 预测值（带有误差）</span></span>
+<span id="cb9-8"><a href="#cb9-8"></a>  y_actual <span class="ot">&lt;-</span> y_true <span class="sc">+</span> <span class="fu">rnorm</span>(n, <span class="dv">0</span>, <span class="fl">0.3</span>)  <span class="co"># 实际观测值（带有噪声）</span></span>
+<span id="cb9-9"><a href="#cb9-9"></a>  </span>
+<span id="cb9-10"><a href="#cb9-10"></a>  <span class="co"># 计算各种评估指标</span></span>
+<span id="cb9-11"><a href="#cb9-11"></a>  calculate_regression_metrics <span class="ot">&lt;-</span> <span class="cf">function</span>(actual, predicted) {</span>
+<span id="cb9-12"><a href="#cb9-12"></a>    n <span class="ot">&lt;-</span> <span class="fu">length</span>(actual)</span>
+<span id="cb9-13"><a href="#cb9-13"></a>    residuals <span class="ot">&lt;-</span> actual <span class="sc">-</span> predicted</span>
+<span id="cb9-14"><a href="#cb9-14"></a>    </span>
+<span id="cb9-15"><a href="#cb9-15"></a>    mse <span class="ot">&lt;-</span> <span class="fu">mean</span>(residuals<span class="sc">^</span><span class="dv">2</span>)</span>
+<span id="cb9-16"><a href="#cb9-16"></a>    rmse <span class="ot">&lt;-</span> <span class="fu">sqrt</span>(mse)</span>
+<span id="cb9-17"><a href="#cb9-17"></a>    mae <span class="ot">&lt;-</span> <span class="fu">mean</span>(<span class="fu">abs</span>(residuals))</span>
+<span id="cb9-18"><a href="#cb9-18"></a>    </span>
+<span id="cb9-19"><a href="#cb9-19"></a>    <span class="co"># R-squared</span></span>
+<span id="cb9-20"><a href="#cb9-20"></a>    ss_residual <span class="ot">&lt;-</span> <span class="fu">sum</span>(residuals<span class="sc">^</span><span class="dv">2</span>)</span>
+<span id="cb9-21"><a href="#cb9-21"></a>    ss_total <span class="ot">&lt;-</span> <span class="fu">sum</span>((actual <span class="sc">-</span> <span class="fu">mean</span>(actual))<span class="sc">^</span><span class="dv">2</span>)</span>
+<span id="cb9-22"><a href="#cb9-22"></a>    r_squared <span class="ot">&lt;-</span> <span class="dv">1</span> <span class="sc">-</span> (ss_residual <span class="sc">/</span> ss_total)</span>
+<span id="cb9-23"><a href="#cb9-23"></a>    </span>
+<span id="cb9-24"><a href="#cb9-24"></a>    <span class="co"># 调整R-squared</span></span>
+<span id="cb9-25"><a href="#cb9-25"></a>    p <span class="ot">&lt;-</span> <span class="dv">1</span>  <span class="co"># 特征数</span></span>
+<span id="cb9-26"><a href="#cb9-26"></a>    r_squared_adj <span class="ot">&lt;-</span> <span class="dv">1</span> <span class="sc">-</span> (<span class="dv">1</span> <span class="sc">-</span> r_squared) <span class="sc">*</span> (n <span class="sc">-</span> <span class="dv">1</span>) <span class="sc">/</span> (n <span class="sc">-</span> p <span class="sc">-</span> <span class="dv">1</span>)</span>
+<span id="cb9-27"><a href="#cb9-27"></a>    </span>
+<span id="cb9-28"><a href="#cb9-28"></a>    <span class="fu">return</span>(<span class="fu">list</span>(</span>
+<span id="cb9-29"><a href="#cb9-29"></a>      <span class="at">MSE =</span> mse,</span>
+<span id="cb9-30"><a href="#cb9-30"></a>      <span class="at">RMSE =</span> rmse,</span>
+<span id="cb9-31"><a href="#cb9-31"></a>      <span class="at">MAE =</span> mae,</span>
+<span id="cb9-32"><a href="#cb9-32"></a>      <span class="at">R2 =</span> r_squared,</span>
+<span id="cb9-33"><a href="#cb9-33"></a>      <span class="at">R2_adj =</span> r_squared_adj</span>
+<span id="cb9-34"><a href="#cb9-34"></a>    ))</span>
+<span id="cb9-35"><a href="#cb9-35"></a>  }</span>
+<span id="cb9-36"><a href="#cb9-36"></a>  </span>
+<span id="cb9-37"><a href="#cb9-37"></a>  metrics <span class="ot">&lt;-</span> <span class="fu">calculate_regression_metrics</span>(y_actual, y_pred)</span>
+<span id="cb9-38"><a href="#cb9-38"></a>  </span>
+<span id="cb9-39"><a href="#cb9-39"></a>  <span class="fu">cat</span>(<span class="st">"回归评估指标:</span><span class="sc">\n</span><span class="st">"</span>)</span>
+<span id="cb9-40"><a href="#cb9-40"></a>  <span class="fu">cat</span>(<span class="st">"MSE (均方误差):"</span>, <span class="fu">round</span>(metrics<span class="sc">$</span>MSE, <span class="dv">4</span>), <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span>
+<span id="cb9-41"><a href="#cb9-41"></a>  <span class="fu">cat</span>(<span class="st">"RMSE (均方根误差):"</span>, <span class="fu">round</span>(metrics<span class="sc">$</span>RMSE, <span class="dv">4</span>), <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span>
+<span id="cb9-42"><a href="#cb9-42"></a>  <span class="fu">cat</span>(<span class="st">"MAE (平均绝对误差):"</span>, <span class="fu">round</span>(metrics<span class="sc">$</span>MAE, <span class="dv">4</span>), <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span>
+<span id="cb9-43"><a href="#cb9-43"></a>  <span class="fu">cat</span>(<span class="st">"R² (决定系数):"</span>, <span class="fu">round</span>(metrics<span class="sc">$</span>R2, <span class="dv">4</span>), <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span>
+<span id="cb9-44"><a href="#cb9-44"></a>  <span class="fu">cat</span>(<span class="st">"调整R²:"</span>, <span class="fu">round</span>(metrics<span class="sc">$</span>R2_adj, <span class="dv">4</span>), <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span>
+<span id="cb9-45"><a href="#cb9-45"></a>  </span>
+<span id="cb9-46"><a href="#cb9-46"></a>  <span class="co"># 可视化预测效果</span></span>
+<span id="cb9-47"><a href="#cb9-47"></a>  plot_data <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb9-48"><a href="#cb9-48"></a>    <span class="at">Actual =</span> y_actual,</span>
+<span id="cb9-49"><a href="#cb9-49"></a>    <span class="at">Predicted =</span> y_pred,</span>
+<span id="cb9-50"><a href="#cb9-50"></a>    <span class="at">Perfect =</span> y_actual  <span class="co"># 完美预测线</span></span>
+<span id="cb9-51"><a href="#cb9-51"></a>  )</span>
+<span id="cb9-52"><a href="#cb9-52"></a>  </span>
+<span id="cb9-53"><a href="#cb9-53"></a>  <span class="fu">library</span>(ggplot2)</span>
+<span id="cb9-54"><a href="#cb9-54"></a>  p <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(plot_data, <span class="fu">aes</span>(<span class="at">x =</span> Actual, <span class="at">y =</span> Predicted)) <span class="sc">+</span></span>
+<span id="cb9-55"><a href="#cb9-55"></a>    <span class="fu">geom_point</span>(<span class="at">alpha =</span> <span class="fl">0.6</span>) <span class="sc">+</span></span>
+<span id="cb9-56"><a href="#cb9-56"></a>    <span class="fu">geom_abline</span>(<span class="at">slope =</span> <span class="dv">1</span>, <span class="at">intercept =</span> <span class="dv">0</span>, <span class="at">color =</span> <span class="st">"red"</span>, <span class="at">linetype =</span> <span class="st">"dashed"</span>) <span class="sc">+</span></span>
+<span id="cb9-57"><a href="#cb9-57"></a>    <span class="fu">geom_smooth</span>(<span class="at">method =</span> <span class="st">"lm"</span>, <span class="at">se =</span> <span class="cn">FALSE</span>, <span class="at">color =</span> <span class="st">"blue"</span>) <span class="sc">+</span></span>
+<span id="cb9-58"><a href="#cb9-58"></a>    <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"预测值 vs 实际值"</span>,</span>
+<span id="cb9-59"><a href="#cb9-59"></a>         <span class="at">subtitle =</span> <span class="fu">paste</span>(<span class="st">"R² ="</span>, <span class="fu">round</span>(metrics<span class="sc">$</span>R2, <span class="dv">4</span>)),</span>
+<span id="cb9-60"><a href="#cb9-60"></a>         <span class="at">x =</span> <span class="st">"实际值"</span>, <span class="at">y =</span> <span class="st">"预测值"</span>) <span class="sc">+</span></span>
+<span id="cb9-61"><a href="#cb9-61"></a>    <span class="fu">theme_minimal</span>()</span>
+<span id="cb9-62"><a href="#cb9-62"></a>  </span>
+<span id="cb9-63"><a href="#cb9-63"></a>  <span class="fu">print</span>(p)</span>
+<span id="cb9-64"><a href="#cb9-64"></a>  </span>
+<span id="cb9-65"><a href="#cb9-65"></a>  <span class="fu">return</span>(metrics)</span>
+<span id="cb9-66"><a href="#cb9-66"></a>}</span>
+<span id="cb9-67"><a href="#cb9-67"></a></span>
+<span id="cb9-68"><a href="#cb9-68"></a><span class="co"># 运行回归指标演示</span></span>
+<span id="cb9-69"><a href="#cb9-69"></a>regression_metrics <span class="ot">&lt;-</span> <span class="fu">demonstrate_regression_metrics</span>()</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>回归评估指标:
 MSE (均方误差): 0.3116 
@@ -1147,124 +1146,124 @@ R² (决定系数): 0.904
 </div>
 <p><strong>编程演示：分类评估指标</strong></p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1"></a><span class="co"># 1.4.2 分类评估指标演示</span></span>
-<span id="cb12-2"><a href="#cb12-2"></a>demonstrate_classification_metrics <span class="ot">&lt;-</span> <span class="cf">function</span>() {</span>
-<span id="cb12-3"><a href="#cb12-3"></a>  <span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
-<span id="cb12-4"><a href="#cb12-4"></a>  n <span class="ot">&lt;-</span> <span class="dv">1000</span></span>
-<span id="cb12-5"><a href="#cb12-5"></a>  <span class="co"># 生成二分类数据</span></span>
-<span id="cb12-6"><a href="#cb12-6"></a>  feature1 <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(n)</span>
-<span id="cb12-7"><a href="#cb12-7"></a>  feature2 <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(n)</span>
-<span id="cb12-8"><a href="#cb12-8"></a>  </span>
-<span id="cb12-9"><a href="#cb12-9"></a>  <span class="co"># 生成真实概率</span></span>
-<span id="cb12-10"><a href="#cb12-10"></a>  true_prob <span class="ot">&lt;-</span> <span class="fu">plogis</span>(<span class="fl">0.5</span> <span class="sc">+</span> <span class="fl">1.2</span> <span class="sc">*</span> feature1 <span class="sc">-</span> <span class="fl">0.8</span> <span class="sc">*</span> feature2)</span>
-<span id="cb12-11"><a href="#cb12-11"></a>  true_labels <span class="ot">&lt;-</span> <span class="fu">rbinom</span>(n, <span class="dv">1</span>, true_prob)</span>
-<span id="cb12-12"><a href="#cb12-12"></a>  </span>
-<span id="cb12-13"><a href="#cb12-13"></a>  <span class="co"># 生成预测概率（带有一些误差）</span></span>
-<span id="cb12-14"><a href="#cb12-14"></a>  pred_prob <span class="ot">&lt;-</span> true_prob <span class="sc">+</span> <span class="fu">rnorm</span>(n, <span class="dv">0</span>, <span class="fl">0.1</span>)</span>
-<span id="cb12-15"><a href="#cb12-15"></a>  pred_prob <span class="ot">&lt;-</span> <span class="fu">pmin</span>(<span class="fu">pmax</span>(pred_prob, <span class="dv">0</span>), <span class="dv">1</span>)  <span class="co"># 限制在[0,1]范围内</span></span>
-<span id="cb12-16"><a href="#cb12-16"></a>  pred_labels <span class="ot">&lt;-</span> <span class="fu">ifelse</span>(pred_prob <span class="sc">&gt;</span> <span class="fl">0.5</span>, <span class="dv">1</span>, <span class="dv">0</span>)</span>
-<span id="cb12-17"><a href="#cb12-17"></a>  </span>
-<span id="cb12-18"><a href="#cb12-18"></a>  <span class="co"># 计算混淆矩阵</span></span>
-<span id="cb12-19"><a href="#cb12-19"></a>  calculate_confusion_matrix <span class="ot">&lt;-</span> <span class="cf">function</span>(actual, predicted) {</span>
-<span id="cb12-20"><a href="#cb12-20"></a>    tp <span class="ot">&lt;-</span> <span class="fu">sum</span>(actual <span class="sc">==</span> <span class="dv">1</span> <span class="sc">&amp;</span> predicted <span class="sc">==</span> <span class="dv">1</span>)</span>
-<span id="cb12-21"><a href="#cb12-21"></a>    tn <span class="ot">&lt;-</span> <span class="fu">sum</span>(actual <span class="sc">==</span> <span class="dv">0</span> <span class="sc">&amp;</span> predicted <span class="sc">==</span> <span class="dv">0</span>)</span>
-<span id="cb12-22"><a href="#cb12-22"></a>    fp <span class="ot">&lt;-</span> <span class="fu">sum</span>(actual <span class="sc">==</span> <span class="dv">0</span> <span class="sc">&amp;</span> predicted <span class="sc">==</span> <span class="dv">1</span>)</span>
-<span id="cb12-23"><a href="#cb12-23"></a>    fn <span class="ot">&lt;-</span> <span class="fu">sum</span>(actual <span class="sc">==</span> <span class="dv">1</span> <span class="sc">&amp;</span> predicted <span class="sc">==</span> <span class="dv">0</span>)</span>
-<span id="cb12-24"><a href="#cb12-24"></a>    </span>
-<span id="cb12-25"><a href="#cb12-25"></a>    <span class="fu">return</span>(<span class="fu">list</span>(<span class="at">TP =</span> tp, <span class="at">TN =</span> tn, <span class="at">FP =</span> fp, <span class="at">FN =</span> fn))</span>
-<span id="cb12-26"><a href="#cb12-26"></a>  }</span>
-<span id="cb12-27"><a href="#cb12-27"></a>  </span>
-<span id="cb12-28"><a href="#cb12-28"></a>  cm <span class="ot">&lt;-</span> <span class="fu">calculate_confusion_matrix</span>(true_labels, pred_labels)</span>
-<span id="cb12-29"><a href="#cb12-29"></a>  </span>
-<span id="cb12-30"><a href="#cb12-30"></a>  <span class="co"># 计算各种指标</span></span>
-<span id="cb12-31"><a href="#cb12-31"></a>  accuracy <span class="ot">&lt;-</span> (cm<span class="sc">$</span>TP <span class="sc">+</span> cm<span class="sc">$</span>TN) <span class="sc">/</span> n</span>
-<span id="cb12-32"><a href="#cb12-32"></a>  precision <span class="ot">&lt;-</span> cm<span class="sc">$</span>TP <span class="sc">/</span> (cm<span class="sc">$</span>TP <span class="sc">+</span> cm<span class="sc">$</span>FP)</span>
-<span id="cb12-33"><a href="#cb12-33"></a>  recall <span class="ot">&lt;-</span> cm<span class="sc">$</span>TP <span class="sc">/</span> (cm<span class="sc">$</span>TP <span class="sc">+</span> cm<span class="sc">$</span>FN)</span>
-<span id="cb12-34"><a href="#cb12-34"></a>  f1_score <span class="ot">&lt;-</span> <span class="dv">2</span> <span class="sc">*</span> (precision <span class="sc">*</span> recall) <span class="sc">/</span> (precision <span class="sc">+</span> recall)</span>
-<span id="cb12-35"><a href="#cb12-35"></a>  </span>
-<span id="cb12-36"><a href="#cb12-36"></a>  <span class="co"># 计算AUC</span></span>
-<span id="cb12-37"><a href="#cb12-37"></a>  calculate_auc <span class="ot">&lt;-</span> <span class="cf">function</span>(actual, prob) {</span>
-<span id="cb12-38"><a href="#cb12-38"></a>    <span class="co"># 简单实现AUC计算</span></span>
-<span id="cb12-39"><a href="#cb12-39"></a>    positive_probs <span class="ot">&lt;-</span> prob[actual <span class="sc">==</span> <span class="dv">1</span>]</span>
-<span id="cb12-40"><a href="#cb12-40"></a>    negative_probs <span class="ot">&lt;-</span> prob[actual <span class="sc">==</span> <span class="dv">0</span>]</span>
-<span id="cb12-41"><a href="#cb12-41"></a>    </span>
-<span id="cb12-42"><a href="#cb12-42"></a>    comparisons <span class="ot">&lt;-</span> <span class="dv">0</span></span>
-<span id="cb12-43"><a href="#cb12-43"></a>    correct <span class="ot">&lt;-</span> <span class="dv">0</span></span>
-<span id="cb12-44"><a href="#cb12-44"></a>    </span>
-<span id="cb12-45"><a href="#cb12-45"></a>    <span class="co"># 抽样计算以加快速度</span></span>
-<span id="cb12-46"><a href="#cb12-46"></a>    n_sample <span class="ot">&lt;-</span> <span class="fu">min</span>(<span class="dv">100</span>, <span class="fu">length</span>(positive_probs), <span class="fu">length</span>(negative_probs))</span>
-<span id="cb12-47"><a href="#cb12-47"></a>    pos_sample <span class="ot">&lt;-</span> <span class="fu">sample</span>(positive_probs, n_sample)</span>
-<span id="cb12-48"><a href="#cb12-48"></a>    neg_sample <span class="ot">&lt;-</span> <span class="fu">sample</span>(negative_probs, n_sample)</span>
-<span id="cb12-49"><a href="#cb12-49"></a>    </span>
-<span id="cb12-50"><a href="#cb12-50"></a>    <span class="cf">for</span> (p <span class="cf">in</span> pos_sample) {</span>
-<span id="cb12-51"><a href="#cb12-51"></a>      <span class="cf">for</span> (n <span class="cf">in</span> neg_sample) {</span>
-<span id="cb12-52"><a href="#cb12-52"></a>        comparisons <span class="ot">&lt;-</span> comparisons <span class="sc">+</span> <span class="dv">1</span></span>
-<span id="cb12-53"><a href="#cb12-53"></a>        <span class="cf">if</span> (p <span class="sc">&gt;</span> n) correct <span class="ot">&lt;-</span> correct <span class="sc">+</span> <span class="dv">1</span></span>
-<span id="cb12-54"><a href="#cb12-54"></a>        <span class="cf">else</span> <span class="cf">if</span> (p <span class="sc">==</span> n) correct <span class="ot">&lt;-</span> correct <span class="sc">+</span> <span class="fl">0.5</span></span>
-<span id="cb12-55"><a href="#cb12-55"></a>      }</span>
-<span id="cb12-56"><a href="#cb12-56"></a>    }</span>
-<span id="cb12-57"><a href="#cb12-57"></a>    </span>
-<span id="cb12-58"><a href="#cb12-58"></a>    <span class="fu">return</span>(correct <span class="sc">/</span> comparisons)</span>
-<span id="cb12-59"><a href="#cb12-59"></a>  }</span>
-<span id="cb12-60"><a href="#cb12-60"></a>  </span>
-<span id="cb12-61"><a href="#cb12-61"></a>  auc_score <span class="ot">&lt;-</span> <span class="fu">calculate_auc</span>(true_labels, pred_prob)</span>
-<span id="cb12-62"><a href="#cb12-62"></a>  </span>
-<span id="cb12-63"><a href="#cb12-63"></a>  <span class="fu">cat</span>(<span class="st">"分类评估指标:</span><span class="sc">\n</span><span class="st">"</span>)</span>
-<span id="cb12-64"><a href="#cb12-64"></a>  <span class="fu">cat</span>(<span class="st">"准确率:"</span>, <span class="fu">round</span>(accuracy, <span class="dv">4</span>), <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span>
-<span id="cb12-65"><a href="#cb12-65"></a>  <span class="fu">cat</span>(<span class="st">"精确率:"</span>, <span class="fu">round</span>(precision, <span class="dv">4</span>), <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span>
-<span id="cb12-66"><a href="#cb12-66"></a>  <span class="fu">cat</span>(<span class="st">"召回率:"</span>, <span class="fu">round</span>(recall, <span class="dv">4</span>), <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span>
-<span id="cb12-67"><a href="#cb12-67"></a>  <span class="fu">cat</span>(<span class="st">"F1分数:"</span>, <span class="fu">round</span>(f1_score, <span class="dv">4</span>), <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span>
-<span id="cb12-68"><a href="#cb12-68"></a>  <span class="fu">cat</span>(<span class="st">"AUC:"</span>, <span class="fu">round</span>(auc_score, <span class="dv">4</span>), <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span>
-<span id="cb12-69"><a href="#cb12-69"></a>  </span>
-<span id="cb12-70"><a href="#cb12-70"></a>  <span class="co"># 打印混淆矩阵</span></span>
-<span id="cb12-71"><a href="#cb12-71"></a>  <span class="fu">cat</span>(<span class="st">"</span><span class="sc">\n</span><span class="st">混淆矩阵:</span><span class="sc">\n</span><span class="st">"</span>)</span>
-<span id="cb12-72"><a href="#cb12-72"></a>  confusion_df <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
-<span id="cb12-73"><a href="#cb12-73"></a>    <span class="at">Actual_0 =</span> <span class="fu">c</span>(cm<span class="sc">$</span>TN, cm<span class="sc">$</span>FN),</span>
-<span id="cb12-74"><a href="#cb12-74"></a>    <span class="at">Actual_1 =</span> <span class="fu">c</span>(cm<span class="sc">$</span>FP, cm<span class="sc">$</span>TP)</span>
-<span id="cb12-75"><a href="#cb12-75"></a>  )</span>
-<span id="cb12-76"><a href="#cb12-76"></a>  <span class="fu">rownames</span>(confusion_df) <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"Predicted_0"</span>, <span class="st">"Predicted_1"</span>)</span>
-<span id="cb12-77"><a href="#cb12-77"></a>  <span class="fu">print</span>(confusion_df)</span>
-<span id="cb12-78"><a href="#cb12-78"></a>  </span>
-<span id="cb12-79"><a href="#cb12-79"></a>  <span class="co"># 可视化ROC曲线</span></span>
-<span id="cb12-80"><a href="#cb12-80"></a>  plot_roc_curve <span class="ot">&lt;-</span> <span class="cf">function</span>(actual, prob) {</span>
-<span id="cb12-81"><a href="#cb12-81"></a>    thresholds <span class="ot">&lt;-</span> <span class="fu">seq</span>(<span class="dv">0</span>, <span class="dv">1</span>, <span class="fl">0.01</span>)</span>
-<span id="cb12-82"><a href="#cb12-82"></a>    tpr <span class="ot">&lt;-</span> <span class="fu">numeric</span>(<span class="fu">length</span>(thresholds))</span>
-<span id="cb12-83"><a href="#cb12-83"></a>    fpr <span class="ot">&lt;-</span> <span class="fu">numeric</span>(<span class="fu">length</span>(thresholds))</span>
-<span id="cb12-84"><a href="#cb12-84"></a>    </span>
-<span id="cb12-85"><a href="#cb12-85"></a>    <span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="fu">length</span>(thresholds)) {</span>
-<span id="cb12-86"><a href="#cb12-86"></a>      pred <span class="ot">&lt;-</span> <span class="fu">ifelse</span>(prob <span class="sc">&gt;</span> thresholds[i], <span class="dv">1</span>, <span class="dv">0</span>)</span>
-<span id="cb12-87"><a href="#cb12-87"></a>      cm_temp <span class="ot">&lt;-</span> <span class="fu">calculate_confusion_matrix</span>(actual, pred)</span>
-<span id="cb12-88"><a href="#cb12-88"></a>      tpr[i] <span class="ot">&lt;-</span> cm_temp<span class="sc">$</span>TP <span class="sc">/</span> (cm_temp<span class="sc">$</span>TP <span class="sc">+</span> cm_temp<span class="sc">$</span>FN)  <span class="co"># 真正率</span></span>
-<span id="cb12-89"><a href="#cb12-89"></a>      fpr[i] <span class="ot">&lt;-</span> cm_temp<span class="sc">$</span>FP <span class="sc">/</span> (cm_temp<span class="sc">$</span>FP <span class="sc">+</span> cm_temp<span class="sc">$</span>TN)  <span class="co"># 假正率</span></span>
-<span id="cb12-90"><a href="#cb12-90"></a>    }</span>
-<span id="cb12-91"><a href="#cb12-91"></a>    </span>
-<span id="cb12-92"><a href="#cb12-92"></a>    roc_data <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">FPR =</span> fpr, <span class="at">TPR =</span> tpr)</span>
-<span id="cb12-93"><a href="#cb12-93"></a>    </span>
-<span id="cb12-94"><a href="#cb12-94"></a>    <span class="fu">ggplot</span>(roc_data, <span class="fu">aes</span>(<span class="at">x =</span> FPR, <span class="at">y =</span> TPR)) <span class="sc">+</span></span>
-<span id="cb12-95"><a href="#cb12-95"></a>      <span class="fu">geom_line</span>(<span class="at">color =</span> <span class="st">"blue"</span>, <span class="at">size =</span> <span class="dv">1</span>) <span class="sc">+</span></span>
-<span id="cb12-96"><a href="#cb12-96"></a>      <span class="fu">geom_abline</span>(<span class="at">slope =</span> <span class="dv">1</span>, <span class="at">intercept =</span> <span class="dv">0</span>, <span class="at">linetype =</span> <span class="st">"dashed"</span>, <span class="at">color =</span> <span class="st">"gray"</span>) <span class="sc">+</span></span>
-<span id="cb12-97"><a href="#cb12-97"></a>      <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"ROC曲线"</span>,</span>
-<span id="cb12-98"><a href="#cb12-98"></a>           <span class="at">subtitle =</span> <span class="fu">paste</span>(<span class="st">"AUC ="</span>, <span class="fu">round</span>(auc_score, <span class="dv">4</span>)),</span>
-<span id="cb12-99"><a href="#cb12-99"></a>           <span class="at">x =</span> <span class="st">"假正率 (FPR)"</span>, <span class="at">y =</span> <span class="st">"真正率 (TPR)"</span>) <span class="sc">+</span></span>
-<span id="cb12-100"><a href="#cb12-100"></a>      <span class="fu">theme_minimal</span>() <span class="sc">+</span></span>
-<span id="cb12-101"><a href="#cb12-101"></a>      <span class="fu">coord_equal</span>()</span>
-<span id="cb12-102"><a href="#cb12-102"></a>  }</span>
-<span id="cb12-103"><a href="#cb12-103"></a>  </span>
-<span id="cb12-104"><a href="#cb12-104"></a>  roc_plot <span class="ot">&lt;-</span> <span class="fu">plot_roc_curve</span>(true_labels, pred_prob)</span>
-<span id="cb12-105"><a href="#cb12-105"></a>  <span class="fu">print</span>(roc_plot)</span>
-<span id="cb12-106"><a href="#cb12-106"></a>  </span>
-<span id="cb12-107"><a href="#cb12-107"></a>  <span class="fu">return</span>(<span class="fu">list</span>(</span>
-<span id="cb12-108"><a href="#cb12-108"></a>    <span class="at">accuracy =</span> accuracy,</span>
-<span id="cb12-109"><a href="#cb12-109"></a>    <span class="at">precision =</span> precision,</span>
-<span id="cb12-110"><a href="#cb12-110"></a>    <span class="at">recall =</span> recall,</span>
-<span id="cb12-111"><a href="#cb12-111"></a>    <span class="at">f1_score =</span> f1_score,</span>
-<span id="cb12-112"><a href="#cb12-112"></a>    <span class="at">auc =</span> auc_score,</span>
-<span id="cb12-113"><a href="#cb12-113"></a>    <span class="at">confusion_matrix =</span> cm</span>
-<span id="cb12-114"><a href="#cb12-114"></a>  ))</span>
-<span id="cb12-115"><a href="#cb12-115"></a>}</span>
-<span id="cb12-116"><a href="#cb12-116"></a></span>
-<span id="cb12-117"><a href="#cb12-117"></a><span class="co"># 运行分类指标演示</span></span>
-<span id="cb12-118"><a href="#cb12-118"></a>classification_metrics <span class="ot">&lt;-</span> <span class="fu">demonstrate_classification_metrics</span>()</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1"></a><span class="co"># 1.4.2 分类评估指标演示</span></span>
+<span id="cb11-2"><a href="#cb11-2"></a>demonstrate_classification_metrics <span class="ot">&lt;-</span> <span class="cf">function</span>() {</span>
+<span id="cb11-3"><a href="#cb11-3"></a>  <span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
+<span id="cb11-4"><a href="#cb11-4"></a>  n <span class="ot">&lt;-</span> <span class="dv">1000</span></span>
+<span id="cb11-5"><a href="#cb11-5"></a>  <span class="co"># 生成二分类数据</span></span>
+<span id="cb11-6"><a href="#cb11-6"></a>  feature1 <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(n)</span>
+<span id="cb11-7"><a href="#cb11-7"></a>  feature2 <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(n)</span>
+<span id="cb11-8"><a href="#cb11-8"></a>  </span>
+<span id="cb11-9"><a href="#cb11-9"></a>  <span class="co"># 生成真实概率</span></span>
+<span id="cb11-10"><a href="#cb11-10"></a>  true_prob <span class="ot">&lt;-</span> <span class="fu">plogis</span>(<span class="fl">0.5</span> <span class="sc">+</span> <span class="fl">1.2</span> <span class="sc">*</span> feature1 <span class="sc">-</span> <span class="fl">0.8</span> <span class="sc">*</span> feature2)</span>
+<span id="cb11-11"><a href="#cb11-11"></a>  true_labels <span class="ot">&lt;-</span> <span class="fu">rbinom</span>(n, <span class="dv">1</span>, true_prob)</span>
+<span id="cb11-12"><a href="#cb11-12"></a>  </span>
+<span id="cb11-13"><a href="#cb11-13"></a>  <span class="co"># 生成预测概率（带有一些误差）</span></span>
+<span id="cb11-14"><a href="#cb11-14"></a>  pred_prob <span class="ot">&lt;-</span> true_prob <span class="sc">+</span> <span class="fu">rnorm</span>(n, <span class="dv">0</span>, <span class="fl">0.1</span>)</span>
+<span id="cb11-15"><a href="#cb11-15"></a>  pred_prob <span class="ot">&lt;-</span> <span class="fu">pmin</span>(<span class="fu">pmax</span>(pred_prob, <span class="dv">0</span>), <span class="dv">1</span>)  <span class="co"># 限制在[0,1]范围内</span></span>
+<span id="cb11-16"><a href="#cb11-16"></a>  pred_labels <span class="ot">&lt;-</span> <span class="fu">ifelse</span>(pred_prob <span class="sc">&gt;</span> <span class="fl">0.5</span>, <span class="dv">1</span>, <span class="dv">0</span>)</span>
+<span id="cb11-17"><a href="#cb11-17"></a>  </span>
+<span id="cb11-18"><a href="#cb11-18"></a>  <span class="co"># 计算混淆矩阵</span></span>
+<span id="cb11-19"><a href="#cb11-19"></a>  calculate_confusion_matrix <span class="ot">&lt;-</span> <span class="cf">function</span>(actual, predicted) {</span>
+<span id="cb11-20"><a href="#cb11-20"></a>    tp <span class="ot">&lt;-</span> <span class="fu">sum</span>(actual <span class="sc">==</span> <span class="dv">1</span> <span class="sc">&amp;</span> predicted <span class="sc">==</span> <span class="dv">1</span>)</span>
+<span id="cb11-21"><a href="#cb11-21"></a>    tn <span class="ot">&lt;-</span> <span class="fu">sum</span>(actual <span class="sc">==</span> <span class="dv">0</span> <span class="sc">&amp;</span> predicted <span class="sc">==</span> <span class="dv">0</span>)</span>
+<span id="cb11-22"><a href="#cb11-22"></a>    fp <span class="ot">&lt;-</span> <span class="fu">sum</span>(actual <span class="sc">==</span> <span class="dv">0</span> <span class="sc">&amp;</span> predicted <span class="sc">==</span> <span class="dv">1</span>)</span>
+<span id="cb11-23"><a href="#cb11-23"></a>    fn <span class="ot">&lt;-</span> <span class="fu">sum</span>(actual <span class="sc">==</span> <span class="dv">1</span> <span class="sc">&amp;</span> predicted <span class="sc">==</span> <span class="dv">0</span>)</span>
+<span id="cb11-24"><a href="#cb11-24"></a>    </span>
+<span id="cb11-25"><a href="#cb11-25"></a>    <span class="fu">return</span>(<span class="fu">list</span>(<span class="at">TP =</span> tp, <span class="at">TN =</span> tn, <span class="at">FP =</span> fp, <span class="at">FN =</span> fn))</span>
+<span id="cb11-26"><a href="#cb11-26"></a>  }</span>
+<span id="cb11-27"><a href="#cb11-27"></a>  </span>
+<span id="cb11-28"><a href="#cb11-28"></a>  cm <span class="ot">&lt;-</span> <span class="fu">calculate_confusion_matrix</span>(true_labels, pred_labels)</span>
+<span id="cb11-29"><a href="#cb11-29"></a>  </span>
+<span id="cb11-30"><a href="#cb11-30"></a>  <span class="co"># 计算各种指标</span></span>
+<span id="cb11-31"><a href="#cb11-31"></a>  accuracy <span class="ot">&lt;-</span> (cm<span class="sc">$</span>TP <span class="sc">+</span> cm<span class="sc">$</span>TN) <span class="sc">/</span> n</span>
+<span id="cb11-32"><a href="#cb11-32"></a>  precision <span class="ot">&lt;-</span> cm<span class="sc">$</span>TP <span class="sc">/</span> (cm<span class="sc">$</span>TP <span class="sc">+</span> cm<span class="sc">$</span>FP)</span>
+<span id="cb11-33"><a href="#cb11-33"></a>  recall <span class="ot">&lt;-</span> cm<span class="sc">$</span>TP <span class="sc">/</span> (cm<span class="sc">$</span>TP <span class="sc">+</span> cm<span class="sc">$</span>FN)</span>
+<span id="cb11-34"><a href="#cb11-34"></a>  f1_score <span class="ot">&lt;-</span> <span class="dv">2</span> <span class="sc">*</span> (precision <span class="sc">*</span> recall) <span class="sc">/</span> (precision <span class="sc">+</span> recall)</span>
+<span id="cb11-35"><a href="#cb11-35"></a>  </span>
+<span id="cb11-36"><a href="#cb11-36"></a>  <span class="co"># 计算AUC</span></span>
+<span id="cb11-37"><a href="#cb11-37"></a>  calculate_auc <span class="ot">&lt;-</span> <span class="cf">function</span>(actual, prob) {</span>
+<span id="cb11-38"><a href="#cb11-38"></a>    <span class="co"># 简单实现AUC计算</span></span>
+<span id="cb11-39"><a href="#cb11-39"></a>    positive_probs <span class="ot">&lt;-</span> prob[actual <span class="sc">==</span> <span class="dv">1</span>]</span>
+<span id="cb11-40"><a href="#cb11-40"></a>    negative_probs <span class="ot">&lt;-</span> prob[actual <span class="sc">==</span> <span class="dv">0</span>]</span>
+<span id="cb11-41"><a href="#cb11-41"></a>    </span>
+<span id="cb11-42"><a href="#cb11-42"></a>    comparisons <span class="ot">&lt;-</span> <span class="dv">0</span></span>
+<span id="cb11-43"><a href="#cb11-43"></a>    correct <span class="ot">&lt;-</span> <span class="dv">0</span></span>
+<span id="cb11-44"><a href="#cb11-44"></a>    </span>
+<span id="cb11-45"><a href="#cb11-45"></a>    <span class="co"># 抽样计算以加快速度</span></span>
+<span id="cb11-46"><a href="#cb11-46"></a>    n_sample <span class="ot">&lt;-</span> <span class="fu">min</span>(<span class="dv">100</span>, <span class="fu">length</span>(positive_probs), <span class="fu">length</span>(negative_probs))</span>
+<span id="cb11-47"><a href="#cb11-47"></a>    pos_sample <span class="ot">&lt;-</span> <span class="fu">sample</span>(positive_probs, n_sample)</span>
+<span id="cb11-48"><a href="#cb11-48"></a>    neg_sample <span class="ot">&lt;-</span> <span class="fu">sample</span>(negative_probs, n_sample)</span>
+<span id="cb11-49"><a href="#cb11-49"></a>    </span>
+<span id="cb11-50"><a href="#cb11-50"></a>    <span class="cf">for</span> (p <span class="cf">in</span> pos_sample) {</span>
+<span id="cb11-51"><a href="#cb11-51"></a>      <span class="cf">for</span> (n <span class="cf">in</span> neg_sample) {</span>
+<span id="cb11-52"><a href="#cb11-52"></a>        comparisons <span class="ot">&lt;-</span> comparisons <span class="sc">+</span> <span class="dv">1</span></span>
+<span id="cb11-53"><a href="#cb11-53"></a>        <span class="cf">if</span> (p <span class="sc">&gt;</span> n) correct <span class="ot">&lt;-</span> correct <span class="sc">+</span> <span class="dv">1</span></span>
+<span id="cb11-54"><a href="#cb11-54"></a>        <span class="cf">else</span> <span class="cf">if</span> (p <span class="sc">==</span> n) correct <span class="ot">&lt;-</span> correct <span class="sc">+</span> <span class="fl">0.5</span></span>
+<span id="cb11-55"><a href="#cb11-55"></a>      }</span>
+<span id="cb11-56"><a href="#cb11-56"></a>    }</span>
+<span id="cb11-57"><a href="#cb11-57"></a>    </span>
+<span id="cb11-58"><a href="#cb11-58"></a>    <span class="fu">return</span>(correct <span class="sc">/</span> comparisons)</span>
+<span id="cb11-59"><a href="#cb11-59"></a>  }</span>
+<span id="cb11-60"><a href="#cb11-60"></a>  </span>
+<span id="cb11-61"><a href="#cb11-61"></a>  auc_score <span class="ot">&lt;-</span> <span class="fu">calculate_auc</span>(true_labels, pred_prob)</span>
+<span id="cb11-62"><a href="#cb11-62"></a>  </span>
+<span id="cb11-63"><a href="#cb11-63"></a>  <span class="fu">cat</span>(<span class="st">"分类评估指标:</span><span class="sc">\n</span><span class="st">"</span>)</span>
+<span id="cb11-64"><a href="#cb11-64"></a>  <span class="fu">cat</span>(<span class="st">"准确率:"</span>, <span class="fu">round</span>(accuracy, <span class="dv">4</span>), <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span>
+<span id="cb11-65"><a href="#cb11-65"></a>  <span class="fu">cat</span>(<span class="st">"精确率:"</span>, <span class="fu">round</span>(precision, <span class="dv">4</span>), <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span>
+<span id="cb11-66"><a href="#cb11-66"></a>  <span class="fu">cat</span>(<span class="st">"召回率:"</span>, <span class="fu">round</span>(recall, <span class="dv">4</span>), <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span>
+<span id="cb11-67"><a href="#cb11-67"></a>  <span class="fu">cat</span>(<span class="st">"F1分数:"</span>, <span class="fu">round</span>(f1_score, <span class="dv">4</span>), <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span>
+<span id="cb11-68"><a href="#cb11-68"></a>  <span class="fu">cat</span>(<span class="st">"AUC:"</span>, <span class="fu">round</span>(auc_score, <span class="dv">4</span>), <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span>
+<span id="cb11-69"><a href="#cb11-69"></a>  </span>
+<span id="cb11-70"><a href="#cb11-70"></a>  <span class="co"># 打印混淆矩阵</span></span>
+<span id="cb11-71"><a href="#cb11-71"></a>  <span class="fu">cat</span>(<span class="st">"</span><span class="sc">\n</span><span class="st">混淆矩阵:</span><span class="sc">\n</span><span class="st">"</span>)</span>
+<span id="cb11-72"><a href="#cb11-72"></a>  confusion_df <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb11-73"><a href="#cb11-73"></a>    <span class="at">Actual_0 =</span> <span class="fu">c</span>(cm<span class="sc">$</span>TN, cm<span class="sc">$</span>FN),</span>
+<span id="cb11-74"><a href="#cb11-74"></a>    <span class="at">Actual_1 =</span> <span class="fu">c</span>(cm<span class="sc">$</span>FP, cm<span class="sc">$</span>TP)</span>
+<span id="cb11-75"><a href="#cb11-75"></a>  )</span>
+<span id="cb11-76"><a href="#cb11-76"></a>  <span class="fu">rownames</span>(confusion_df) <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"Predicted_0"</span>, <span class="st">"Predicted_1"</span>)</span>
+<span id="cb11-77"><a href="#cb11-77"></a>  <span class="fu">print</span>(confusion_df)</span>
+<span id="cb11-78"><a href="#cb11-78"></a>  </span>
+<span id="cb11-79"><a href="#cb11-79"></a>  <span class="co"># 可视化ROC曲线</span></span>
+<span id="cb11-80"><a href="#cb11-80"></a>  plot_roc_curve <span class="ot">&lt;-</span> <span class="cf">function</span>(actual, prob) {</span>
+<span id="cb11-81"><a href="#cb11-81"></a>    thresholds <span class="ot">&lt;-</span> <span class="fu">seq</span>(<span class="dv">0</span>, <span class="dv">1</span>, <span class="fl">0.01</span>)</span>
+<span id="cb11-82"><a href="#cb11-82"></a>    tpr <span class="ot">&lt;-</span> <span class="fu">numeric</span>(<span class="fu">length</span>(thresholds))</span>
+<span id="cb11-83"><a href="#cb11-83"></a>    fpr <span class="ot">&lt;-</span> <span class="fu">numeric</span>(<span class="fu">length</span>(thresholds))</span>
+<span id="cb11-84"><a href="#cb11-84"></a>    </span>
+<span id="cb11-85"><a href="#cb11-85"></a>    <span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="fu">length</span>(thresholds)) {</span>
+<span id="cb11-86"><a href="#cb11-86"></a>      pred <span class="ot">&lt;-</span> <span class="fu">ifelse</span>(prob <span class="sc">&gt;</span> thresholds[i], <span class="dv">1</span>, <span class="dv">0</span>)</span>
+<span id="cb11-87"><a href="#cb11-87"></a>      cm_temp <span class="ot">&lt;-</span> <span class="fu">calculate_confusion_matrix</span>(actual, pred)</span>
+<span id="cb11-88"><a href="#cb11-88"></a>      tpr[i] <span class="ot">&lt;-</span> cm_temp<span class="sc">$</span>TP <span class="sc">/</span> (cm_temp<span class="sc">$</span>TP <span class="sc">+</span> cm_temp<span class="sc">$</span>FN)  <span class="co"># 真正率</span></span>
+<span id="cb11-89"><a href="#cb11-89"></a>      fpr[i] <span class="ot">&lt;-</span> cm_temp<span class="sc">$</span>FP <span class="sc">/</span> (cm_temp<span class="sc">$</span>FP <span class="sc">+</span> cm_temp<span class="sc">$</span>TN)  <span class="co"># 假正率</span></span>
+<span id="cb11-90"><a href="#cb11-90"></a>    }</span>
+<span id="cb11-91"><a href="#cb11-91"></a>    </span>
+<span id="cb11-92"><a href="#cb11-92"></a>    roc_data <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">FPR =</span> fpr, <span class="at">TPR =</span> tpr)</span>
+<span id="cb11-93"><a href="#cb11-93"></a>    </span>
+<span id="cb11-94"><a href="#cb11-94"></a>    <span class="fu">ggplot</span>(roc_data, <span class="fu">aes</span>(<span class="at">x =</span> FPR, <span class="at">y =</span> TPR)) <span class="sc">+</span></span>
+<span id="cb11-95"><a href="#cb11-95"></a>      <span class="fu">geom_line</span>(<span class="at">color =</span> <span class="st">"blue"</span>, <span class="at">size =</span> <span class="dv">1</span>) <span class="sc">+</span></span>
+<span id="cb11-96"><a href="#cb11-96"></a>      <span class="fu">geom_abline</span>(<span class="at">slope =</span> <span class="dv">1</span>, <span class="at">intercept =</span> <span class="dv">0</span>, <span class="at">linetype =</span> <span class="st">"dashed"</span>, <span class="at">color =</span> <span class="st">"gray"</span>) <span class="sc">+</span></span>
+<span id="cb11-97"><a href="#cb11-97"></a>      <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"ROC曲线"</span>,</span>
+<span id="cb11-98"><a href="#cb11-98"></a>           <span class="at">subtitle =</span> <span class="fu">paste</span>(<span class="st">"AUC ="</span>, <span class="fu">round</span>(auc_score, <span class="dv">4</span>)),</span>
+<span id="cb11-99"><a href="#cb11-99"></a>           <span class="at">x =</span> <span class="st">"假正率 (FPR)"</span>, <span class="at">y =</span> <span class="st">"真正率 (TPR)"</span>) <span class="sc">+</span></span>
+<span id="cb11-100"><a href="#cb11-100"></a>      <span class="fu">theme_minimal</span>() <span class="sc">+</span></span>
+<span id="cb11-101"><a href="#cb11-101"></a>      <span class="fu">coord_equal</span>()</span>
+<span id="cb11-102"><a href="#cb11-102"></a>  }</span>
+<span id="cb11-103"><a href="#cb11-103"></a>  </span>
+<span id="cb11-104"><a href="#cb11-104"></a>  roc_plot <span class="ot">&lt;-</span> <span class="fu">plot_roc_curve</span>(true_labels, pred_prob)</span>
+<span id="cb11-105"><a href="#cb11-105"></a>  <span class="fu">print</span>(roc_plot)</span>
+<span id="cb11-106"><a href="#cb11-106"></a>  </span>
+<span id="cb11-107"><a href="#cb11-107"></a>  <span class="fu">return</span>(<span class="fu">list</span>(</span>
+<span id="cb11-108"><a href="#cb11-108"></a>    <span class="at">accuracy =</span> accuracy,</span>
+<span id="cb11-109"><a href="#cb11-109"></a>    <span class="at">precision =</span> precision,</span>
+<span id="cb11-110"><a href="#cb11-110"></a>    <span class="at">recall =</span> recall,</span>
+<span id="cb11-111"><a href="#cb11-111"></a>    <span class="at">f1_score =</span> f1_score,</span>
+<span id="cb11-112"><a href="#cb11-112"></a>    <span class="at">auc =</span> auc_score,</span>
+<span id="cb11-113"><a href="#cb11-113"></a>    <span class="at">confusion_matrix =</span> cm</span>
+<span id="cb11-114"><a href="#cb11-114"></a>  ))</span>
+<span id="cb11-115"><a href="#cb11-115"></a>}</span>
+<span id="cb11-116"><a href="#cb11-116"></a></span>
+<span id="cb11-117"><a href="#cb11-117"></a><span class="co"># 运行分类指标演示</span></span>
+<span id="cb11-118"><a href="#cb11-118"></a>classification_metrics <span class="ot">&lt;-</span> <span class="fu">demonstrate_classification_metrics</span>()</span></code></pre></div><button title="复制到剪贴板" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>分类评估指标:
 准确率: 0.748 

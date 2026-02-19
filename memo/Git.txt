@@ -64,9 +64,20 @@ git remote set-url origin git@github.com:lieville/mpm.git
 git push -u origin main
 
 
-SSH日常推送
+SSH推送
 ssh -T git@github.com  # 测试 SSH 连接
 git remote -v  # 查看当前 Git 项目的远程仓库信息
 git add .    # 添加所有修改
 git commit -m "更新描述" # 提交到本地
 git push -u origin main   # 推送到 GitHub
+
+日常推送
+git add .
+git commit -m "更新引擎"
+git push github main
+
+
+
+git push -u gitee main   # 推送到 Gitee
+
+我的github主页 https://lieville.github.io/
