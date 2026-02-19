@@ -17,27 +17,34 @@ jobs:
       - name: Set up Quarto
         uses: quarto-dev/quarto-actions/setup@v2
 
-      # 安装 R 4.5.2
+      # 先安装系统依赖
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libpng-dev libxml2-dev libssl-dev libcurl4-openssl-dev
+
+      # 安装 Python 3.12（稳定版）
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install Python dependencies
+        run: |
+          pip install jupyter numpy pandas scikit-learn matplotlib seaborn
+
+      # 安装 R
       - name: Set up R
         uses: r-lib/actions/setup-r@v2
         with:
           r-version: '4.5.2'
 
-      # 安装 R 包并配置（关键修复）
-      - name: Install R packages and configure reticulate
+      # 安装 R 包
+      - name: Install R packages
         run: |
           Rscript -e 'install.packages(c("rmarkdown", "downlit", "xml2", "knitr", "reticulate"), repos="https://cloud.r-project.org/")'
-          Rscript -e 'library(reticulate); reticulate::use_python("/usr/bin/python3", required = TRUE)'
-
-      # 安装 Python 3.14
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.14'
-
-      - name: Install Python dependencies
-        run: |
-          pip install jupyter numpy pandas scikit-learn matplotlib seaborn
+          # 验证安装
+          Rscript -e 'library(reticulate); library(knitr); library(rmarkdown)'
 
       - name: Render and Publish
         uses: quarto-dev/quarto-actions/publish@v2
