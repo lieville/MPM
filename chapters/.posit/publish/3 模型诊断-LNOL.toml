@@ -1,0 +1,12 @@
+product_type = 'connect_cloud'
+'$schema' = 'https://cdn.posit.co/publisher/schemas/posit-publishing-schema-v3.json'
+type = 'html'
+entrypoint = 'docs\3残差分析.html'
+source = '3残差分析.qmd'
+validate = true
+files = [
+  '/docs',
+  '/.posit/publish/3 模型诊断-LNOL.toml',
+  '/.posit/publish/deployments/deployment-A2O9.toml'
+]
+title = '3 模型诊断'

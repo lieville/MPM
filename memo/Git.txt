@@ -73,7 +73,7 @@ git push -u origin main   # 推送到 GitHub
 
 日常推送
 git add .
-git commit -m "更新引擎"
+git commit -m "更新2"
 git push github main
 
 
@@ -81,3 +81,14 @@ git push github main
 git push -u gitee main   # 推送到 Gitee
 
 我的github主页 https://lieville.github.io/
+
+
+cd C:\Users\lievi\OneDrive\RPS\现代预测模型
+
+git add .github/workflows/publish.yml
+git commit -m "修改包安转"
+git push github main
+
+git add intro.qmd
+git commit -m "添加intro.qmd"
+git push github main -f
