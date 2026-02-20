@@ -65,8 +65,6 @@ format:
     code-line-numbers: true
     number-sections: false
     css: science-textbook.css
-    mainfont: "Microsoft YaHei"
-    monofont: "Consolas"
     
   docx:
     toc: true
@@ -83,9 +81,6 @@ format:
       - left=3cm
       - right=2.5cm
       - headheight=15pt
-    mainfont: Times New Roman
-    sansfont: Arial
-    monofont: Courier New
     fontsize: 11pt
     linestretch: 1.25
     pdf-engine: xelatex
