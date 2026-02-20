@@ -28,6 +28,8 @@ jobs:
 
       - name: Set up Quarto
         uses: quarto-dev/quarto-actions/setup@v2
+        with:
+          tinytex: true  # 添加这一行自动安装 TinyTeX
 
       # 1. 安装系统依赖
       - name: Install system dependencies
@@ -63,7 +65,6 @@ jobs:
         run: |
           pip install --upgrade pip
           pip install jupyter numpy pandas scikit-learn matplotlib seaborn
-          # 创建requirements.txt以更好地管理依赖
           pip freeze > /tmp/requirements.txt
 
       # 3. 安装R并缓存
@@ -89,17 +90,7 @@ jobs:
           
           Rscript -e '
           options(repos = c(CRAN = "https://cloud.r-project.org/"))
-          
-          # 定义要安装的包
-          packages <- c(
-            "rmarkdown",
-            "knitr",
-            "reticulate",
-            "downlit",
-            "xml2"
-          )
-          
-          # 安装缺失的包
+          packages <- c("rmarkdown", "knitr", "reticulate", "downlit", "xml2")
           installed <- installed.packages()
           to_install <- packages[!packages %in% rownames(installed)]
           
@@ -107,7 +98,6 @@ jobs:
             install.packages(to_install, lib = Sys.getenv("R_LIBS_USER"))
           }
           
-          # 验证安装
           for (pkg in packages) {
             if (!require(pkg, character.only = TRUE, quietly = TRUE)) {
               stop("Failed to load package: ", pkg)
