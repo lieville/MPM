@@ -1,5 +1,6 @@
 project:
   type: book
+  output-dir: docs
   execute-dir: project
   
 lang: zh
@@ -8,15 +9,8 @@ execute:
   enabled: true
   cache: true
   freeze: auto
+  warning: false
   engine: knitr
-  kernel: jupyter  
-  jupyter: python-conda
-  env: base
-  python: false
-  warning: false 
-
-python:
-  python_path: "c/data/anaconda/python.exe"
 
 book:
   title: "现代预测建模：从回归到机器学习"
@@ -24,16 +18,16 @@ book:
   date: "2025-11-26"
 
   chapters: 
-    - intro.qmd 
     - index.qmd
-    - part: I 基础-线性回归模型
+    - intro.qmd
+    - part: "I 基础-线性回归模型"
       chapters:
         - chapters/part-1-introduction.qmd
         - chapters/1预测模型与评估.qmd
         - chapters/2线性回归.qmd
         - chapters/3残差分析.qmd
         - chapters/4自相关.qmd
-    - part: II 扩展——线性分析方法
+    - part: "II 扩展——线性分析方法"
       chapters:
         - chapters/part-2-introduction.qmd
         - chapters/5降维.qmd
@@ -41,14 +35,13 @@ book:
         - chapters/7广义线性模型.qmd
         - chapters/8线性分类模型.qmd
         - chapters/9非线性回归与样条回归.qmd
-    - part: III 进阶——超越线性的机器学习
+    - part: "III 进阶——超越线性的机器学习"
       chapters:
         - chapters/part-3-introduction.qmd
         - chapters/10决策树与集成学习.qmd
         - chapters/11支持向量机.qmd
         - chapters/12神经网络与深度学习基础.qmd
-
-    - part: IV 实践——综合案例分析
+    - part: "IV 实践——综合案例分析"
       chapters:   
         - chapters/part-4-introduction.qmd     
         - chapters/13回归任务与基准测试.qmd
@@ -59,53 +52,33 @@ bibliography: references.bib
 
 format:
   html:
-    toc: true       # 生成目录
-    toc-depth: 2     # 目录深度
+    toc: true
+    toc-depth: 2
     theme: cosmo
     code-link: true
     code-line-numbers: true
-    crossref:
-      chapters: true
     number-sections: false
     css: science-textbook.css
     
   docx:
-    toc: true       # 生成目录
-    toc-depth: 2     # 目录深度
-    documentclass: book
-    crossref:
-      chapters: true
-    number-sections: false      # 章节编号
-    math:
-      engine: omml
-    page-break-before:
-      level: 1                     # 一级标题前分页（章节）
-    fontsize: 12                # 正文字号（磅）
-    css: science-textbook.css
-
-
+    toc: true
+    toc-depth: 2
+    number-sections: false
+    
   pdf:
-    # 文档类配置
-    toc-depth: 2 
-    documentclass: ctexbook 
-    classoption: ["openany"]  # 章节从任意页开始（减少空白页）
-    # classoption: ["oneside", "openany"]  # 单面印刷，章节从任意页开始
-    # 页面布局
+    documentclass: ctexbook
+    classoption: ["openany"]
+    toc-depth: 2
     geometry:
       - top=2.5cm
       - bottom=2.5cm
       - left=3cm
       - right=2.5cm
       - headheight=15pt
-    # 字体配置
     fontsize: 11pt
     linestretch: 1.25
-    pdf-engine: xelatex  
-    include-in-header:
-      - text: \usepackage{ctex}
-      - text: \setCJKmainfont{SimSun}
+    pdf-engine: xelatex
     number-sections: false
 
-  
 editor: source
 

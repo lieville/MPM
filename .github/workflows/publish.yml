@@ -20,18 +20,30 @@ jobs:
       contents: write
     env:
       R_LIBS_USER: /tmp/R/library
-      PYTHON_PACKAGES: /tmp/python/packages
       
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Set up Quarto
         uses: quarto-dev/quarto-actions/setup@v2
         with:
-          tinytex: true  # 添加这一行自动安装 TinyTeX
+          tinytex: true
 
-      # 1. 安装系统依赖
+      # 安装 Python
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      # 安装 Python 包（根据项目需要调整）
+      - name: Install Python dependencies
+        run: |
+          pip install numpy pandas matplotlib seaborn scikit-learn
+
+      # 安装系统依赖
       - name: Install system dependencies
         run: |
           sudo apt-get update
@@ -40,86 +52,66 @@ jobs:
             libxml2-dev \
             libssl-dev \
             libcurl4-openssl-dev \
-            python3-dev \
-            python3-pip
+            libfontconfig1-dev \
+            libharfbuzz-dev \
+            libfribidi-dev \
+            libfreetype6-dev \
+            libtiff5-dev \
+            libjpeg-dev
 
-      # 2. 安装Python并缓存
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-
-      - name: Cache Python packages
-        uses: actions/cache@v4
-        id: cache-python
-        with:
-          path: |
-            ~/.cache/pip
-            ${{ env.PYTHON_PACKAGES }}
-          key: ${{ runner.os }}-python-3.12-${{ hashFiles('**/requirements.txt', '**/pyproject.toml', '**/Pipfile', '**/Pipfile.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-python-3.12-
-
-      - name: Install Python dependencies
-        if: steps.cache-python.outputs.cache-hit != 'true'
+      # 安装中文字体
+      - name: Install Chinese fonts
         run: |
-          pip install --upgrade pip
-          pip install jupyter numpy pandas scikit-learn matplotlib seaborn
-          pip freeze > /tmp/requirements.txt
+          sudo apt-get install -y fonts-noto-cjk texlive-lang-chinese
 
-      # 3. 安装R并缓存
+      # 安装 R
       - name: Set up R
         uses: r-lib/actions/setup-r@v2
         with:
           r-version: '4.5.2'
 
-      - name: Cache R packages
-        uses: actions/cache@v4
-        id: cache-r
-        with:
-          path: ${{ env.R_LIBS_USER }}
-          key: ${{ runner.os }}-r-4.5.2-${{ hashFiles('DESCRIPTION', 'renv.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-r-4.5.2-
-
+      # 安装 R 包依赖（包含 reticulate 用于 Python 集成）
       - name: Install R packages
-        if: steps.cache-r.outputs.cache-hit != 'true'
-        run: |
-          mkdir -p ${{ env.R_LIBS_USER }}
-          echo "R_LIBS_USER=${{ env.R_LIBS_USER }}" >> ~/.Renviron
-          
-          Rscript -e '
-          options(repos = c(CRAN = "https://cloud.r-project.org/"))
-          packages <- c("rmarkdown", "knitr", "reticulate", "downlit", "xml2")
-          installed <- installed.packages()
-          to_install <- packages[!packages %in% rownames(installed)]
-          
-          if (length(to_install) > 0) {
-            install.packages(to_install, lib = Sys.getenv("R_LIBS_USER"))
-          }
-          
-          for (pkg in packages) {
-            if (!require(pkg, character.only = TRUE, quietly = TRUE)) {
-              stop("Failed to load package: ", pkg)
-            }
-          }
-          cat("All R packages installed and loaded successfully\n")
-          '
+        uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          packages: |
+            any::rmarkdown
+            any::knitr
+            any::downlit
+            any::xml2
+            any::ggplot2
+            any::dplyr
+            any::tidyverse
+            any::reticulate
+          extra-packages: |
+            any::rcmdcheck
+          needs: check
 
-      - name: Verify R and Python integration
+      # 配置 reticulate 使用系统 Python
+      - name: Configure R reticulate
         run: |
-          Rscript -e '
-          if (require("reticulate")) {
-            cat("Reticulate version:", as.character(packageVersion("reticulate")), "\n")
-            cat("Python found:", reticulate::py_available(), "\n")
-            if (reticulate::py_available()) {
-              cat("Python version:", reticulate::py_config()$version, "\n")
-            }
-          } else {
-            stop("reticulate package not available")
-          }
-          '
+          Rscript -e "reticulate::use_python('$(which python)', required = TRUE)"
 
+      # 确保 gh-pages 分支存在
+      - name: Ensure gh-pages branch exists
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          
+          if git ls-remote --heads origin gh-pages | grep -q gh-pages; then
+            echo "gh-pages branch already exists"
+          else
+            echo "Creating gh-pages branch..."
+            git checkout --orphan gh-pages
+            git reset --hard
+            git commit --allow-empty -m "Initialize gh-pages branch"
+            git push origin gh-pages
+            git checkout main
+          fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # 渲染并发布
       - name: Render and Publish
         uses: quarto-dev/quarto-actions/publish@v2
         with:
